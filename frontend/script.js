@@ -100,12 +100,21 @@ const elements = {
     startButton: document.getElementById('startTest'),
     connectionStatus: document.getElementById('connectionStatus'),
     themeToggle: document.getElementById('themeToggle'),
+    progressBar: document.getElementById('progressBar'),
     metricCards: {
         download: document.querySelector('[data-metric="download"]'),
         upload: document.querySelector('[data-metric="upload"]'),
         ping: document.querySelector('[data-metric="ping"]'),
         jitter: document.querySelector('[data-metric="jitter"]')
-    }
+    },
+    serverInfoBar: document.getElementById('serverInfo'),
+    serverLocation: document.getElementById('serverLocation'),
+    serverVersion: document.getElementById('serverVersion'),
+    serverLimits: document.getElementById('serverLimits'),
+    historyList: document.getElementById('historyList'),
+    copyLastResult: document.getElementById('copyLastResult'),
+    copyAllResults: document.getElementById('copyAllResults'),
+    clearHistory: document.getElementById('clearHistory')
 };
 
 // ===== Utility Functions =====
@@ -169,6 +178,45 @@ const utils = {
         if (metric && elements.metricCards[metric]) {
             elements.metricCards[metric].classList.add('active');
         }
+    },
+    saveResultHistory(result) {
+        try {
+            const key = 'speed-test-history';
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            existing.unshift(result); // newest first
+            if (existing.length > 50) existing.length = 50; // cap
+            localStorage.setItem(key, JSON.stringify(existing));
+        } catch (e) { /* ignore */ }
+    },
+    loadHistory() {
+        try { return JSON.parse(localStorage.getItem('speed-test-history') || '[]'); } catch { return []; }
+    },
+    renderHistory() {
+        if (!elements.historyList) return;
+        const history = utils.loadHistory();
+        elements.historyList.innerHTML = '';
+        history.forEach((item, idx) => {
+            const li = document.createElement('li');
+            li.className = 'history-item';
+            li.textContent = `${idx + 1}. D:${item.download ?? '-'} U:${item.upload ?? '-'} P:${item.ping ?? '-'} J:${item.jitter ?? '-'} (${item.timestampReadable})`;
+            li.title = new Date(item.timestamp).toISOString();
+            elements.historyList.appendChild(li);
+        });
+    },
+    copyToClipboard(text) {
+        if (navigator.clipboard) return navigator.clipboard.writeText(text);
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch(_) {} finally { document.body.removeChild(ta); }
+    },
+    updateServerInfo(info) {
+        if (!info || !elements.serverInfoBar) return;
+        elements.serverLocation.textContent = `Location: ${info.serverLocation}`;
+        elements.serverVersion.textContent = `Version: ${info.version}`;
+        if (info.maxDownloadSize || info.maxUploadSize) {
+            elements.serverLimits.textContent = `Limits: ↓ ${info.maxDownloadSize}MB / ↑ ${info.maxUploadSize}MB`;
+        }
+        elements.serverInfoBar.hidden = false;
     }
 };
 
@@ -420,9 +468,16 @@ async function runSpeedTest() {
     try {
         const phases = ['ping+jitter', 'download', 'upload'];
         let phaseIndex = 0;
+        const updateProgress = () => {
+            if (!elements.progressBar) return;
+            const percent = Math.min(100, Math.round((phaseIndex / phases.length) * 100));
+            elements.progressBar.style.width = percent + '%';
+        };
+        updateProgress();
 
         // Connection check
         utils.showStatus(`(Prep) Checking connection...`, 'info');
+
         const connected = await api.checkConnection();
         if (!connected) {
             throw new Error('Cannot connect to test server');
@@ -430,7 +485,7 @@ async function runSpeedTest() {
         utils.hideStatus();
 
         // Ping + Jitter
-        phaseIndex = 0;
+    phaseIndex = 0; updateProgress();
         utils.showStatus(`(${phaseIndex+1}/${phases.length}) Measuring latency...`, 'info');
         state.currentTest = 'ping';
         utils.setActiveCard('ping');
@@ -448,7 +503,7 @@ async function runSpeedTest() {
         await utils.delay(400);
 
         // Download
-        phaseIndex = 1;
+    phaseIndex = 1; updateProgress();
         utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing download speed...`, 'info');
         state.currentTest = 'download';
         utils.setActiveCard('download');
@@ -463,7 +518,7 @@ async function runSpeedTest() {
         await utils.delay(400);
 
         // Upload
-        phaseIndex = 2;
+    phaseIndex = 2; updateProgress();
         utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing upload speed...`, 'info');
         state.currentTest = 'upload';
         utils.setActiveCard('upload');
@@ -478,7 +533,19 @@ async function runSpeedTest() {
 
         state.currentTest = null;
         utils.setActiveCard(null);
+        phaseIndex = phases.length; updateProgress();
         utils.showStatus('Test completed (see any error metrics).', 'success');
+        // Persist result summary at end
+        const summary = {
+            timestamp: Date.now(),
+            timestampReadable: new Date().toLocaleString(),
+            download: state.results.download,
+            upload: state.results.upload,
+            ping: state.results.ping,
+            jitter: state.results.jitter
+        };
+        utils.saveResultHistory(summary);
+        utils.renderHistory();
         setTimeout(() => utils.hideStatus(), 4000);
     } catch (error) {
         console.error('Speed test fatal error:', error);
@@ -530,10 +597,30 @@ function init() {
     // Fetch server info to adapt (non-blocking)
     fetch(`${CONFIG.API_BASE_URL.replace(/\/$/, '')}/info`, { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
-        .then(info => { state.info = info; })
+        .then(info => { state.info = info; utils.updateServerInfo(info); })
         .catch(() => {});
 
-    // Check initial connection
+    // History & export buttons
+    utils.renderHistory();
+    if (elements.copyLastResult) {
+        elements.copyLastResult.addEventListener('click', () => {
+            const history = utils.loadHistory();
+            if (history[0]) utils.copyToClipboard(JSON.stringify(history[0], null, 2));
+        });
+    }
+    if (elements.copyAllResults) {
+        elements.copyAllResults.addEventListener('click', () => {
+            utils.copyToClipboard(JSON.stringify(utils.loadHistory(), null, 2));
+        });
+    }
+    if (elements.clearHistory) {
+        elements.clearHistory.addEventListener('click', () => {
+            localStorage.removeItem('speed-test-history');
+            utils.renderHistory();
+        });
+    }
+
+    // Check initial connection (non-blocking UI enhancements above)
     api.checkConnection().then(connected => {
         if (!connected) {
             utils.showStatus('Cannot connect to server. Please ensure the backend is running.', 'error');

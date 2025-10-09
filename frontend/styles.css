@@ -275,6 +275,24 @@ body {
     margin-bottom: var(--spacing-3xl);
 }
 
+/* Progress Bar */
+.progress-wrapper {
+    width: 100%;
+    max-width: 480px;
+    height: 6px;
+    background: var(--color-border-light);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--gradient-primary);
+    width: 0%;
+    transition: width var(--transition-base);
+}
+
 .test-button {
     position: relative;
     padding: var(--spacing-lg) var(--spacing-3xl);
@@ -380,6 +398,18 @@ body {
     border-color: var(--color-primary);
     box-shadow: var(--shadow-lg), var(--shadow-glow);
     transform: translateY(-4px);
+}
+
+/* Error state for metrics */
+.metric-card.metric-error {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 2px rgba(239,68,68,0.3);
+}
+
+/* Focus outline */
+.metric-card:focus-visible {
+    outline: 3px solid var(--color-primary-light);
+    outline-offset: 2px;
 }
 
 .metric-card.active::before {

@@ -12,7 +12,7 @@
 </head>
 <body>
     <!-- Theme Toggle -->
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme" aria-pressed="false">
         <i data-lucide="moon" class="theme-icon"></i>
     </button>
 
@@ -27,23 +27,31 @@
         </header>
 
         <!-- Connection Status -->
-        <div id="connectionStatus" class="connection-status hidden">
+        <div id="connectionStatus" class="connection-status hidden" role="status" aria-live="polite">
             <i data-lucide="alert-circle" class="status-icon"></i>
             <span class="status-text"></span>
         </div>
 
         <!-- Test Section -->
         <div class="test-section">
-            <button id="startTest" class="test-button">
+            <div class="progress-wrapper" aria-hidden="true">
+                <div class="progress-bar" id="progressBar" style="width:0%"></div>
+            </div>
+            <button id="startTest" class="test-button" aria-describedby="progressBar" aria-label="Start speed test">
                 <span class="button-text">Start Test</span>
             </button>
         </div>
 
         <!-- Results Container -->
         <div class="results-container">
-            <div class="results-grid">
+            <div class="server-info-bar" id="serverInfo" aria-live="polite" hidden>
+                <span class="server-location" id="serverLocation"></span>
+                <span class="server-version" id="serverVersion"></span>
+                <span class="server-limits" id="serverLimits"></span>
+            </div>
+            <div class="results-grid" role="grid" aria-label="Speed test metrics">
                 <!-- Download Speed -->
-                <div class="metric-card" data-metric="download">
+                <div class="metric-card" data-metric="download" role="gridcell" tabindex="0" aria-label="Download speed metric">
                     <div class="metric-card-content">
                         <div class="metric-header">
                             <div class="metric-icon-wrapper">
@@ -62,7 +70,7 @@
                 </div>
 
                 <!-- Upload Speed -->
-                <div class="metric-card" data-metric="upload">
+                <div class="metric-card" data-metric="upload" role="gridcell" tabindex="0" aria-label="Upload speed metric">
                     <div class="metric-card-content">
                         <div class="metric-header">
                             <div class="metric-icon-wrapper">
@@ -81,7 +89,7 @@
                 </div>
 
                 <!-- Ping -->
-                <div class="metric-card" data-metric="ping">
+                <div class="metric-card" data-metric="ping" role="gridcell" tabindex="0" aria-label="Ping latency metric">
                     <div class="metric-card-content">
                         <div class="metric-header">
                             <div class="metric-icon-wrapper">
@@ -100,7 +108,7 @@
                 </div>
 
                 <!-- Jitter -->
-                <div class="metric-card" data-metric="jitter">
+                <div class="metric-card" data-metric="jitter" role="gridcell" tabindex="0" aria-label="Jitter metric">
                     <div class="metric-card-content">
                         <div class="metric-header">
                             <div class="metric-icon-wrapper">
@@ -391,6 +399,25 @@
                 ensure no other devices are heavily using the network during testing. Results vary based 
                 on server location, network conditions, and time of day.
             </div>
+        </div>
+
+        <!-- Results History / Export -->
+        <div class="history-section" id="historySection">
+            <div class="history-header">
+                <h2 class="education-title" style="margin:0;">Test History</h2>
+                <div class="history-actions">
+                    <button id="copyLastResult" class="test-button" style="padding:0.5rem 1rem;font-size:0.875rem;">
+                        <span class="button-text">Copy Last JSON</span>
+                    </button>
+                    <button id="copyAllResults" class="test-button" style="padding:0.5rem 1rem;font-size:0.875rem;">
+                        <span class="button-text">Copy All JSON</span>
+                    </button>
+                    <button id="clearHistory" class="test-button" style="padding:0.5rem 1rem;font-size:0.875rem;">
+                        <span class="button-text">Clear History</span>
+                    </button>
+                </div>
+            </div>
+            <ul id="historyList" class="history-list" aria-label="Previous test results"></ul>
         </div>
     </div>
 

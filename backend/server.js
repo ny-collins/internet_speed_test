@@ -226,19 +226,25 @@ app.use((req, res) => {
 });
 
 // Start server
-const server = app.listen(PORT, () => {
-  console.log(`Speed test server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Server location: ${process.env.SERVER_LOCATION || 'Unknown'}`);
-  console.log(`CORS Origin(s): ${CORS_ORIGIN}`);
-  console.log(`Max download size: ${MAX_DOWNLOAD_SIZE_MB}MB`);
-});
+let server;
+if (require.main === module) {
+  server = app.listen(PORT, () => {
+    console.log(`Speed test server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Server location: ${process.env.SERVER_LOCATION || 'Unknown'}`);
+    console.log(`CORS Origin(s): ${CORS_ORIGIN}`);
+    console.log(`Max download size: ${MAX_DOWNLOAD_SIZE_MB}MB`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
+  if (!server) return process.exit(0);
   console.log('SIGTERM received, closing server...');
   server.close(() => {
     console.log('Server closed');
     process.exit(0);
   });
 });
+
+module.exports = { app };
