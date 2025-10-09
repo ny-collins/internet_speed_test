@@ -76,12 +76,12 @@ app.get('/api/download', (req, res) => {
   if (sizeInMB < 1) sizeInMB = 1;
   if (sizeInMB > MAX_DOWNLOAD_SIZE_MB) sizeInMB = MAX_DOWNLOAD_SIZE_MB; // clamp
   const sizeInBytes = sizeInMB * 1024 * 1024;
-  
-  // Generate random data for download
-  // Using crypto for better randomness distribution
-  const chunks = [];
-  const chunkSize = 64 * 1024; // 64KB chunks
-  const numChunks = Math.ceil(sizeInBytes / chunkSize);
+  // Optional chunk size (KB) parameter for performance tuning
+  let chunkKB = parseInt(req.query.chunk, 10);
+  if (isNaN(chunkKB) || chunkKB < 16) chunkKB = 64; // min 16KB
+  if (chunkKB > 1024) chunkKB = 1024; // cap 1MB chunks to avoid huge memory use
+  const chunkSize = chunkKB * 1024;
+  // Using crypto random bytes per chunk; streaming directly to response
   
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', sizeInBytes);

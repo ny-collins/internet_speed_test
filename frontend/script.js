@@ -23,7 +23,12 @@ const CONFIG = {
     PING_COUNT: 10,
     DOWNLOAD_SIZE_MB: 5,
     UPLOAD_SIZE_MB: 2,
-    TIMEOUT_MS: 30000
+    TIMEOUT_MS: 30000,
+    DOWNLOAD_THREADS: 4, // parallel streams
+    MIN_DOWNLOAD_DURATION_MS: 3500,
+    MAX_DOWNLOAD_DURATION_MS: 8000,
+    STABILITY_WINDOW_MS: 1200, // window to assess stabilization
+    STABILITY_VARIANCE_PCT: 5 // stop early if variance within this percent
 };
 
 // ===== Theme Management =====
@@ -146,6 +151,19 @@ const utils = {
         const radius = 90;
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 220 220');
+        // Gradient definition
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const lg = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        lg.setAttribute('id','gaugeGradient');
+        lg.setAttribute('x1','0%'); lg.setAttribute('y1','0%');
+        lg.setAttribute('x2','100%'); lg.setAttribute('y2','0%');
+        const stops = [
+            {o: '0%', c: 'var(--color-primary)'},
+            {o: '50%', c: 'var(--color-accent)'},
+            {o: '100%', c: 'var(--color-success)'}
+        ];
+        stops.forEach(s => { const st = document.createElementNS('http://www.w3.org/2000/svg','stop'); st.setAttribute('offset', s.o); st.setAttribute('stop-color', s.c); lg.appendChild(st); });
+        defs.appendChild(lg); svg.appendChild(defs);
         const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         track.setAttribute('cx','110'); track.setAttribute('cy','110'); track.setAttribute('r', radius);
         track.classList.add('gauge-track');
@@ -167,10 +185,45 @@ const utils = {
         const cap = document.createElement('div'); cap.className = 'gauge-center-cap';
         const live = document.createElement('div'); live.className = 'gauge-value-live'; live.textContent = '—';
         const label = document.createElement('div'); label.className = 'gauge-phase-label'; label.textContent = '';
+        // Zone band overlay
+        const zoneBand = document.createElement('div'); zoneBand.className = 'gauge-zone-band';
+        // Ticks (every 10 degrees inside 270 sweep). Sweep from -135 to +135.
+        const tickContainer = document.createElement('div'); tickContainer.className = 'gauge-ticks';
+        const totalSweep = 270;
+        const startAngle = -135;
+        for (let i=0;i<=27;i++) { // 0..27 inclusive (every 10 degrees)
+            const deg = startAngle + (totalSweep/27)*i;
+            const tick = document.createElement('div');
+            const strong = i % 3 === 0; // every 30 degrees stronger
+            tick.className = strong ? 'gauge-tick-strong' : 'gauge-tick';
+            tick.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
+            tickContainer.appendChild(tick);
+            if (strong) {
+                const lbl = document.createElement('div');
+                lbl.className = 'gauge-scale-label';
+                lbl.textContent = i === 0 ? '0' : '';
+                lbl.style.left = '50%';
+                lbl.style.top = '50%';
+                const r = 102; // radius for labels
+                const rad = (deg*Math.PI)/180;
+                const x = Math.cos(rad)*r;
+                const y = Math.sin(rad)*r;
+                lbl.style.transform = `translate(${x}px, ${y}px)`;
+                tickContainer.appendChild(lbl);
+            }
+        }
         wrapper.appendChild(gaugeDiv); wrapper.appendChild(needle); wrapper.appendChild(cap); wrapper.appendChild(live); wrapper.appendChild(label);
+        wrapper.appendChild(zoneBand); wrapper.appendChild(tickContainer);
         container.appendChild(wrapper);
         container._built = true;
-        container._gauge = { prog, needle, live, label, dashArray, gap, lastValue: 0, max: 100 };
+        // Store references for dynamic scale labels we will create now
+        const scaleLabels = { zero: null, mid: null, max: null };
+        // Create mid & max labels (initial placement approximated; updated on rescale)
+        const mkLabel = (cls) => { const el = document.createElement('div'); el.className = 'gauge-scale-label '+cls; tickContainer.appendChild(el); return el; };
+        scaleLabels.zero = Array.from(tickContainer.querySelectorAll('.gauge-scale-label')).find(el=>el.textContent==='0');
+        scaleLabels.mid = mkLabel('gauge-scale-label-mid');
+        scaleLabels.max = mkLabel('gauge-scale-label-max');
+        container._gauge = { prog, needle, live, label, dashArray, gap, lastValue: 0, max: 100, scaleLabels };
     },
     setGaugePhase(phase) {
         const container = document.getElementById('mainGaugeContainer');
@@ -191,8 +244,21 @@ const utils = {
         const g = container._gauge;
         // Adaptive scaling
         if (rawVal > g.max * 0.95) {
-            const tiers = [50,100,200,500,1000,2000];
+            const tiers = [50,100,200,500,1000,2000,5000];
             for (const t of tiers) { if (rawVal <= t) { g.max = t; break; } }
+            // Update scale labels (0, mid, max) positions & text after rescale
+            if (g.scaleLabels) {
+                const { zero, mid, max } = g.scaleLabels;
+                const place = (el, frac, text) => {
+                    if (!el) return;
+                    const startAngle = -135; const sweep = 270; const ang = (startAngle + sweep * frac) * Math.PI/180;
+                    const r = 102; const x = Math.cos(ang)*r; const y = Math.sin(ang)*r;
+                    el.style.transform = `translate(${x}px, ${y}px)`; el.textContent = text;
+                };
+                place(zero, 0, '0');
+                place(mid, 0.5, g.max >= 1000 ? (g.max/2 >= 1000 ? (g.max/2000)+'G' : (g.max/2)) : g.max/2);
+                place(max, 1, g.max >= 1000 ? (g.max/1000)+'G' : g.max);
+            }
         }
         const start = g.lastValue || 0;
         const end = Math.min(rawVal, g.max);
@@ -431,75 +497,97 @@ const api = {
     },
     
     async measureDownload() {
-        // DOWNLOAD TEST METHODOLOGY
-        // 1. Begin fetch; only start timing at first chunk arrival to exclude handshake + initial RTT.
-        // 2. Stream chunks via readable stream reader; accumulate bytes.
-        // 3. Update gauge using moving average of last few instantaneous Mbps samples (~stabilizes jitter).
-        // 4. Compute final Mbps = total_bits / elapsed_seconds (elapsed from first chunk).
-        // 5. Increase minimum size to reduce slow-start bias; still single connection (multi-conn could improve further).
-        // Streaming download implementation with live updates
-        // Methodology: start timing at first received chunk to avoid inflating with initial RTT/headers.
-        // We request a target size, but may adapt later if needed.
-        try {
-            utils.buildMainGauge();
-            utils.setGaugePhase('download');
+        // MULTI-THREAD STREAMING DOWNLOAD METHODOLOGY
+        // - Launch N parallel fetch streams to better saturate high-bandwidth connections and reduce single TCP slow-start impact.
+        // - Start timer at first chunk across all threads.
+        // - Continuously aggregate total bytes and compute moving average throughput.
+        // - Run for at least MIN_DOWNLOAD_DURATION_MS; allow early stop if recent variance < STABILITY_VARIANCE_PCT over STABILITY_WINDOW_MS.
+        // - Hard stop at MAX_DOWNLOAD_DURATION_MS.
+        utils.buildMainGauge();
+        utils.setGaugePhase('download');
+        const threads = CONFIG.DOWNLOAD_THREADS;
+        const targetMBPerThread = Math.max(CONFIG.DOWNLOAD_SIZE_MB, 10); // each thread target baseline size
+        const controllers = [];
+        const readers = [];
+        const states = Array.from({length: threads}, () => ({ bytes:0, done:false }));
+        let firstChunkTime = null;
+        const samples = []; // {t, mbps}
+        let aggBytes = 0;
+        const startWall = performance.now();
+        const minDuration = CONFIG.MIN_DOWNLOAD_DURATION_MS;
+        const maxDuration = CONFIG.MAX_DOWNLOAD_DURATION_MS;
+        const stabilityWindow = CONFIG.STABILITY_WINDOW_MS;
+        const variancePct = CONFIG.STABILITY_VARIANCE_PCT;
+        let stopped = false;
+        const launchThread = async (i) => {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
-            const targetMB = Math.max(CONFIG.DOWNLOAD_SIZE_MB, 10); // ensure at least 10MB for better accuracy
-            const response = await fetch(`${CONFIG.API_BASE_URL}/download?size=${targetMB}`, {
-                method: 'GET',
-                cache: 'no-store',
-                signal: controller.signal
-            });
-            clearTimeout(timeout);
-            if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
-            const reader = response.body.getReader();
-            let receivedBytes = 0;
-            let firstChunkTime = null;
-            const t0 = performance.now(); // request start (for diagnostic)
-            const samples = [];
-            let lastUpdate = 0;
-            const updateInterval = 120; // ms
-            const startTimeRef = { value: null };
-            const updateGauge = () => {
-                if (startTimeRef.value === null) return; // no data yet
-                const elapsed = (performance.now() - startTimeRef.value) / 1000;
-                if (elapsed <= 0) return;
-                const bits = receivedBytes * 8;
-                const instMbps = bits / (elapsed * 1_000_000);
-                samples.push(instMbps);
-                // use a short moving average of last 5 samples for stability
-                const recent = samples.slice(-5);
-                const avg = recent.reduce((a,b)=>a+b,0)/recent.length;
-                utils.animateMainGauge(avg);
-            };
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                if (!firstChunkTime) {
-                    firstChunkTime = performance.now();
-                    startTimeRef.value = firstChunkTime;
+            controllers.push(controller);
+            try {
+                const resp = await fetch(`${CONFIG.API_BASE_URL}/download?size=${targetMBPerThread}`, { cache:'no-store', signal: controller.signal });
+                if (!resp.ok || !resp.body) throw new Error('Thread HTTP '+resp.status);
+                const reader = resp.body.getReader();
+                readers.push(reader);
+                while (!stopped) {
+                    const {done, value} = await reader.read();
+                    if (done) { states[i].done = true; break; }
+                    if (value) {
+                        if (!firstChunkTime) firstChunkTime = performance.now();
+                        states[i].bytes += value.length;
+                        aggBytes += value.length;
+                    }
                 }
-                receivedBytes += value.length;
-                const now = performance.now();
-                if (now - lastUpdate > updateInterval) {
-                    lastUpdate = now;
-                    updateGauge();
-                }
+            } catch(e) {
+                states[i].done = true; // mark as done on error
             }
-            // Final update
-            updateGauge();
-            const endTime = performance.now();
-            const start = startTimeRef.value || t0; // fallback
-            const durationSeconds = (endTime - start) / 1000;
-            if (durationSeconds === 0) throw new Error('No duration measured');
-            const bitsDownloaded = receivedBytes * 8;
-            const speedMbps = bitsDownloaded / (durationSeconds * 1_000_000);
-            return utils.formatNumber(speedMbps, 2);
-        } catch (error) {
-            console.error('Download test failed:', error);
-            throw error;
-        }
+        };
+        // Launch all threads concurrently
+        await Promise.all(Array.from({length: threads}, (_,i)=>launchThread(i)));
+        // Real-time monitor loop
+        const monitor = async () => {
+            while (!stopped) {
+                await utils.delay(120);
+                if (!firstChunkTime) continue;
+                const now = performance.now();
+                const elapsed = (now - firstChunkTime)/1000;
+                if (elapsed <= 0) continue;
+                const bits = aggBytes * 8;
+                const mbps = bits / (elapsed * 1_000_000);
+                samples.push({t: now, v: mbps});
+                // Keep last 50 samples
+                if (samples.length > 50) samples.shift();
+                // Compute moving average last ~600ms
+                const recent = samples.filter(s => now - s.t <= 600);
+                if (recent.length) {
+                    const avg = recent.reduce((a,b)=>a+b.v,0)/recent.length;
+                    utils.animateMainGauge(avg);
+                }
+                const totalElapsedMs = now - startWall;
+                if (totalElapsedMs >= minDuration) {
+                    // Stability check over stabilityWindow
+                    const windowSamples = samples.filter(s => now - s.t <= stabilityWindow);
+                    if (windowSamples.length >= 5) {
+                        const vals = windowSamples.map(s=>s.v);
+                        const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+                        const min = Math.min(...vals), max = Math.max(...vals);
+                        const spread = ((max - min)/mean)*100;
+                        if (spread <= variancePct) {
+                            stopped = true; break;
+                        }
+                    }
+                }
+                if (totalElapsedMs >= maxDuration) { stopped = true; break; }
+            }
+        };
+        await monitor();
+        // Abort any still-running fetches
+        controllers.forEach(c=>{ try { c.abort(); } catch(_) {} });
+        const end = performance.now();
+        if (!firstChunkTime) throw new Error('No data received');
+        const durationSeconds = (end - firstChunkTime)/1000;
+        if (durationSeconds <= 0) throw new Error('Invalid duration');
+        const bits = aggBytes * 8;
+        const finalMbps = bits / (durationSeconds * 1_000_000);
+        return utils.formatNumber(finalMbps, 2);
     },
     
     async measureUpload() {
