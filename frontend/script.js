@@ -929,14 +929,15 @@ function updateGauge(speed, phase) {
         // Calculate max scale dynamically
         const maxSpeed = calculateMaxScale(speed);
         
-        // Update CSS circular progress
+        // Update CSS circular progress (inverted U orientation)
         if (progressRing) {
             const percentage = Math.min(speed / maxSpeed, 1);
             const degrees = percentage * 270; // 270° arc
             
-            // Update conic-gradient to show progress
+            // Update conic-gradient to show progress (from -135deg for inverted U)
             progressRing.style.background = `conic-gradient(
-                from 135deg,
+                from -135deg,
+                transparent 0deg,
                 #3b82f6 0deg,
                 #8b5cf6 ${degrees / 2}deg,
                 #ec4899 ${degrees}deg,

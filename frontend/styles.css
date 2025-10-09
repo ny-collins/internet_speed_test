@@ -425,8 +425,10 @@ body {
     width: 100%;
     height: 100%;
     border-radius: 50%;
+    /* Background ring - inverted U shape (starts at bottom left, goes to bottom right) */
     background: conic-gradient(
-        from 135deg,
+        from -135deg,
+        transparent 0deg,
         var(--color-border) 0deg,
         var(--color-border) 270deg,
         transparent 270deg
@@ -440,25 +442,28 @@ body {
     position: absolute;
     inset: 0;
     border-radius: 50%;
+    /* Progress gradient - same orientation as background */
     background: conic-gradient(
-        from 135deg,
+        from -135deg,
+        transparent 0deg,
         #3b82f6 0deg,
         #8b5cf6 135deg,
         #ec4899 270deg,
         transparent 270deg
     );
+    /* Thicker ring - from 55% to 100% instead of 70% to 100% */
     mask: radial-gradient(
         circle,
         transparent 0%,
-        transparent 70%,
-        black 70%,
+        transparent 55%,
+        black 55%,
         black 100%
     );
     -webkit-mask: radial-gradient(
         circle,
         transparent 0%,
-        transparent 70%,
-        black 70%,
+        transparent 55%,
+        black 55%,
         black 100%
     );
     opacity: 0;
@@ -467,8 +472,8 @@ body {
 
 .gauge-inner {
     position: relative;
-    width: 80%;
-    height: 80%;
+    width: 65%;
+    height: 65%;
     border-radius: 50%;
     background: var(--color-bg-primary);
     display: flex;
@@ -597,6 +602,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .matrix-label {
@@ -842,7 +849,7 @@ body {
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {
     .app-container {
-        padding: var(--spacing-md);
+        padding: var(--spacing-md) var(--spacing-sm);
     }
     
     .header {
@@ -888,12 +895,15 @@ body {
     
     .results-matrix {
         gap: var(--spacing-sm);
+        width: 100%;
+        max-width: 100%;
     }
     
     .matrix-card {
-        padding: var(--spacing-lg);
-        min-height: 100px;
-        gap: var(--spacing-md);
+        padding: var(--spacing-md) var(--spacing-sm);
+        min-height: 90px;
+        gap: var(--spacing-sm);
+        min-width: 0;
     }
     
     .matrix-icon {
