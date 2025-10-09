@@ -450,6 +450,78 @@ body {
     letter-spacing: 0.02em;
 }
 
+/* Round START button */
+.gauge-start-button {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-xl);
+    z-index: 20;
+}
+
+.gauge-start-button:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+}
+
+.gauge-start-button:active {
+    transform: translate(-50%, -50%) scale(0.98);
+}
+
+.start-button-text {
+    display: block;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Gauge needle pointer */
+.gauge-needle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 45%;
+    background: linear-gradient(to bottom, 
+        var(--color-danger),
+        transparent
+    );
+    border-radius: var(--radius-full) var(--radius-full) 0 0;
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotate(-135deg);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 15;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Scale labels along arc */
+.gauge-scale-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.gauge-scale-label {
+    position: absolute;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    font-variant-numeric: tabular-nums;
+    transform: translate(-50%, -50%);
+    user-select: none;
+}
+
 /* ===== Results Matrix (2x2 Grid) ===== */
 .results-matrix {
     display: grid;
@@ -790,6 +862,14 @@ body {
     
     .gauge-phase-label {
         font-size: var(--font-size-xs);
+    }
+    
+    .gauge-start-button {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+    }
+    
+    .gauge-scale-label {
+        font-size: 0.65rem;
     }
     
     .results-matrix {

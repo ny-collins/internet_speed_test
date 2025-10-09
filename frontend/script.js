@@ -63,6 +63,7 @@ const STATE = {
     currentPhase: null,
     gaugeElement: null,
     gaugeChart: null,
+    lastMaxScale: 100,
     testResults: {
         download: null,
         upload: null,
@@ -262,6 +263,7 @@ function initializeEventListeners() {
     // Test controls
     document.getElementById('startTest')?.addEventListener('click', startTest);
     document.getElementById('cancelTest')?.addEventListener('click', cancelTest);
+    document.getElementById('gaugeStartButton')?.addEventListener('click', startTest);
     
     // History actions
     document.getElementById('clearHistory')?.addEventListener('click', clearHistory);
@@ -355,6 +357,9 @@ async function startTest() {
         latency: null,
         jitter: null
     };
+    
+    // Show gauge and hide start button
+    showGauge();
     
     // Update UI
     const startBtn = document.getElementById('startTest');
@@ -922,6 +927,81 @@ function buildMainGauge() {
             }
         }
     });
+    
+    // Build scale labels along the arc
+    buildScaleLabels(100); // Initial max of 100
+}
+
+function buildScaleLabels(maxSpeed) {
+    const container = document.getElementById('gaugeScaleLabels');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Create 5-6 labels along the arc
+    const numLabels = 6;
+    const labels = [];
+    for (let i = 0; i <= numLabels; i++) {
+        const value = Math.round((maxSpeed / numLabels) * i);
+        labels.push(value);
+    }
+    
+    labels.forEach((value, index) => {
+        const label = document.createElement('div');
+        label.className = 'gauge-scale-label';
+        label.textContent = value;
+        
+        // Calculate position along arc (270° from -135° to 135°)
+        const startAngle = -135;
+        const endAngle = 135;
+        const totalAngle = endAngle - startAngle;
+        const angle = startAngle + (totalAngle * index / numLabels);
+        const angleRad = (angle * Math.PI) / 180;
+        
+        // Position at radius ~48% from center
+        const radius = 48;
+        const x = 50 + Math.cos(angleRad) * radius;
+        const y = 50 + Math.sin(angleRad) * radius;
+        
+        label.style.left = `${x}%`;
+        label.style.top = `${y}%`;
+        
+        container.appendChild(label);
+    });
+}
+
+function showGauge() {
+    // Hide start button
+    const startButton = document.getElementById('gaugeStartButton');
+    if (startButton) startButton.hidden = true;
+    
+    // Show gauge elements
+    const canvas = document.getElementById('speedGauge');
+    const centerText = document.getElementById('gaugeCenterText');
+    const needle = document.getElementById('gaugeNeedle');
+    const scaleLabels = document.getElementById('gaugeScaleLabels');
+    
+    if (canvas) canvas.hidden = false;
+    if (centerText) centerText.hidden = false;
+    if (needle) needle.hidden = false;
+    if (scaleLabels) scaleLabels.hidden = false;
+}
+
+function hideGauge() {
+    // Show start button
+    const startButton = document.getElementById('gaugeStartButton');
+    if (startButton) startButton.hidden = false;
+    
+    // Hide gauge elements
+    const canvas = document.getElementById('speedGauge');
+    const centerText = document.getElementById('gaugeCenterText');
+    const needle = document.getElementById('gaugeNeedle');
+    const scaleLabels = document.getElementById('gaugeScaleLabels');
+    
+    if (canvas) canvas.hidden = true;
+    if (centerText) centerText.hidden = true;
+    if (needle) needle.hidden = true;
+    if (scaleLabels) scaleLabels.hidden = true;
 }
 
 function updateGauge(speed, phase) {
@@ -940,11 +1020,26 @@ function updateGauge(speed, phase) {
         // Calculate max scale dynamically
         const maxSpeed = calculateMaxScale(speed);
         
+        // Update scale labels if max changed
+        if (STATE.lastMaxScale !== maxSpeed) {
+            buildScaleLabels(maxSpeed);
+            STATE.lastMaxScale = maxSpeed;
+        }
+        
         // Update Chart.js gauge
         if (STATE.gaugeChart) {
             const percentage = Math.min((speed / maxSpeed) * 100, 100);
             STATE.gaugeChart.data.datasets[0].data = [percentage, 100 - percentage];
             STATE.gaugeChart.update('none'); // Update without animation for smooth real-time updates
+        }
+        
+        // Update needle position
+        const needle = document.getElementById('gaugeNeedle');
+        if (needle) {
+            const percentage = Math.min(speed / maxSpeed, 1);
+            // Rotate from -135° to 135° (270° range)
+            const angle = -135 + (percentage * 270);
+            needle.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
         }
         
         STATE.rafId = null;
@@ -968,6 +1063,7 @@ function calculateMaxScale(currentSpeed) {
 function resetGauge() {
     const value = document.getElementById('gaugeValue');
     const phaseLabel = document.getElementById('gaugePhase');
+    const needle = document.getElementById('gaugeNeedle');
     
     if (value) value.textContent = '0';
     if (phaseLabel) phaseLabel.textContent = 'Ready';
@@ -976,6 +1072,18 @@ function resetGauge() {
         STATE.gaugeChart.data.datasets[0].data = [0, 100];
         STATE.gaugeChart.update('none');
     }
+    
+    // Reset needle to start position
+    if (needle) {
+        needle.style.transform = 'translate(-50%, -100%) rotate(-135deg)';
+    }
+    
+    // Reset scale labels
+    STATE.lastMaxScale = 100;
+    buildScaleLabels(100);
+    
+    // Hide gauge and show start button
+    hideGauge();
 }
 
 // ========================================

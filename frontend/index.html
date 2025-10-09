@@ -99,12 +99,24 @@
                 <!-- Speedometer Gauge -->
                 <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
                     <div class="gauge-wrapper">
-                        <canvas id="speedGauge"></canvas>
-                        <div class="gauge-center-text">
+                        <!-- Round START button (shows before test) -->
+                        <button class="gauge-start-button" id="gaugeStartButton" aria-label="Start speed test">
+                            <span class="start-button-text">START</span>
+                        </button>
+                        
+                        <!-- Gauge (shows during test) -->
+                        <canvas id="speedGauge" hidden></canvas>
+                        <div class="gauge-center-text" id="gaugeCenterText" hidden>
                             <div class="gauge-value-live" id="gaugeValue">0</div>
                             <div class="gauge-unit" id="gaugeUnit">Mbps</div>
                             <div class="gauge-phase-label" id="gaugePhase">Ready</div>
                         </div>
+                        
+                        <!-- Needle pointer -->
+                        <div class="gauge-needle" id="gaugeNeedle" hidden></div>
+                        
+                        <!-- Scale labels along arc -->
+                        <div class="gauge-scale-labels" id="gaugeScaleLabels" hidden></div>
                     </div>
                 </div>
 
