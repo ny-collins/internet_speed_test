@@ -11,17 +11,18 @@ const MAX_UPLOAD_SIZE_MB = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // Middleware
+// Support comma-separated list of allowed origins
+const allowedOrigins = CORS_ORIGIN === '*' ? '*' : new Set(CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean));
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || CORS_ORIGIN === '*' || origin === CORS_ORIGIN) {
-      return callback(null, true);
-    }
+    if (!origin) return callback(null, true); // same-origin / curl
+    if (allowedOrigins === '*' || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   }
 }));
 app.use(compression());
 app.use(express.json());
-app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
+// Removed global express.raw to allow streaming measurement of upload speed without buffering entire body first.
 
 // (Removed unused pingStore to reduce memory footprint)
 
@@ -94,16 +95,24 @@ app.get('/api/download', (req, res) => {
 app.post('/api/upload', (req, res) => {
   const startTime = Date.now();
   let receivedBytes = 0;
-  
+  const byteLimit = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+  let aborted = false;
+
   req.on('data', (chunk) => {
+    if (aborted) return;
     receivedBytes += chunk.length;
+    if (receivedBytes > byteLimit) {
+      aborted = true;
+      req.destroy();
+      return res.status(413).json({ error: 'Upload too large', limitBytes: byteLimit });
+    }
   });
-  
+
   req.on('end', () => {
+    if (aborted) return; // already responded
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000; // seconds
     const speedMbps = (receivedBytes * 8) / (duration * 1000000);
-    
     res.json({
       success: true,
       receivedBytes,
@@ -111,10 +120,13 @@ app.post('/api/upload', (req, res) => {
       speedMbps: Math.round(speedMbps * 100) / 100
     });
   });
-  
+
   req.on('error', (err) => {
+    if (aborted) return;
     console.error('Upload error:', err);
-    res.status(500).json({ error: 'Upload failed' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Upload failed' });
+    }
   });
 });
 
@@ -144,7 +156,7 @@ app.get('/api/info', (req, res) => {
     maxDownloadSize: MAX_DOWNLOAD_SIZE_MB, // MB
     maxUploadSize: MAX_UPLOAD_SIZE_MB, // MB (advisory)
     supportedTests: ['ping', 'download', 'upload', 'jitter'],
-    version: '1.0.1'
+    version: '1.0.2'
   });
 });
 
@@ -189,7 +201,7 @@ const server = app.listen(PORT, () => {
   console.log(`Speed test server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Server location: ${process.env.SERVER_LOCATION || 'Unknown'}`);
-  console.log(`CORS Origin: ${CORS_ORIGIN}`);
+  console.log(`CORS Origin(s): ${CORS_ORIGIN}`);
   console.log(`Max download size: ${MAX_DOWNLOAD_SIZE_MB}MB`);
 });
 

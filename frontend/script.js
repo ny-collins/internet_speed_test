@@ -329,12 +329,15 @@ const api = {
         // Generate random data for upload
         const uploadSize = CONFIG.UPLOAD_SIZE_MB * 1024 * 1024;
         const data = new Uint8Array(uploadSize);
-        
-        // Fill with random data
-        for (let i = 0; i < uploadSize; i++) {
-            data[i] = Math.floor(Math.random() * 256);
+        // Prefer cryptographically strong fill if available for speed
+        if (window.crypto && window.crypto.getRandomValues) {
+            window.crypto.getRandomValues(data);
+        } else {
+            for (let i = 0; i < uploadSize; i++) {
+                data[i] = Math.floor(Math.random() * 256);
+            }
         }
-        
+
         const startTime = performance.now();
         
         try {
@@ -357,13 +360,24 @@ const api = {
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
+
+            // Optionally read JSON for server-side computed speed (authoritative)
+            let serverReported = null;
+            try {
+                serverReported = await response.json();
+            } catch (e) {
+                // ignore parse issues; we'll compute client-side
+            }
             
             // Calculate speed
             const durationSeconds = (endTime - startTime) / 1000;
             const bitsUploaded = uploadSize * 8;
             const speedMbps = bitsUploaded / (durationSeconds * 1000000);
-            
-            return utils.formatNumber(speedMbps, 2);
+            const clientValue = utils.formatNumber(speedMbps, 2);
+            if (serverReported && typeof serverReported.speedMbps === 'number') {
+                return utils.formatNumber(serverReported.speedMbps, 2);
+            }
+            return clientValue;
         } catch (error) {
             console.error('Upload test failed:', error);
             throw error;
