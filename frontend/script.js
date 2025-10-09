@@ -91,7 +91,8 @@ const state = {
         upload: null,
         ping: null,
         jitter: null
-    }
+    },
+    info: null
 };
 
 // ===== DOM Elements =====
@@ -133,7 +134,7 @@ const utils = {
         const qualityElement = card.querySelector('.metric-quality');
         const subvalueElement = card.querySelector('.metric-subvalue');
         
-        if (value !== null) {
+        if (value !== null && value !== undefined && value !== 'error') {
             valueElement.textContent = value;
             
             // Update quality indicator
@@ -148,6 +149,11 @@ const utils = {
                 const stability = value < 5 ? 'Stable' : value < 15 ? 'Moderate' : 'Unstable';
                 subvalueElement.textContent = stability;
             }
+        } else if (value === 'error') {
+            valueElement.textContent = 'Err';
+            if (qualityElement) qualityElement.textContent = '';
+            if (subvalueElement) subvalueElement.textContent = '';
+            card.classList.add('metric-error');
         } else {
             valueElement.textContent = '—';
             if (qualityElement) qualityElement.textContent = '';
@@ -331,11 +337,14 @@ const api = {
         const data = new Uint8Array(uploadSize);
         // Prefer cryptographically strong fill if available for speed
         if (window.crypto && window.crypto.getRandomValues) {
-            window.crypto.getRandomValues(data);
-        } else {
-            for (let i = 0; i < uploadSize; i++) {
-                data[i] = Math.floor(Math.random() * 256);
+            // getRandomValues limit is 65536 bytes per call; fill in chunks
+            const chunkSize = 65536; // 64KB
+            for (let offset = 0; offset < data.length; offset += chunkSize) {
+                const slice = data.subarray(offset, Math.min(offset + chunkSize, data.length));
+                window.crypto.getRandomValues(slice);
             }
+        } else {
+            for (let i = 0; i < uploadSize; i++) data[i] = Math.floor(Math.random() * 256);
         }
 
         const startTime = performance.now();
@@ -409,64 +418,71 @@ async function runSpeedTest() {
     });
     
     try {
-        // Check connection first
-        utils.showStatus('Checking connection...', 'info');
+        const phases = ['ping+jitter', 'download', 'upload'];
+        let phaseIndex = 0;
+
+        // Connection check
+        utils.showStatus(`(Prep) Checking connection...`, 'info');
         const connected = await api.checkConnection();
-        
         if (!connected) {
             throw new Error('Cannot connect to test server');
         }
-        
         utils.hideStatus();
-        
-        // Run Ping Test
-        utils.showStatus('Measuring latency...', 'info');
+
+        // Ping + Jitter
+        phaseIndex = 0;
+        utils.showStatus(`(${phaseIndex+1}/${phases.length}) Measuring latency...`, 'info');
         state.currentTest = 'ping';
         utils.setActiveCard('ping');
-        
-        const pingResults = await api.measurePing();
-        state.results.ping = pingResults.ping;
-        state.results.jitter = pingResults.jitter;
-        
-        utils.updateMetricCard('ping', pingResults.ping, 'ms');
-        utils.updateMetricCard('jitter', pingResults.jitter, 'ms');
-        
-        await utils.delay(500);
-        
-        // Run Download Test
-        utils.showStatus('Testing download speed...', 'info');
+        try {
+            const pingResults = await api.measurePing();
+            state.results.ping = pingResults.ping;
+            state.results.jitter = pingResults.jitter;
+            utils.updateMetricCard('ping', pingResults.ping, 'ms');
+            utils.updateMetricCard('jitter', pingResults.jitter, 'ms');
+        } catch (e) {
+            console.error('Ping/Jitter failed', e);
+            utils.updateMetricCard('ping', 'error', 'ms');
+            utils.updateMetricCard('jitter', 'error', 'ms');
+        }
+        await utils.delay(400);
+
+        // Download
+        phaseIndex = 1;
+        utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing download speed...`, 'info');
         state.currentTest = 'download';
         utils.setActiveCard('download');
-        
-        const downloadSpeed = await api.measureDownload();
-        state.results.download = downloadSpeed;
-        
-        utils.updateMetricCard('download', downloadSpeed);
-        
-        await utils.delay(500);
-        
-        // Run Upload Test
-        utils.showStatus('Testing upload speed...', 'info');
+        try {
+            const downloadSpeed = await api.measureDownload();
+            state.results.download = downloadSpeed;
+            utils.updateMetricCard('download', downloadSpeed);
+        } catch (e) {
+            console.error('Download failed', e);
+            utils.updateMetricCard('download', 'error');
+        }
+        await utils.delay(400);
+
+        // Upload
+        phaseIndex = 2;
+        utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing upload speed...`, 'info');
         state.currentTest = 'upload';
         utils.setActiveCard('upload');
-        
-        const uploadSpeed = await api.measureUpload();
-        state.results.upload = uploadSpeed;
-        
-        utils.updateMetricCard('upload', uploadSpeed);
-        
-        // Test complete
+        try {
+            const uploadSpeed = await api.measureUpload();
+            state.results.upload = uploadSpeed;
+            utils.updateMetricCard('upload', uploadSpeed);
+        } catch (e) {
+            console.error('Upload failed', e);
+            utils.updateMetricCard('upload', 'error');
+        }
+
         state.currentTest = null;
         utils.setActiveCard(null);
-        utils.showStatus('Test completed successfully!', 'success');
-        
-        setTimeout(() => {
-            utils.hideStatus();
-        }, 3000);
-        
+        utils.showStatus('Test completed (see any error metrics).', 'success');
+        setTimeout(() => utils.hideStatus(), 4000);
     } catch (error) {
-        console.error('Speed test error:', error);
-        utils.showStatus(`Test failed: ${error.message}`, 'error');
+        console.error('Speed test fatal error:', error);
+        utils.showStatus(`Test aborted: ${error.message}`, 'error');
         utils.setActiveCard(null);
     } finally {
         state.testing = false;
@@ -511,6 +527,12 @@ function init() {
     // Initialize accordions
     initializeAccordions();
     
+    // Fetch server info to adapt (non-blocking)
+    fetch(`${CONFIG.API_BASE_URL.replace(/\/$/, '')}/info`, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(info => { state.info = info; })
+        .catch(() => {});
+
     // Check initial connection
     api.checkConnection().then(connected => {
         if (!connected) {

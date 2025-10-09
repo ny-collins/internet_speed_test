@@ -2,15 +2,27 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 
 const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 const MAX_DOWNLOAD_SIZE_MB = parseInt(process.env.MAX_DOWNLOAD_SIZE_MB || '50', 10); // safety cap
-const MAX_UPLOAD_SIZE_MB = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10); // for info endpoint (enforced via raw limit below if desired)
+const MAX_UPLOAD_SIZE_MB = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10); // for info endpoint (advisory)
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10); // default 1 min
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '120', 10); // requests per window
+const ENABLE_RATE_LIMIT = (process.env.ENABLE_RATE_LIMIT || 'true').toLowerCase() === 'true';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
+// Logging
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Support comma-separated list of allowed origins
 const allowedOrigins = CORS_ORIGIN === '*' ? '*' : new Set(CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean));
 app.use(cors({
@@ -20,7 +32,23 @@ app.use(cors({
     return callback(new Error('Not allowed by CORS'));
   }
 }));
-app.use(compression());
+// Selective compression: skip for /api/download to avoid skew in speed measurement
+app.use(compression({
+  filter: (req, res) => {
+    if (req.path.startsWith('/api/download')) return false;
+    return compression.filter(req, res);
+  }
+}));
+// Optional rate limiting (skip heavy throughput endpoints to avoid interfering with speed test)
+if (ENABLE_RATE_LIMIT) {
+  const standardLimiter = rateLimit({
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    max: RATE_LIMIT_MAX,
+    standardHeaders: true,
+    legacyHeaders: false
+  });
+  app.use(['/api/ping', '/api/ping-batch', '/api/info', '/api/test'], standardLimiter);
+}
 app.use(express.json());
 // Removed global express.raw to allow streaming measurement of upload speed without buffering entire body first.
 
@@ -156,7 +184,8 @@ app.get('/api/info', (req, res) => {
     maxDownloadSize: MAX_DOWNLOAD_SIZE_MB, // MB
     maxUploadSize: MAX_UPLOAD_SIZE_MB, // MB (advisory)
     supportedTests: ['ping', 'download', 'upload', 'jitter'],
-    version: '1.0.2'
+    version: '1.0.3',
+    rateLimit: ENABLE_RATE_LIMIT ? { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX } : null
   });
 });
 
