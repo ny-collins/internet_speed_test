@@ -408,130 +408,46 @@ body {
     aspect-ratio: 1 / 1;
 }
 
-.gauge-svg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
+#speedGauge {
+    width: 100% !important;
+    height: 100% !important;
 }
 
-.gauge-track {
-    stroke: var(--color-border);
-    stroke-width: 8;
-    opacity: 0.2;
-    stroke-linecap: round;
-}
-
-.gauge-progress {
-    stroke: url(#gaugeGradient);
-    stroke-width: 10;
-    stroke-linecap: round;
-    filter: drop-shadow(0 0 6px var(--color-primary-glow));
-    transition: d 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.gauge-needle {
+.gauge-center-text {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 3px;
-    height: 38%;
-    background: linear-gradient(to bottom, 
-        var(--color-primary), 
-        transparent
-    );
-    border-radius: var(--radius-full) var(--radius-full) 0 0;
-    transform-origin: 50% 100%;
-    transform: translate(-50%, -100%) rotate(-135deg);
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.gauge-center-dot {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 12px;
-    height: 12px;
-    background: var(--color-primary);
-    border-radius: var(--radius-full);
     transform: translate(-50%, -50%);
-    box-shadow: 0 0 0 4px var(--color-bg-primary),
-                0 0 12px var(--color-primary-glow);
+    text-align: center;
+    pointer-events: none;
     z-index: 10;
+    width: 100%;
 }
 
 .gauge-value-live {
-    position: absolute;
-    left: 50%;
-    top: 45%;
-    transform: translate(-50%, -50%);
     font-size: clamp(3rem, 8vw, 4.5rem);
     font-weight: 300;
     letter-spacing: -0.03em;
     color: var(--color-text-primary);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    margin-bottom: var(--spacing-xs);
 }
 
 .gauge-unit {
-    position: absolute;
-    left: 50%;
-    top: 58%;
-    transform: translate(-50%, -50%);
     font-size: var(--font-size-lg);
     font-weight: 400;
     color: var(--color-text-secondary);
     letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-sm);
 }
 
 .gauge-phase-label {
-    position: absolute;
-    left: 50%;
-    bottom: 15%;
-    transform: translateX(-50%);
     font-size: var(--font-size-sm);
     font-weight: 500;
     text-transform: capitalize;
     color: var(--color-text-tertiary);
     letter-spacing: 0.02em;
-}
-
-.gauge-scale-label {
-    position: absolute;
-    font-size: var(--font-size-sm);
-    font-weight: 400;
-    color: var(--color-text-tertiary);
-    opacity: 0.7;
-    user-select: none;
-    letter-spacing: 0.03em;
-}
-
-.gauge-scale-label[data-position="start"] {
-    left: 8%;
-    bottom: 18%;
-}
-
-.gauge-scale-label[data-position="end"] {
-    right: 8%;
-    bottom: 18%;
-}
-
-.gauge-tick {
-    position: absolute;
-    width: 2px;
-    height: 10px;
-    background: var(--color-border-strong);
-    border-radius: var(--radius-sm);
-    opacity: 0.4;
-    transform-origin: center;
-}
-
-.gauge-tick-strong {
-    width: 3px;
-    height: 14px;
-    opacity: 0.7;
-    background: var(--color-text-primary);
 }
 
 /* ===== Results Matrix (2x2 Grid) ===== */
@@ -873,10 +789,6 @@ body {
     }
     
     .gauge-phase-label {
-        font-size: var(--font-size-xs);
-    }
-    
-    .gauge-scale-label {
         font-size: var(--font-size-xs);
     }
     

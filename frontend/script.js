@@ -62,6 +62,7 @@ const STATE = {
     cancelling: false,
     currentPhase: null,
     gaugeElement: null,
+    gaugeChart: null,
     testResults: {
         download: null,
         upload: null,
@@ -882,127 +883,46 @@ function calculateStability(samples) {
 // ========================================
 
 function buildMainGauge() {
-    const container = document.getElementById('gaugeContainer');
-    if (!container) return;
+    const canvas = document.getElementById('speedGauge');
+    if (!canvas) return;
     
-    const wrapper = document.createElement('div');
-    wrapper.className = 'gauge-wrapper';
-    wrapper.id = 'mainGauge';
+    const ctx = canvas.getContext('2d');
     
-    // SVG gauge - Google Fiber style
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('class', 'gauge-svg');
-    svg.setAttribute('viewBox', '0 0 200 200');
+    // Create gradient for gauge
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, '#3b82f6');     // blue
+    gradient.addColorStop(0.5, '#8b5cf6');   // purple
+    gradient.addColorStop(1, '#ec4899');     // pink
     
-    // Define gradient (blue to purple)
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    gradient.setAttribute('id', 'gaugeGradient');
-    gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
-    gradient.setAttribute('x1', '0');
-    gradient.setAttribute('y1', '100');
-    gradient.setAttribute('x2', '200');
-    gradient.setAttribute('y2', '100');
-    
-    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', '#3b82f6');
-    
-    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop2.setAttribute('offset', '50%');
-    stop2.setAttribute('stop-color', '#8b5cf6');
-    
-    const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop3.setAttribute('offset', '100%');
-    stop3.setAttribute('stop-color', '#ec4899');
-    
-    gradient.appendChild(stop1);
-    gradient.appendChild(stop2);
-    gradient.appendChild(stop3);
-    defs.appendChild(gradient);
-    svg.appendChild(defs);
-    
-    // Track arc (background) - thin, subtle
-    const trackPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    trackPath.setAttribute('class', 'gauge-track');
-    trackPath.setAttribute('d', describeArc(100, 100, 75, -135, 135));
-    trackPath.setAttribute('fill', 'none');
-    svg.appendChild(trackPath);
-    
-    // Progress arc - smooth animated fill
-    const progressPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    progressPath.setAttribute('class', 'gauge-progress');
-    progressPath.setAttribute('id', 'gaugeProgress');
-    progressPath.setAttribute('d', describeArc(100, 100, 75, -135, -135));
-    progressPath.setAttribute('fill', 'none');
-    svg.appendChild(progressPath);
-    
-    wrapper.appendChild(svg);
-    
-    // Needle - thin and elegant
-    const needle = document.createElement('div');
-    needle.className = 'gauge-needle';
-    needle.id = 'gaugeNeedle';
-    wrapper.appendChild(needle);
-    
-    // Center dot
-    const dot = document.createElement('div');
-    dot.className = 'gauge-center-dot';
-    wrapper.appendChild(dot);
-    
-    // Value display - large and clear
-    const value = document.createElement('div');
-    value.className = 'gauge-value-live';
-    value.id = 'gaugeValue';
-    value.textContent = '0';
-    wrapper.appendChild(value);
-    
-    // Unit label
-    const unit = document.createElement('div');
-    unit.className = 'gauge-unit';
-    unit.textContent = 'Mbps';
-    wrapper.appendChild(unit);
-    
-    // Phase label
-    const phase = document.createElement('div');
-    phase.className = 'gauge-phase-label';
-    phase.id = 'gaugePhase';
-    phase.textContent = 'Ready';
-    wrapper.appendChild(phase);
-    
-    // Scale labels - minimal, at start and end
-    const scaleContainer = document.createElement('div');
-    scaleContainer.id = 'gaugeScaleLabels';
-    wrapper.appendChild(scaleContainer);
-    
-    // Initialize scale
-    updateScaleLabels(100);
-    
-    container.appendChild(wrapper);
-    STATE.gaugeElement = wrapper;
+    // Chart.js configuration for speedometer gauge
+    STATE.gaugeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [0, 100],
+                backgroundColor: [gradient, 'rgba(229, 231, 235, 0.2)'],
+                borderWidth: 0,
+                circumference: 270,
+                rotation: 225
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '75%',
+            animation: {
+                animateRotate: true,
+                animateScale: false,
+                duration: 400,
+                easing: 'easeOutCubic'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        }
+    });
 }
-
-// Helper function to describe an SVG arc
-function describeArc(x, y, radius, startAngle, endAngle) {
-    const start = polarToCartesian(x, y, radius, endAngle);
-    const end = polarToCartesian(x, y, radius, startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-    
-    return [
-        'M', start.x, start.y,
-        'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
-    ].join(' ');
-}
-
-function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-    return {
-        x: centerX + (radius * Math.cos(angleInRadians)),
-        y: centerY + (radius * Math.sin(angleInRadians))
-    };
-}
-
-// Google Fiber style - no tick marks for cleaner look
 
 function updateGauge(speed, phase) {
     if (STATE.cancelling) return;
@@ -1012,8 +932,6 @@ function updateGauge(speed, phase) {
     
     STATE.rafId = requestAnimationFrame(() => {
         const value = document.getElementById('gaugeValue');
-        const progress = document.getElementById('gaugeProgress');
-        const needle = document.getElementById('gaugeNeedle');
         const phaseLabel = document.getElementById('gaugePhase');
         
         if (value) value.textContent = speed.toFixed(1);
@@ -1021,20 +939,12 @@ function updateGauge(speed, phase) {
         
         // Calculate max scale dynamically
         const maxSpeed = calculateMaxScale(speed);
-        updateScaleLabels(maxSpeed);
         
-        // Update progress arc and needle
-        const percentage = Math.min(speed / maxSpeed, 1);
-        const endAngle = -135 + (percentage * 270);
-        
-        if (needle) {
-            needle.style.transform = `translate(-50%, -90%) rotate(${endAngle}deg)`;
-        }
-        
-        if (progress) {
-            // Update the arc path to show progress
-            const newPath = describeArc(100, 100, 80, -135, endAngle);
-            progress.setAttribute('d', newPath);
+        // Update Chart.js gauge
+        if (STATE.gaugeChart) {
+            const percentage = Math.min((speed / maxSpeed) * 100, 100);
+            STATE.gaugeChart.data.datasets[0].data = [percentage, 100 - percentage];
+            STATE.gaugeChart.update('none'); // Update without animation for smooth real-time updates
         }
         
         STATE.rafId = null;
@@ -1055,56 +965,17 @@ function calculateMaxScale(currentSpeed) {
     return Math.ceil(currentSpeed / 100) * 100;
 }
 
-function updateScaleLabels(maxSpeed) {
-    const container = document.getElementById('gaugeScaleLabels');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    // Google Fiber style - just min and max, positioned at arc ends
-    const labels = [
-        { text: '0', angle: -135, position: 'start' },
-        { text: maxSpeed.toFixed(0), angle: 135, position: 'end' }
-    ];
-    
-    labels.forEach(label => {
-        const el = document.createElement('div');
-        el.className = 'gauge-scale-label';
-        el.setAttribute('data-position', label.position);
-        el.textContent = label.text;
-        
-        // Position at radius (slightly outside the arc)
-        const rad = (label.angle * Math.PI) / 180;
-        const x = 50 + Math.cos(rad) * 46;
-        const y = 50 + Math.sin(rad) * 46;
-        
-        el.style.left = `${x}%`;
-        el.style.top = `${y}%`;
-        
-        container.appendChild(el);
-    });
-}
-
 function resetGauge() {
     const value = document.getElementById('gaugeValue');
-    const progress = document.getElementById('gaugeProgress');
-    const needle = document.getElementById('gaugeNeedle');
     const phaseLabel = document.getElementById('gaugePhase');
     
     if (value) value.textContent = '0';
     if (phaseLabel) phaseLabel.textContent = 'Ready';
     
-    if (needle) {
-        needle.style.transform = 'translate(-50%, -90%) rotate(-135deg)';
+    if (STATE.gaugeChart) {
+        STATE.gaugeChart.data.datasets[0].data = [0, 100];
+        STATE.gaugeChart.update('none');
     }
-    
-    if (progress) {
-        // Reset arc to starting position
-        const resetPath = describeArc(100, 100, 80, -135, -135);
-        progress.setAttribute('d', resetPath);
-    }
-    
-    updateScaleLabels(100);
 }
 
 // ========================================

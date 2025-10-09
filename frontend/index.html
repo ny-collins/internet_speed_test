@@ -8,6 +8,9 @@
     <title>SpeedCheck Pro - Internet Speed Test</title>
     <link rel="stylesheet" href="styles.css">
     
+    <!-- Chart.js for gauge -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -95,7 +98,14 @@
             <div class="test-display">
                 <!-- Speedometer Gauge -->
                 <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
-                    <!-- Dynamically built by JS -->
+                    <div class="gauge-wrapper">
+                        <canvas id="speedGauge"></canvas>
+                        <div class="gauge-center-text">
+                            <div class="gauge-value-live" id="gaugeValue">0</div>
+                            <div class="gauge-unit" id="gaugeUnit">Mbps</div>
+                            <div class="gauge-phase-label" id="gaugePhase">Ready</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Results Matrix (2x2 Grid) -->
