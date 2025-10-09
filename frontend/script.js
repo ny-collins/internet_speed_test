@@ -888,81 +888,8 @@ function calculateStability(samples) {
 // ========================================
 
 function buildMainGauge() {
-    const canvas = document.getElementById('speedGauge');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Create gradient for gauge
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    gradient.addColorStop(0, '#3b82f6');     // blue
-    gradient.addColorStop(0.5, '#8b5cf6');   // purple
-    gradient.addColorStop(1, '#ec4899');     // pink
-    
-    // Chart.js configuration for speedometer gauge
-    STATE.gaugeChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [0, 100],
-                backgroundColor: [gradient, 'rgba(229, 231, 235, 0.2)'],
-                borderWidth: 0,
-                circumference: 270,
-                rotation: 225
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            cutout: '75%',
-            animation: false, // Disable all animations for perfect sync with needle
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: false }
-            }
-        }
-    });
-    
-    // Build scale labels along the arc
-    buildScaleLabels(100); // Initial max of 100
-}
-
-function buildScaleLabels(maxSpeed) {
-    const container = document.getElementById('gaugeScaleLabels');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    // Create 5-6 labels along the arc
-    const numLabels = 6;
-    const labels = [];
-    for (let i = 0; i <= numLabels; i++) {
-        const value = Math.round((maxSpeed / numLabels) * i);
-        labels.push(value);
-    }
-    
-    labels.forEach((value, index) => {
-        const label = document.createElement('div');
-        label.className = 'gauge-scale-label';
-        label.textContent = value;
-        
-        // Calculate position along arc (270° from -135° to 135°)
-        const startAngle = -135;
-        const endAngle = 135;
-        const totalAngle = endAngle - startAngle;
-        const angle = startAngle + (totalAngle * index / numLabels);
-        const angleRad = (angle * Math.PI) / 180;
-        
-        // Position at radius ~48% from center
-        const radius = 48;
-        const x = 50 + Math.cos(angleRad) * radius;
-        const y = 50 + Math.sin(angleRad) * radius;
-        
-        label.style.left = `${x}%`;
-        label.style.top = `${y}%`;
-        
-        container.appendChild(label);
-    });
+    // Pure CSS gauge - no build needed
+    console.log('[Gauge] Using CSS-based circular progress gauge');
 }
 
 function showGauge() {
@@ -970,16 +897,9 @@ function showGauge() {
     const startButton = document.getElementById('gaugeStartButton');
     if (startButton) startButton.hidden = true;
     
-    // Show gauge elements
-    const canvas = document.getElementById('speedGauge');
-    const centerText = document.getElementById('gaugeCenterText');
-    const needle = document.getElementById('gaugeNeedle');
-    const scaleLabels = document.getElementById('gaugeScaleLabels');
-    
-    if (canvas) canvas.hidden = false;
-    if (centerText) centerText.hidden = false;
-    if (needle) needle.hidden = false;
-    if (scaleLabels) scaleLabels.hidden = false;
+    // Show gauge circle
+    const gaugeCircle = document.getElementById('gaugeCircle');
+    if (gaugeCircle) gaugeCircle.hidden = false;
 }
 
 function hideGauge() {
@@ -987,16 +907,9 @@ function hideGauge() {
     const startButton = document.getElementById('gaugeStartButton');
     if (startButton) startButton.hidden = false;
     
-    // Hide gauge elements
-    const canvas = document.getElementById('speedGauge');
-    const centerText = document.getElementById('gaugeCenterText');
-    const needle = document.getElementById('gaugeNeedle');
-    const scaleLabels = document.getElementById('gaugeScaleLabels');
-    
-    if (canvas) canvas.hidden = true;
-    if (centerText) centerText.hidden = true;
-    if (needle) needle.hidden = true;
-    if (scaleLabels) scaleLabels.hidden = true;
+    // Hide gauge circle
+    const gaugeCircle = document.getElementById('gaugeCircle');
+    if (gaugeCircle) gaugeCircle.hidden = true;
 }
 
 function updateGauge(speed, phase) {
@@ -1008,6 +921,7 @@ function updateGauge(speed, phase) {
     STATE.rafId = requestAnimationFrame(() => {
         const value = document.getElementById('gaugeValue');
         const phaseLabel = document.getElementById('gaugePhase');
+        const progressRing = document.getElementById('gaugeProgress');
         
         if (value) value.textContent = speed.toFixed(1);
         if (phaseLabel) phaseLabel.textContent = phase.charAt(0).toUpperCase() + phase.slice(1);
@@ -1015,26 +929,20 @@ function updateGauge(speed, phase) {
         // Calculate max scale dynamically
         const maxSpeed = calculateMaxScale(speed);
         
-        // Update scale labels if max changed
-        if (STATE.lastMaxScale !== maxSpeed) {
-            buildScaleLabels(maxSpeed);
-            STATE.lastMaxScale = maxSpeed;
-        }
-        
-        // Update Chart.js gauge
-        if (STATE.gaugeChart) {
-            const percentage = Math.min((speed / maxSpeed) * 100, 100);
-            STATE.gaugeChart.data.datasets[0].data = [percentage, 100 - percentage];
-            STATE.gaugeChart.update('none'); // Update without animation for smooth real-time updates
-        }
-        
-        // Update needle position
-        const needle = document.getElementById('gaugeNeedle');
-        if (needle) {
+        // Update CSS circular progress
+        if (progressRing) {
             const percentage = Math.min(speed / maxSpeed, 1);
-            // Rotate from -135° to 135° (270° range)
-            const angle = -135 + (percentage * 270);
-            needle.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+            const degrees = percentage * 270; // 270° arc
+            
+            // Update conic-gradient to show progress
+            progressRing.style.background = `conic-gradient(
+                from 135deg,
+                #3b82f6 0deg,
+                #8b5cf6 ${degrees / 2}deg,
+                #ec4899 ${degrees}deg,
+                transparent ${degrees}deg
+            )`;
+            progressRing.style.opacity = '1';
         }
         
         STATE.rafId = null;
@@ -1058,24 +966,19 @@ function calculateMaxScale(currentSpeed) {
 function resetGauge() {
     const value = document.getElementById('gaugeValue');
     const phaseLabel = document.getElementById('gaugePhase');
-    const needle = document.getElementById('gaugeNeedle');
+    const progressRing = document.getElementById('gaugeProgress');
     
     if (value) value.textContent = '0';
     if (phaseLabel) phaseLabel.textContent = 'Ready';
     
-    if (STATE.gaugeChart) {
-        STATE.gaugeChart.data.datasets[0].data = [0, 100];
-        STATE.gaugeChart.update('none');
+    // Reset CSS progress
+    if (progressRing) {
+        progressRing.style.opacity = '0';
+        progressRing.style.background = '';
     }
     
-    // Reset needle to start position
-    if (needle) {
-        needle.style.transform = 'translate(-50%, -100%) rotate(-135deg)';
-    }
-    
-    // Reset scale labels
+    // Reset max scale
     STATE.lastMaxScale = 100;
-    buildScaleLabels(100);
     
     // Hide gauge and show start button
     hideGauge();
