@@ -268,17 +268,6 @@ function initializeEventListeners() {
     
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
-    
-    // Result cards keyboard navigation
-    document.querySelectorAll('.result-card').forEach(card => {
-        card.setAttribute('tabindex', '0');
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                card.click();
-            }
-        });
-    });
 }
 
 function handleKeyboardShortcuts(e) {
@@ -900,67 +889,79 @@ function buildMainGauge() {
     wrapper.className = 'gauge-wrapper';
     wrapper.id = 'mainGauge';
     
-    // SVG gauge - using path for arc instead of circle
+    // SVG gauge - Google Fiber style
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'gauge-svg');
     svg.setAttribute('viewBox', '0 0 200 200');
     
-    // Define gradient
+    // Define gradient (blue to purple)
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
     gradient.setAttribute('id', 'gaugeGradient');
-    gradient.setAttribute('x1', '0%');
-    gradient.setAttribute('y1', '0%');
-    gradient.setAttribute('x2', '100%');
-    gradient.setAttribute('y2', '100%');
+    gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+    gradient.setAttribute('x1', '0');
+    gradient.setAttribute('y1', '100');
+    gradient.setAttribute('x2', '200');
+    gradient.setAttribute('y2', '100');
     
     const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     stop1.setAttribute('offset', '0%');
     stop1.setAttribute('stop-color', '#3b82f6');
     
     const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop2.setAttribute('offset', '100%');
+    stop2.setAttribute('offset', '50%');
     stop2.setAttribute('stop-color', '#8b5cf6');
+    
+    const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop3.setAttribute('offset', '100%');
+    stop3.setAttribute('stop-color', '#ec4899');
     
     gradient.appendChild(stop1);
     gradient.appendChild(stop2);
+    gradient.appendChild(stop3);
     defs.appendChild(gradient);
     svg.appendChild(defs);
     
-    // Track arc (background) - 270 degree arc
+    // Track arc (background) - thin, subtle
     const trackPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     trackPath.setAttribute('class', 'gauge-track');
-    trackPath.setAttribute('d', describeArc(100, 100, 80, -135, 135));
+    trackPath.setAttribute('d', describeArc(100, 100, 75, -135, 135));
     trackPath.setAttribute('fill', 'none');
     svg.appendChild(trackPath);
     
-    // Progress arc
+    // Progress arc - smooth animated fill
     const progressPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     progressPath.setAttribute('class', 'gauge-progress');
     progressPath.setAttribute('id', 'gaugeProgress');
-    progressPath.setAttribute('d', describeArc(100, 100, 80, -135, -135));
+    progressPath.setAttribute('d', describeArc(100, 100, 75, -135, -135));
     progressPath.setAttribute('fill', 'none');
     svg.appendChild(progressPath);
     
     wrapper.appendChild(svg);
     
-    // Needle
+    // Needle - thin and elegant
     const needle = document.createElement('div');
     needle.className = 'gauge-needle';
     needle.id = 'gaugeNeedle';
     wrapper.appendChild(needle);
     
-    // Center cap
-    const cap = document.createElement('div');
-    cap.className = 'gauge-center-cap';
-    wrapper.appendChild(cap);
+    // Center dot
+    const dot = document.createElement('div');
+    dot.className = 'gauge-center-dot';
+    wrapper.appendChild(dot);
     
-    // Value display
+    // Value display - large and clear
     const value = document.createElement('div');
     value.className = 'gauge-value-live';
     value.id = 'gaugeValue';
     value.textContent = '0';
     wrapper.appendChild(value);
+    
+    // Unit label
+    const unit = document.createElement('div');
+    unit.className = 'gauge-unit';
+    unit.textContent = 'Mbps';
+    wrapper.appendChild(unit);
     
     // Phase label
     const phase = document.createElement('div');
@@ -969,13 +970,10 @@ function buildMainGauge() {
     phase.textContent = 'Ready';
     wrapper.appendChild(phase);
     
-    // Scale labels (will be dynamic)
+    // Scale labels - minimal, at start and end
     const scaleContainer = document.createElement('div');
     scaleContainer.id = 'gaugeScaleLabels';
     wrapper.appendChild(scaleContainer);
-    
-    // Tick marks
-    buildGaugeTicks(wrapper);
     
     // Initialize scale
     updateScaleLabels(100);
@@ -1004,34 +1002,7 @@ function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
     };
 }
 
-function buildGaugeTicks(wrapper) {
-    const tickCount = 27; // 270 degrees / 10 degrees per tick
-    const radius = 42; // Percentage from center
-    
-    for (let i = 0; i <= tickCount; i++) {
-        const angle = -135 + (i / tickCount) * 270;
-        const angleRad = (angle * Math.PI) / 180;
-        
-        // Calculate position on the arc
-        const x = 50 + radius * Math.cos(angleRad);
-        const y = 50 + radius * Math.sin(angleRad);
-        
-        const tick = document.createElement('div');
-        tick.className = 'gauge-tick';
-        
-        // Strong ticks every 25% (at indices 0, 7, 14, 21, 27)
-        if (i % 7 === 0 || i === tickCount) {
-            tick.classList.add('gauge-tick-strong');
-        }
-        
-        // Position and rotate the tick
-        tick.style.left = `${x}%`;
-        tick.style.top = `${y}%`;
-        tick.style.transform = `translate(-50%, -50%) rotate(${angle + 90}deg)`;
-        
-        wrapper.appendChild(tick);
-    }
-}
+// Google Fiber style - no tick marks for cleaner look
 
 function updateGauge(speed, phase) {
     if (STATE.cancelling) return;
@@ -1090,25 +1061,25 @@ function updateScaleLabels(maxSpeed) {
     
     container.innerHTML = '';
     
+    // Google Fiber style - just min and max, positioned at arc ends
     const labels = [
-        { text: '0', angle: -135 },
-        { text: (maxSpeed / 2).toFixed(0), angle: 0 },
-        { text: maxSpeed.toFixed(0), angle: 135 }
+        { text: '0', angle: -135, position: 'start' },
+        { text: maxSpeed.toFixed(0), angle: 135, position: 'end' }
     ];
     
     labels.forEach(label => {
         const el = document.createElement('div');
         el.className = 'gauge-scale-label';
+        el.setAttribute('data-position', label.position);
         el.textContent = label.text;
         
-        // Position at radius
+        // Position at radius (slightly outside the arc)
         const rad = (label.angle * Math.PI) / 180;
-        const x = 50 + Math.cos(rad) * 42;
-        const y = 50 + Math.sin(rad) * 42;
+        const x = 50 + Math.cos(rad) * 46;
+        const y = 50 + Math.sin(rad) * 46;
         
         el.style.left = `${x}%`;
         el.style.top = `${y}%`;
-        el.style.transform = 'translate(-50%, -50%)';
         
         container.appendChild(el);
     });

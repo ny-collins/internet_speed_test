@@ -398,21 +398,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: var(--spacing-xl);
+    padding: var(--spacing-2xl) var(--spacing-xl);
 }
 
 .gauge-wrapper {
     position: relative;
     width: 100%;
-    max-width: 320px;
+    max-width: 340px;
     aspect-ratio: 1 / 1;
-}
-
-/* Ensure gauge maintains aspect ratio */
-.gauge-wrapper::before {
-    content: '';
-    display: block;
-    padding-bottom: 100%;
 }
 
 .gauge-svg {
@@ -425,76 +418,103 @@ body {
 
 .gauge-track {
     stroke: var(--color-border);
-    stroke-width: 16;
-    opacity: 0.15;
+    stroke-width: 8;
+    opacity: 0.2;
     stroke-linecap: round;
 }
 
 .gauge-progress {
     stroke: url(#gaugeGradient);
-    stroke-width: 16;
+    stroke-width: 10;
     stroke-linecap: round;
-    filter: drop-shadow(0 0 8px var(--color-primary-glow));
-    transition: d 0.3s ease-out;
+    filter: drop-shadow(0 0 6px var(--color-primary-glow));
+    transition: d 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gauge-needle {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 6px;
-    height: 130px;
-    background: linear-gradient(to bottom, var(--color-primary), var(--color-accent));
-    border-radius: var(--radius-full);
-    transform-origin: 50% 90%;
-    transform: translate(-50%, -90%) rotate(-135deg);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    transition: transform var(--transition-slow);
+    width: 3px;
+    height: 38%;
+    background: linear-gradient(to bottom, 
+        var(--color-primary), 
+        transparent
+    );
+    border-radius: var(--radius-full) var(--radius-full) 0 0;
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotate(-135deg);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.gauge-center-cap {
+.gauge-center-dot {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 40px;
-    height: 40px;
-    background: radial-gradient(circle at 35% 35%, var(--color-bg-elevated), var(--color-bg-primary));
-    border: 5px solid var(--color-primary);
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary);
     border-radius: var(--radius-full);
     transform: translate(-50%, -50%);
-    box-shadow: 0 0 0 5px var(--color-bg-primary), 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 4px var(--color-bg-primary),
+                0 0 12px var(--color-primary-glow);
+    z-index: 10;
 }
 
 .gauge-value-live {
     position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -10%);
-    font-size: clamp(2.5rem, 6vw, 4rem);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    top: 45%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
     color: var(--color-text-primary);
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1;
+}
+
+.gauge-unit {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-size-lg);
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.05em;
 }
 
 .gauge-phase-label {
     position: absolute;
     left: 50%;
-    top: 65%;
-    transform: translate(-50%, 0);
+    bottom: 15%;
+    transform: translateX(-50%);
     font-size: var(--font-size-sm);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-weight: 500;
+    text-transform: capitalize;
     color: var(--color-text-tertiary);
+    letter-spacing: 0.02em;
 }
 
 .gauge-scale-label {
     position: absolute;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
+    font-size: var(--font-size-sm);
+    font-weight: 400;
     color: var(--color-text-tertiary);
+    opacity: 0.7;
+    user-select: none;
+    letter-spacing: 0.03em;
+}
+
+.gauge-scale-label[data-position="start"] {
+    left: 8%;
+    bottom: 18%;
+}
+
+.gauge-scale-label[data-position="end"] {
+    right: 8%;
+    bottom: 18%;
 }
 
 .gauge-tick {
@@ -526,12 +546,12 @@ body {
     background: var(--color-bg-elevated);
     border: 2px solid var(--color-border);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl);
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
     transition: all var(--transition-base);
-    min-height: 100px;
+    min-height: 110px;
 }
 
 .matrix-card:hover {
@@ -575,30 +595,32 @@ body {
 
 .matrix-label {
     font-size: var(--font-size-sm);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--color-text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
 }
 
 .matrix-value {
     display: flex;
     align-items: baseline;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
 }
 
 .matrix-number {
-    font-size: var(--font-size-3xl);
-    font-weight: 700;
+    font-size: clamp(2.25rem, 5vw, 3rem);
+    font-weight: 300;
     color: var(--color-text-primary);
     line-height: 1;
     font-variant-numeric: tabular-nums;
 }
 
 .matrix-unit {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
     color: var(--color-text-tertiary);
-    font-weight: 500;
+    font-weight: 400;
+    letter-spacing: 0.03em;
 }
 
 /* ===== Controls ===== */
@@ -717,122 +739,6 @@ body {
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
-}
-
-/* ===== Results Section ===== */
-.results-section {
-    margin-bottom: var(--spacing-3xl);
-}
-
-.results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--spacing-lg);
-}
-
-.result-card {
-    background: var(--color-bg-elevated);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
-    transition: all var(--transition-base);
-    box-shadow: var(--shadow-sm);
-}
-
-.result-card:hover, .result-card:focus {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--color-primary);
-    outline: none;
-}
-
-.result-card[data-status="active"] {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-primary-glow);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
-}
-
-.card-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-    color: var(--color-primary);
-}
-
-.card-header h3 {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-}
-
-.card-body {
-    text-align: center;
-}
-
-.metric-primary {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
-}
-
-.metric-value {
-    font-size: var(--font-size-4xl);
-    font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-text-primary);
-}
-
-.metric-unit {
-    font-size: var(--font-size-lg);
-    color: var(--color-text-tertiary);
-    font-weight: 500;
-}
-
-.metric-secondary {
-    margin-bottom: var(--spacing-sm);
-}
-
-.metric-quality {
-    display: inline-block;
-    padding: var(--spacing-xs) var(--spacing-md);
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-}
-
-.metric-quality.excellent {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--color-success);
-}
-
-.metric-quality.good {
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--color-primary);
-}
-
-.metric-quality.average {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--color-warning);
-}
-
-.metric-quality.slow, .metric-quality.high, .metric-quality.unstable {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--color-danger);
-}
-
-.metric-details {
-    margin-top: var(--spacing-md);
-    padding-top: var(--spacing-md);
-    border-top: 1px solid var(--color-border);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
 }
 
 /* ===== History Section ===== */
@@ -959,10 +865,18 @@ body {
     }
     
     .gauge-value-live {
-        font-size: clamp(2rem, 6vw, 2.5rem);
+        font-size: clamp(2.5rem, 8vw, 3rem);
+    }
+    
+    .gauge-unit {
+        font-size: var(--font-size-base);
     }
     
     .gauge-phase-label {
+        font-size: var(--font-size-xs);
+    }
+    
+    .gauge-scale-label {
         font-size: var(--font-size-xs);
     }
     
@@ -971,8 +885,9 @@ body {
     }
     
     .matrix-card {
-        padding: var(--spacing-md);
-        min-height: 90px;
+        padding: var(--spacing-lg);
+        min-height: 100px;
+        gap: var(--spacing-md);
     }
     
     .matrix-icon {
@@ -987,14 +902,15 @@ body {
     
     .matrix-label {
         font-size: var(--font-size-xs);
+        letter-spacing: 0.05em;
     }
     
     .matrix-number {
-        font-size: var(--font-size-2xl);
+        font-size: clamp(1.75rem, 5vw, 2rem);
     }
     
     .matrix-unit {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-base);
     }
     
     .controls {
@@ -1005,10 +921,6 @@ body {
     .btn-primary, .btn-secondary {
         width: 100%;
         padding: var(--spacing-md) var(--spacing-lg);
-    }
-    
-    .results-grid {
-        grid-template-columns: 1fr;
     }
     
     .settings-panel {
