@@ -90,29 +90,69 @@
 
         <!-- Main Test Section -->
         <main class="test-section">
-            <!-- Combined Test Area: Gauge + Results -->
+            <!-- Combined Test Area: Gauge + Results Matrix -->
             <div class="test-display">
                 <!-- Speedometer Gauge -->
                 <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
                     <!-- Dynamically built by JS -->
                 </div>
 
-                <!-- Quick Results Preview (visible during test) -->
-                <div class="quick-results" id="quickResults">
-                    <div class="quick-result-item" data-metric="download">
-                        <i data-lucide="arrow-down-circle"></i>
-                        <span class="quick-value">—</span>
-                        <span class="quick-unit">Mbps</span>
+                <!-- Results Matrix (2x2 Grid) -->
+                <div class="results-matrix" id="resultsMatrix">
+                    <!-- Download -->
+                    <div class="matrix-card" data-metric="download">
+                        <div class="matrix-icon">
+                            <i data-lucide="arrow-down-circle"></i>
+                        </div>
+                        <div class="matrix-content">
+                            <div class="matrix-label">Download</div>
+                            <div class="matrix-value">
+                                <span class="matrix-number">—</span>
+                                <span class="matrix-unit">Mbps</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="quick-result-item" data-metric="upload">
-                        <i data-lucide="arrow-up-circle"></i>
-                        <span class="quick-value">—</span>
-                        <span class="quick-unit">Mbps</span>
+
+                    <!-- Upload -->
+                    <div class="matrix-card" data-metric="upload">
+                        <div class="matrix-icon">
+                            <i data-lucide="arrow-up-circle"></i>
+                        </div>
+                        <div class="matrix-content">
+                            <div class="matrix-label">Upload</div>
+                            <div class="matrix-value">
+                                <span class="matrix-number">—</span>
+                                <span class="matrix-unit">Mbps</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="quick-result-item" data-metric="ping">
-                        <i data-lucide="activity"></i>
-                        <span class="quick-value">—</span>
-                        <span class="quick-unit">ms</span>
+
+                    <!-- Ping (Latency) -->
+                    <div class="matrix-card" data-metric="latency">
+                        <div class="matrix-icon">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <div class="matrix-content">
+                            <div class="matrix-label">Ping (Latency)</div>
+                            <div class="matrix-value">
+                                <span class="matrix-number">—</span>
+                                <span class="matrix-unit">ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jitter -->
+                    <div class="matrix-card" data-metric="jitter">
+                        <div class="matrix-icon">
+                            <i data-lucide="radio"></i>
+                        </div>
+                        <div class="matrix-content">
+                            <div class="matrix-label">Jitter</div>
+                            <div class="matrix-value">
+                                <span class="matrix-number">—</span>
+                                <span class="matrix-unit">ms</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

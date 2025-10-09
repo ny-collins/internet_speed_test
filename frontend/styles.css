@@ -376,18 +376,20 @@ body {
     margin-bottom: var(--spacing-2xl);
 }
 
-/* ===== Test Display (Gauge + Quick Results) ===== */
+/* ===== Test Display (Gauge + Results Matrix) ===== */
 .test-display {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
+    align-items: start;
 }
 
+/* Desktop: Gauge left, Matrix right */
 @media (min-width: 768px) {
     .test-display {
-        grid-template-columns: 1fr 1fr;
-        align-items: center;
+        grid-template-columns: minmax(300px, 400px) 1fr;
+        gap: var(--spacing-2xl);
     }
 }
 
@@ -396,37 +398,44 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl);
 }
 
 .gauge-wrapper {
     position: relative;
-    width: min(280px, 90vw);
-    height: min(280px, 90vw);
+    width: 100%;
     max-width: 320px;
-    max-height: 320px;
+    aspect-ratio: 1 / 1;
+}
+
+/* Ensure gauge maintains aspect ratio */
+.gauge-wrapper::before {
+    content: '';
+    display: block;
+    padding-bottom: 100%;
 }
 
 .gauge-svg {
+    position: absolute;
     width: 100%;
     height: 100%;
-    transform: rotate(-135deg);
+    top: 0;
+    left: 0;
 }
 
 .gauge-track {
-    fill: none;
     stroke: var(--color-border);
-    stroke-width: 20;
-    opacity: 0.2;
+    stroke-width: 16;
+    opacity: 0.15;
+    stroke-linecap: round;
 }
 
 .gauge-progress {
-    fill: none;
     stroke: url(#gaugeGradient);
-    stroke-width: 20;
+    stroke-width: 16;
     stroke-linecap: round;
-    filter: drop-shadow(0 0 10px var(--color-primary-glow));
-    transition: stroke-dashoffset var(--transition-base);
+    filter: drop-shadow(0 0 8px var(--color-primary-glow));
+    transition: d 0.3s ease-out;
 }
 
 .gauge-needle {
@@ -490,55 +499,103 @@ body {
 
 .gauge-tick {
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 3px;
-    height: 12px;
+    width: 2px;
+    height: 10px;
     background: var(--color-border-strong);
     border-radius: var(--radius-sm);
-    transform-origin: 50% 130px;
-    opacity: 0.5;
+    opacity: 0.4;
+    transform-origin: center;
 }
 
 .gauge-tick-strong {
-    height: 18px;
-    opacity: 0.8;
+    width: 3px;
+    height: 14px;
+    opacity: 0.7;
     background: var(--color-text-primary);
 }
 
-/* ===== Quick Results ===== */
-.quick-results {
-    display: flex;
-    flex-direction: column;
+/* ===== Results Matrix (2x2 Grid) ===== */
+.results-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: var(--spacing-md);
-    padding: var(--spacing-lg);
+    width: 100%;
 }
 
-.quick-result-item {
+.matrix-card {
+    background: var(--color-bg-elevated);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    padding: var(--spacing-md) var(--spacing-lg);
-    background: var(--color-bg-elevated);
-    border: 1px solid var(--color-border);
+    transition: all var(--transition-base);
+    min-height: 100px;
+}
+
+.matrix-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.matrix-card[data-status="active"] {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, 
+        var(--color-bg-elevated), 
+        rgba(59, 130, 246, 0.05)
+    );
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.matrix-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     border-radius: var(--radius-lg);
-    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
 }
 
-.quick-result-item i {
-    width: 1.5rem;
-    height: 1.5rem;
-    color: var(--color-primary);
+.matrix-icon i {
+    width: 24px;
+    height: 24px;
 }
 
-.quick-value {
-    font-size: var(--font-size-2xl);
+.matrix-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.matrix-label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.matrix-value {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-xs);
+}
+
+.matrix-number {
+    font-size: var(--font-size-3xl);
     font-weight: 700;
     color: var(--color-text-primary);
-    margin-left: auto;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
 }
 
-.quick-unit {
+.matrix-unit {
     font-size: var(--font-size-base);
     color: var(--color-text-tertiary);
     font-weight: 500;
@@ -890,37 +947,54 @@ body {
     
     .test-display {
         grid-template-columns: 1fr;
-        gap: var(--spacing-md);
+        gap: var(--spacing-lg);
     }
     
     .gauge-container {
-        padding: var(--spacing-sm);
+        padding: var(--spacing-md);
     }
     
     .gauge-wrapper {
-        width: min(240px, 85vw);
-        height: min(240px, 85vw);
+        max-width: 260px;
     }
     
     .gauge-value-live {
-        font-size: clamp(1.75rem, 5vw, 2.5rem);
+        font-size: clamp(2rem, 6vw, 2.5rem);
     }
     
     .gauge-phase-label {
         font-size: var(--font-size-xs);
     }
     
-    .quick-results {
-        padding: var(--spacing-md);
+    .results-matrix {
         gap: var(--spacing-sm);
     }
     
-    .quick-result-item {
-        padding: var(--spacing-sm) var(--spacing-md);
+    .matrix-card {
+        padding: var(--spacing-md);
+        min-height: 90px;
     }
     
-    .quick-value {
-        font-size: var(--font-size-xl);
+    .matrix-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .matrix-icon i {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .matrix-label {
+        font-size: var(--font-size-xs);
+    }
+    
+    .matrix-number {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .matrix-unit {
+        font-size: var(--font-size-sm);
     }
     
     .controls {

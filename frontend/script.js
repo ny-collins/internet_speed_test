@@ -900,7 +900,7 @@ function buildMainGauge() {
     wrapper.className = 'gauge-wrapper';
     wrapper.id = 'mainGauge';
     
-    // SVG gauge
+    // SVG gauge - using path for arc instead of circle
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'gauge-svg');
     svg.setAttribute('viewBox', '0 0 200 200');
@@ -927,27 +927,21 @@ function buildMainGauge() {
     defs.appendChild(gradient);
     svg.appendChild(defs);
     
-    // Track circle (background)
-    const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    track.setAttribute('class', 'gauge-track');
-    track.setAttribute('cx', '100');
-    track.setAttribute('cy', '100');
-    track.setAttribute('r', '80');
-    svg.appendChild(track);
+    // Track arc (background) - 270 degree arc
+    const trackPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    trackPath.setAttribute('class', 'gauge-track');
+    trackPath.setAttribute('d', describeArc(100, 100, 80, -135, 135));
+    trackPath.setAttribute('fill', 'none');
+    svg.appendChild(trackPath);
     
-    // Progress circle
-    const progress = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    progress.setAttribute('class', 'gauge-progress');
-    progress.setAttribute('cx', '100');
-    progress.setAttribute('cy', '100');
-    progress.setAttribute('r', '80');
-    progress.setAttribute('id', 'gaugeProgress');
+    // Progress arc
+    const progressPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    progressPath.setAttribute('class', 'gauge-progress');
+    progressPath.setAttribute('id', 'gaugeProgress');
+    progressPath.setAttribute('d', describeArc(100, 100, 80, -135, -135));
+    progressPath.setAttribute('fill', 'none');
+    svg.appendChild(progressPath);
     
-    const circumference = 2 * Math.PI * 80 * 0.75; // 270 degrees
-    progress.setAttribute('stroke-dasharray', `${circumference} ${circumference}`);
-    progress.setAttribute('stroke-dashoffset', circumference);
-    
-    svg.appendChild(progress);
     wrapper.appendChild(svg);
     
     // Needle
@@ -983,24 +977,57 @@ function buildMainGauge() {
     // Tick marks
     buildGaugeTicks(wrapper);
     
+    // Initialize scale
+    updateScaleLabels(100);
+    
     container.appendChild(wrapper);
     STATE.gaugeElement = wrapper;
 }
 
+// Helper function to describe an SVG arc
+function describeArc(x, y, radius, startAngle, endAngle) {
+    const start = polarToCartesian(x, y, radius, endAngle);
+    const end = polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+    
+    return [
+        'M', start.x, start.y,
+        'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
+    ].join(' ');
+}
+
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+    };
+}
+
 function buildGaugeTicks(wrapper) {
     const tickCount = 27; // 270 degrees / 10 degrees per tick
+    const radius = 42; // Percentage from center
     
     for (let i = 0; i <= tickCount; i++) {
+        const angle = -135 + (i / tickCount) * 270;
+        const angleRad = (angle * Math.PI) / 180;
+        
+        // Calculate position on the arc
+        const x = 50 + radius * Math.cos(angleRad);
+        const y = 50 + radius * Math.sin(angleRad);
+        
         const tick = document.createElement('div');
         tick.className = 'gauge-tick';
         
-        // Strong ticks at 0, 25, 50, 75, 100 percent
-        if (i % 7 === 0) {
+        // Strong ticks every 25% (at indices 0, 7, 14, 21, 27)
+        if (i % 7 === 0 || i === tickCount) {
             tick.classList.add('gauge-tick-strong');
         }
         
-        const angle = -135 + (i / tickCount) * 270;
-        tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        // Position and rotate the tick
+        tick.style.left = `${x}%`;
+        tick.style.top = `${y}%`;
+        tick.style.transform = `translate(-50%, -50%) rotate(${angle + 90}deg)`;
         
         wrapper.appendChild(tick);
     }
@@ -1027,16 +1054,16 @@ function updateGauge(speed, phase) {
         
         // Update progress arc and needle
         const percentage = Math.min(speed / maxSpeed, 1);
-        const angle = -135 + (percentage * 270);
+        const endAngle = -135 + (percentage * 270);
         
         if (needle) {
-            needle.style.transform = `translate(-50%, -90%) rotate(${angle}deg)`;
+            needle.style.transform = `translate(-50%, -90%) rotate(${endAngle}deg)`;
         }
         
         if (progress) {
-            const circumference = 2 * Math.PI * 80 * 0.75;
-            const offset = circumference - (percentage * circumference);
-            progress.setAttribute('stroke-dashoffset', offset);
+            // Update the arc path to show progress
+            const newPath = describeArc(100, 100, 80, -135, endAngle);
+            progress.setAttribute('d', newPath);
         }
         
         STATE.rafId = null;
@@ -1101,8 +1128,9 @@ function resetGauge() {
     }
     
     if (progress) {
-        const circumference = 2 * Math.PI * 80 * 0.75;
-        progress.setAttribute('stroke-dashoffset', circumference);
+        // Reset arc to starting position
+        const resetPath = describeArc(100, 100, 80, -135, -135);
+        progress.setAttribute('d', resetPath);
     }
     
     updateScaleLabels(100);
@@ -1126,72 +1154,119 @@ function resetAllPhases() {
 }
 
 function updateResultCard(type, result) {
-    const card = document.querySelector(`[data-metric="${type}"]`);
-    if (!card) return;
+    // Update both matrix card and detailed result card (if exists)
+    const matrixCard = document.querySelector(`.matrix-card[data-metric="${type}"]`);
+    const resultCard = document.querySelector(`.result-card[data-metric="${type}"]`);
     
-    card.setAttribute('data-status', 'active');
-    setTimeout(() => card.setAttribute('data-status', ''), 500);
+    // Animate matrix card
+    if (matrixCard) {
+        matrixCard.setAttribute('data-status', 'active');
+        setTimeout(() => matrixCard.setAttribute('data-status', ''), 500);
+    }
     
-    const valueEl = card.querySelector('.metric-value');
-    const detailsEl = card.querySelector('.metric-details');
-    const qualityEl = card.querySelector('.metric-quality');
-    
-    // Also update quick results
-    const quickItem = document.querySelector(`.quick-result-item[data-metric="${type}"]`);
-    const quickValue = quickItem?.querySelector('.quick-value');
+    // Animate result card if it exists
+    if (resultCard) {
+        resultCard.setAttribute('data-status', 'active');
+        setTimeout(() => resultCard.setAttribute('data-status', ''), 500);
+    }
     
     switch (type) {
         case 'download':
         case 'upload':
             const speed = result.speed.toFixed(1);
-            if (valueEl) valueEl.textContent = speed;
-            if (quickValue) quickValue.textContent = speed;
-            if (detailsEl) {
-                detailsEl.innerHTML = `
-                    <div>Transferred: ${formatBytes(result.bytesTransferred)}</div>
-                    <div>Duration: ${result.duration.toFixed(2)}s</div>
-                    <div>Stability: ${result.stability.toFixed(0)}%</div>
-                `;
+            
+            // Update matrix card
+            if (matrixCard) {
+                const matrixNumber = matrixCard.querySelector('.matrix-number');
+                if (matrixNumber) matrixNumber.textContent = speed;
             }
-            if (qualityEl) {
-                const quality = getSpeedQuality(result.speed, type);
-                qualityEl.textContent = quality;
-                qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+            
+            // Update detailed card if exists
+            if (resultCard) {
+                const valueEl = resultCard.querySelector('.metric-value');
+                const detailsEl = resultCard.querySelector('.metric-details');
+                const qualityEl = resultCard.querySelector('.metric-quality');
+                
+                if (valueEl) valueEl.textContent = speed;
+                if (detailsEl) {
+                    detailsEl.innerHTML = `
+                        <div>Transferred: ${formatBytes(result.bytesTransferred)}</div>
+                        <div>Duration: ${result.duration.toFixed(2)}s</div>
+                        <div>Stability: ${result.stability.toFixed(0)}%</div>
+                    `;
+                }
+                if (qualityEl) {
+                    const quality = getSpeedQuality(result.speed, type);
+                    qualityEl.textContent = quality;
+                    qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+                }
             }
             break;
             
         case 'latency':
             const latency = result.average.toFixed(1);
-            if (valueEl) valueEl.textContent = latency;
-            // Latency shows as "ping" in quick results
-            const pingQuick = document.querySelector('.quick-result-item[data-metric="ping"]');
-            const pingValue = pingQuick?.querySelector('.quick-value');
-            if (pingValue) pingValue.textContent = latency;
-            if (detailsEl) {
-                detailsEl.innerHTML = `
-                    <div>Min: ${result.min.toFixed(1)}ms</div>
-                    <div>Max: ${result.max.toFixed(1)}ms</div>
-                `;
+            
+            // Update matrix card (latency metric)
+            if (matrixCard) {
+                const matrixNumber = matrixCard.querySelector('.matrix-number');
+                if (matrixNumber) matrixNumber.textContent = latency;
             }
-            if (qualityEl) {
-                const quality = getLatencyQuality(result.average);
-                qualityEl.textContent = quality;
-                qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+            
+            // Update detailed card if exists
+            if (resultCard) {
+                const valueEl = resultCard.querySelector('.metric-value');
+                const detailsEl = resultCard.querySelector('.metric-details');
+                const qualityEl = resultCard.querySelector('.metric-quality');
+                
+                if (valueEl) valueEl.textContent = latency;
+                if (detailsEl) {
+                    detailsEl.innerHTML = `
+                        <div>Min: ${result.min.toFixed(1)}ms</div>
+                        <div>Max: ${result.max.toFixed(1)}ms</div>
+                    `;
+                }
+                if (qualityEl) {
+                    const quality = getLatencyQuality(result.average);
+                    qualityEl.textContent = quality;
+                    qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+                }
             }
             break;
             
         case 'jitter':
-            if (valueEl) valueEl.textContent = result.value.toFixed(1);
-            if (qualityEl) {
-                const quality = getJitterQuality(result.value);
-                qualityEl.textContent = quality;
-                qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+            const jitterValue = result.value.toFixed(1);
+            
+            // Update matrix card
+            if (matrixCard) {
+                const matrixNumber = matrixCard.querySelector('.matrix-number');
+                if (matrixNumber) matrixNumber.textContent = jitterValue;
+            }
+            
+            // Update detailed card if exists
+            if (resultCard) {
+                const valueEl = resultCard.querySelector('.metric-value');
+                const qualityEl = resultCard.querySelector('.metric-quality');
+                
+                if (valueEl) valueEl.textContent = jitterValue;
+                if (qualityEl) {
+                    const quality = getJitterQuality(result.value);
+                    qualityEl.textContent = quality;
+                    qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+                }
             }
             break;
     }
 }
 
 function clearResultsDisplay() {
+    // Clear matrix cards
+    document.querySelectorAll('.matrix-card').forEach(card => {
+        card.setAttribute('data-status', '');
+        const matrixNumber = card.querySelector('.matrix-number');
+        if (matrixNumber) matrixNumber.textContent = '—';
+    });
+    
+    // Clear detailed result cards if they exist
     document.querySelectorAll('.result-card').forEach(card => {
         card.setAttribute('data-status', '');
         const valueEl = card.querySelector('.metric-value');
@@ -1202,12 +1277,6 @@ function clearResultsDisplay() {
         
         const qualityEl = card.querySelector('.metric-quality');
         if (qualityEl) qualityEl.textContent = '';
-    });
-    
-    // Clear quick results
-    document.querySelectorAll('.quick-result-item').forEach(item => {
-        const valueEl = item.querySelector('.quick-value');
-        if (valueEl) valueEl.textContent = '—';
     });
 }
 
