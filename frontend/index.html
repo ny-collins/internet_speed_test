@@ -90,9 +90,31 @@
 
         <!-- Main Test Section -->
         <main class="test-section">
-            <!-- Speedometer Gauge -->
-            <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
-                <!-- Dynamically built by JS -->
+            <!-- Combined Test Area: Gauge + Results -->
+            <div class="test-display">
+                <!-- Speedometer Gauge -->
+                <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
+                    <!-- Dynamically built by JS -->
+                </div>
+
+                <!-- Quick Results Preview (visible during test) -->
+                <div class="quick-results" id="quickResults">
+                    <div class="quick-result-item" data-metric="download">
+                        <i data-lucide="arrow-down-circle"></i>
+                        <span class="quick-value">—</span>
+                        <span class="quick-unit">Mbps</span>
+                    </div>
+                    <div class="quick-result-item" data-metric="upload">
+                        <i data-lucide="arrow-up-circle"></i>
+                        <span class="quick-value">—</span>
+                        <span class="quick-unit">Mbps</span>
+                    </div>
+                    <div class="quick-result-item" data-metric="ping">
+                        <i data-lucide="activity"></i>
+                        <span class="quick-value">—</span>
+                        <span class="quick-unit">ms</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Test Controls -->

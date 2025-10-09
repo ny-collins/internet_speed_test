@@ -208,16 +208,26 @@ function loadConfiguration() {
             Object.assign(CONFIG, savedConfig);
         }
         
-        // Populate UI if elements exist
-        if (document.getElementById('downloadThreads')) {
-            document.getElementById('downloadThreads').value = CONFIG.threads.download;
-            document.getElementById('uploadThreads').value = CONFIG.threads.upload;
-            document.getElementById('downloadDuration').value = CONFIG.duration.download.default;
-            document.getElementById('uploadDuration').value = CONFIG.duration.upload.default;
-            
+        // Populate UI if elements exist - check each individually
+        const downloadThreadsEl = document.getElementById('downloadThreads');
+        const uploadThreadsEl = document.getElementById('uploadThreads');
+        const downloadDurationEl = document.getElementById('downloadDuration');
+        const uploadDurationEl = document.getElementById('uploadDuration');
+        
+        if (downloadThreadsEl) {
+            downloadThreadsEl.value = CONFIG.threads.download;
             updateSettingValue('downloadThreads', CONFIG.threads.download);
+        }
+        if (uploadThreadsEl) {
+            uploadThreadsEl.value = CONFIG.threads.upload;
             updateSettingValue('uploadThreads', CONFIG.threads.upload);
+        }
+        if (downloadDurationEl) {
+            downloadDurationEl.value = CONFIG.duration.download.default;
             updateSettingValue('downloadDuration', CONFIG.duration.download.default);
+        }
+        if (uploadDurationEl) {
+            uploadDurationEl.value = CONFIG.duration.upload.default;
             updateSettingValue('uploadDuration', CONFIG.duration.upload.default);
         }
     } catch (error) {
@@ -778,11 +788,17 @@ async function measureUpload() {
  */
 async function uploadThread(threadId, isRunning) {
     const byteCounter = { bytes: 0 };
-    const chunkSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
+    const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
     
-    // Generate random data
-    const data = new Uint8Array(chunkSize);
-    crypto.getRandomValues(data);
+    // Generate random data in chunks (crypto.getRandomValues has 65KB limit)
+    const maxChunkSize = 65536; // 64KB max for crypto
+    const data = new Uint8Array(totalSize);
+    for (let i = 0; i < totalSize; i += maxChunkSize) {
+        const chunkSize = Math.min(maxChunkSize, totalSize - i);
+        const chunk = new Uint8Array(chunkSize);
+        crypto.getRandomValues(chunk);
+        data.set(chunk, i);
+    }
     
     const abortController = new AbortController();
     STATE.abortControllers.push(abortController);
@@ -1120,10 +1136,16 @@ function updateResultCard(type, result) {
     const detailsEl = card.querySelector('.metric-details');
     const qualityEl = card.querySelector('.metric-quality');
     
+    // Also update quick results
+    const quickItem = document.querySelector(`.quick-result-item[data-metric="${type}"]`);
+    const quickValue = quickItem?.querySelector('.quick-value');
+    
     switch (type) {
         case 'download':
         case 'upload':
-            if (valueEl) valueEl.textContent = result.speed.toFixed(1);
+            const speed = result.speed.toFixed(1);
+            if (valueEl) valueEl.textContent = speed;
+            if (quickValue) quickValue.textContent = speed;
             if (detailsEl) {
                 detailsEl.innerHTML = `
                     <div>Transferred: ${formatBytes(result.bytesTransferred)}</div>
@@ -1139,7 +1161,12 @@ function updateResultCard(type, result) {
             break;
             
         case 'latency':
-            if (valueEl) valueEl.textContent = result.average.toFixed(1);
+            const latency = result.average.toFixed(1);
+            if (valueEl) valueEl.textContent = latency;
+            // Latency shows as "ping" in quick results
+            const pingQuick = document.querySelector('.quick-result-item[data-metric="ping"]');
+            const pingValue = pingQuick?.querySelector('.quick-value');
+            if (pingValue) pingValue.textContent = latency;
             if (detailsEl) {
                 detailsEl.innerHTML = `
                     <div>Min: ${result.min.toFixed(1)}ms</div>
@@ -1175,6 +1202,12 @@ function clearResultsDisplay() {
         
         const qualityEl = card.querySelector('.metric-quality');
         if (qualityEl) qualityEl.textContent = '';
+    });
+    
+    // Clear quick results
+    document.querySelectorAll('.quick-result-item').forEach(item => {
+        const valueEl = item.querySelector('.quick-value');
+        if (valueEl) valueEl.textContent = '—';
     });
 }
 
