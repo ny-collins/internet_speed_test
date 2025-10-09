@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Test your internet connection speed - measure download, upload, ping, and jitter">
+    <title>Internet Speed Test</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <i data-lucide="moon" class="theme-icon"></i>
+    </button>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <i data-lucide="wifi" class="header-icon"></i>
+                <h1 class="header-title">Speed Test</h1>
+            </div>
+            <p class="header-subtitle">Measure your internet connection performance</p>
+        </header>
+
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="connection-status hidden">
+            <i data-lucide="alert-circle" class="status-icon"></i>
+            <span class="status-text"></span>
+        </div>
+
+        <!-- Test Section -->
+        <div class="test-section">
+            <button id="startTest" class="test-button">
+                <span class="button-text">Start Test</span>
+            </button>
+        </div>
+
+        <!-- Results Container -->
+        <div class="results-container">
+            <div class="results-grid">
+                <!-- Download Speed -->
+                <div class="metric-card" data-metric="download">
+                    <div class="metric-card-content">
+                        <div class="metric-header">
+                            <div class="metric-icon-wrapper">
+                                <i data-lucide="arrow-down" class="metric-icon"></i>
+                            </div>
+                            <span class="metric-label">Download</span>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value-container">
+                                <span class="metric-value">—</span>
+                                <span class="metric-unit">Mbps</span>
+                            </div>
+                            <span class="metric-quality"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Speed -->
+                <div class="metric-card" data-metric="upload">
+                    <div class="metric-card-content">
+                        <div class="metric-header">
+                            <div class="metric-icon-wrapper">
+                                <i data-lucide="arrow-up" class="metric-icon"></i>
+                            </div>
+                            <span class="metric-label">Upload</span>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value-container">
+                                <span class="metric-value">—</span>
+                                <span class="metric-unit">Mbps</span>
+                            </div>
+                            <span class="metric-quality"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ping -->
+                <div class="metric-card" data-metric="ping">
+                    <div class="metric-card-content">
+                        <div class="metric-header">
+                            <div class="metric-icon-wrapper">
+                                <i data-lucide="clock" class="metric-icon"></i>
+                            </div>
+                            <span class="metric-label">Ping</span>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value-container">
+                                <span class="metric-value">—</span>
+                                <span class="metric-unit">ms</span>
+                            </div>
+                            <span class="metric-quality"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jitter -->
+                <div class="metric-card" data-metric="jitter">
+                    <div class="metric-card-content">
+                        <div class="metric-header">
+                            <div class="metric-icon-wrapper">
+                                <i data-lucide="activity" class="metric-icon"></i>
+                            </div>
+                            <span class="metric-label">Jitter</span>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value-container">
+                                <span class="metric-value">—</span>
+                                <span class="metric-unit">ms</span>
+                            </div>
+                            <span class="metric-quality"></span>
+                            <span class="metric-subvalue"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Educational Content -->
+        <div class="education-section">
+            <div class="education-header">
+                <i data-lucide="info" class="education-icon"></i>
+                <h2 class="education-title">Understanding Your Results</h2>
+            </div>
+
+            <!-- Info Sections -->
+            <div class="info-sections">
+                <!-- Download Speed -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="download-info">
+                        <span class="info-section-title">What is Download Speed?</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                Download speed measures how quickly data travels from the internet to your device. 
+                                Measured in megabits per second (Mbps), this determines how fast you can stream videos, 
+                                load websites, and download files.
+                            </p>
+                            <p>
+                                <strong>Typical needs:</strong> Browsing requires 5+ Mbps, HD streaming needs 25+ Mbps, 
+                                4K streaming requires 50+ Mbps, and households with multiple devices benefit from 100+ Mbps.
+                            </p>
+                            <p>
+                                <strong>Technical note:</strong> Download speed is asymmetric in most residential connections 
+                                because ISPs prioritize downstream bandwidth, which aligns with typical consumer usage patterns 
+                                (consuming content rather than producing it).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Speed -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="upload-info">
+                        <span class="info-section-title">What is Upload Speed?</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                Upload speed measures how quickly data travels from your device to the internet. 
+                                This affects video calls, file uploads, cloud backups, and live streaming. Upload speeds 
+                                are typically lower than download speeds in residential connections due to asymmetric bandwidth allocation.
+                            </p>
+                            <p>
+                                <strong>Typical needs:</strong> Standard video calls require 3+ Mbps, HD video conferencing 
+                                needs 5-10 Mbps, live streaming requires 10+ Mbps, and frequent large file uploads benefit 
+                                from 20+ Mbps.
+                            </p>
+                            <p>
+                                <strong>Why it matters:</strong> In the era of remote work and content creation, upload 
+                                speed has become increasingly critical. Insufficient upload bandwidth causes video call 
+                                freezing, cloud sync delays, and live stream quality degradation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ping (Latency) -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="ping-info">
+                        <span class="info-section-title">What is Ping (Latency)?</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                Ping, or latency, measures the round-trip time (RTT) for a data packet to travel from your 
+                                device to a server and back. Measured in milliseconds (ms), lower values indicate more 
+                                responsive connections. High ping causes noticeable delays in real-time applications.
+                            </p>
+                            <p>
+                                <strong>Understanding values:</strong> Excellent (&lt;20ms) is ideal for competitive gaming 
+                                and high-frequency trading. Good (20-50ms) works well for most applications. Average (50-100ms) 
+                                is acceptable for casual use. High (&gt;100ms) causes noticeable lag in interactive applications.
+                            </p>
+                            <p>
+                                <strong>What affects latency:</strong> Physical distance to servers (light can only travel so fast), 
+                                routing efficiency (number of hops between nodes), network congestion, and transmission medium 
+                                (fiber optic &lt; cable &lt; DSL &lt; satellite). Wired connections typically have 10-50ms lower 
+                                latency than Wi-Fi.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jitter -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="jitter-info">
+                        <span class="info-section-title">What is Jitter?</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                Jitter measures the variation in ping (latency) over time. It's the standard deviation of 
+                                multiple latency measurements. Consistent ping is crucial for real-time applications because 
+                                they buffer data based on expected arrival times. High jitter causes stuttering in video calls 
+                                and unpredictable lag in gaming, even if average ping is acceptable.
+                            </p>
+                            <p>
+                                <strong>Acceptable values:</strong> &lt;5ms is excellent and imperceptible. 5-15ms is 
+                                acceptable for most uses. 15-30ms may cause minor quality issues. &gt;30ms will cause 
+                                noticeable problems in real-time applications.
+                            </p>
+                            <p>
+                                <strong>Root causes:</strong> Network congestion, insufficient Quality of Service (QoS) 
+                                configuration, Wi-Fi interference, bufferbloat (excessive buffering in network equipment), 
+                                and inconsistent routing paths. Jitter is often more problematic than slightly higher but 
+                                consistent latency.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Issues -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="issues-info">
+                        <span class="info-section-title">Common Connectivity Issues</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                <strong>Slow speeds:</strong> Network congestion (especially during peak hours), outdated 
+                                or misconfigured equipment, distance from router, ISP throttling, or being on a shared 
+                                connection medium (cable internet shares bandwidth among neighbors). Test at different times 
+                                to identify congestion patterns.
+                            </p>
+                            <p>
+                                <strong>High latency:</strong> Physical distance to servers (governed by the speed of light), 
+                                routing inefficiencies (excessive network hops), network congestion, or using satellite internet 
+                                (which has inherent ~600ms latency due to the distance to geostationary orbit). Wired connections 
+                                typically reduce latency by 10-50ms compared to Wi-Fi.
+                            </p>
+                            <p>
+                                <strong>Packet loss:</strong> When data packets fail to reach their destination, requiring 
+                                retransmission. Causes buffering, reconnections, and degraded quality. Often indicates hardware 
+                                issues, overloaded network nodes, Wi-Fi interference, or poor physical connections.
+                            </p>
+                            <p>
+                                <strong>Wi-Fi interference:</strong> The 2.4GHz band is crowded (Bluetooth, microwaves, baby 
+                                monitors all share this spectrum). The 5GHz band offers better speeds and less interference but 
+                                reduced range and wall penetration. Wi-Fi 6E adds 6GHz band support for further improvement. 
+                                Walls, metal objects, and water significantly attenuate Wi-Fi signals.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bandwidth vs Throughput -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="bandwidth-info">
+                        <span class="info-section-title">Bandwidth vs Throughput</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                <strong>Bandwidth</strong> is the theoretical maximum capacity of your connection, analogous 
+                                to the width of a pipe. <strong>Throughput</strong> is the actual amount of data successfully 
+                                transferred, like the water flow through that pipe. The distinction is crucial for understanding 
+                                real-world performance.
+                            </p>
+                            <p>
+                                ISPs advertise bandwidth ("up to 100 Mbps"), but actual throughput depends on network conditions, 
+                                protocol overhead (TCP/IP headers, encryption), equipment quality, congestion, packet loss requiring 
+                                retransmission, and application efficiency. This is why speed tests show variable results and rarely 
+                                reach the advertised maximum.
+                            </p>
+                            <p>
+                                <strong>Protocol overhead:</strong> TCP/IP adds ~3-5% overhead, VPNs add 10-20%, and poor 
+                                network conditions requiring frequent retransmissions can reduce effective throughput by 30-50% 
+                                or more. This is why your actual speeds are always somewhat less than the theoretical bandwidth.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Variance -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="variance-info">
+                        <span class="info-section-title">Why Results Vary</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                Speed tests can vary significantly due to multiple factors: server location (distance affects 
+                                both latency and routing efficiency), network congestion (time of day matters), device performance 
+                                (CPU/network card limitations), background applications consuming bandwidth, test methodology 
+                                (single vs multi-threaded, TCP vs UDP), and even browser performance.
+                            </p>
+                            <p>
+                                For most accurate results: close bandwidth-consuming applications, use a wired Ethernet connection 
+                                (eliminates Wi-Fi variables), test multiple times throughout the day, test to servers at different 
+                                distances, disable VPNs (they add overhead and routing complexity), and ensure your device isn't 
+                                thermal throttling.
+                            </p>
+                            <p>
+                                <strong>Server selection matters:</strong> Different test servers yield different results based 
+                                on routing paths and distance. Your speed to nearby servers should significantly exceed speeds to 
+                                distant ones due to latency and potential routing through congested backbone connections. Testing 
+                                to multiple servers provides a more complete picture of your connection's capabilities.
+                            </p>
+                            <p>
+                                <strong>Statistical significance:</strong> A single test is a snapshot, not a complete picture. 
+                                Run multiple tests at different times to understand your connection's typical performance range. 
+                                Variance itself is informative—high variance suggests inconsistent network conditions that may 
+                                impact your experience even if peak speeds are good.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Concepts -->
+                <div class="info-section">
+                    <button class="info-section-header" data-section="technical-info">
+                        <span class="info-section-title">Advanced Technical Concepts</span>
+                        <i data-lucide="chevron-down" class="chevron-icon"></i>
+                    </button>
+                    <div class="info-section-content">
+                        <div class="info-section-inner">
+                            <p>
+                                <strong>TCP vs UDP:</strong> TCP (Transmission Control Protocol) ensures reliable delivery through 
+                                acknowledgments and retransmission, adding overhead but guaranteeing data integrity. UDP (User Datagram 
+                                Protocol) prioritizes speed over reliability, sending data without confirmation. Real-time applications 
+                                (gaming, VoIP) use UDP; file transfers use TCP.
+                            </p>
+                            <p>
+                                <strong>Bufferbloat:</strong> Excessive buffering in network equipment causes high latency under load. 
+                                When buffers fill with packets, new packets must wait, increasing latency dramatically. Modern solutions 
+                                include active queue management (AQM) algorithms like fq_codel that intelligently manage buffer occupancy.
+                            </p>
+                            <p>
+                                <strong>Quality of Service (QoS):</strong> Prioritizes certain traffic types over others. Without QoS, 
+                                a large download can starve a video call of bandwidth. QoS ensures latency-sensitive traffic gets priority, 
+                                improving overall experience even without increasing bandwidth.
+                            </p>
+                            <p>
+                                <strong>DNS resolution time:</strong> Often overlooked, DNS (Domain Name System) translation from 
+                                domain names to IP addresses adds latency to every new connection. Slow DNS (100-200ms) makes browsing 
+                                feel sluggish even with good bandwidth. Public DNS servers (Google 8.8.8.8, Cloudflare 1.1.1.1) often 
+                                outperform ISP-provided DNS.
+                            </p>
+                            <p>
+                                <strong>MTU (Maximum Transmission Unit):</strong> The largest packet size that can be transmitted without 
+                                fragmentation. Standard Ethernet MTU is 1500 bytes. If MTU is misconfigured or path MTU discovery fails, 
+                                you'll experience connection issues despite seemingly adequate bandwidth. This is particularly common with 
+                                VPNs and tunneling protocols.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="footer-note">
+            <i data-lucide="alert-circle" class="note-icon"></i>
+            <div class="note-content">
+                <strong>Note:</strong> This test uses standard web technologies and may not reflect 
+                your maximum possible speeds. For most accurate results, use a wired connection and 
+                ensure no other devices are heavily using the network during testing. Results vary based 
+                on server location, network conditions, and time of day.
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
