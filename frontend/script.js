@@ -249,8 +249,8 @@ function initializeEventListeners() {
     document.getElementById('resetSettings')?.addEventListener('click', resetSettings);
     
     // Test controls
-    document.getElementById('startBtn')?.addEventListener('click', startTest);
-    document.getElementById('cancelBtn')?.addEventListener('click', cancelTest);
+    document.getElementById('startTest')?.addEventListener('click', startTest);
+    document.getElementById('cancelTest')?.addEventListener('click', cancelTest);
     
     // History actions
     document.getElementById('clearHistory')?.addEventListener('click', clearHistory);
@@ -314,13 +314,25 @@ async function fetchServerInfo() {
         STATE.serverInfo = await response.json();
         
         // Update UI
-        document.getElementById('serverLocation').textContent = STATE.serverInfo.location || 'Unknown';
-        document.getElementById('serverProvider').textContent = STATE.serverInfo.provider || 'Unknown';
+        const locationEl = document.getElementById('serverLocation');
+        const limitsEl = document.getElementById('serverLimits');
+        const infoContainer = document.getElementById('serverInfo');
+        
+        if (locationEl) {
+            locationEl.textContent = STATE.serverInfo.serverLocation || 'Unknown';
+        }
+        if (limitsEl && STATE.serverInfo.maxDownloadSize) {
+            limitsEl.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;
+        }
+        if (infoContainer) {
+            infoContainer.hidden = false;
+        }
         
         console.log('[Server] Info fetched:', STATE.serverInfo);
     } catch (error) {
         console.error('[Server] Failed to fetch info:', error);
-        showStatus('Could not fetch server information', 'error');
+        // Don't show error status - it's not critical
+        console.log('[Server] Using default server info');
     }
 }
 
@@ -345,8 +357,13 @@ async function startTest() {
     };
     
     // Update UI
-    document.getElementById('startBtn').disabled = true;
-    document.getElementById('cancelBtn').disabled = false;
+    const startBtn = document.getElementById('startTest');
+    const cancelBtn = document.getElementById('cancelTest');
+    if (startBtn) startBtn.disabled = true;
+    if (cancelBtn) {
+        cancelBtn.disabled = false;
+        cancelBtn.hidden = false;
+    }
     clearResultsDisplay();
     setProgress(0);
     announceToScreenReader('Speed test started');
@@ -373,8 +390,13 @@ async function startTest() {
         announceToScreenReader(`Test failed: ${error.message}`);
     } finally {
         STATE.testing = false;
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('cancelBtn').disabled = true;
+        const startBtn = document.getElementById('startTest');
+        const cancelBtn = document.getElementById('cancelTest');
+        if (startBtn) startBtn.disabled = false;
+        if (cancelBtn) {
+            cancelBtn.disabled = true;
+            cancelBtn.hidden = true;
+        }
         resetGauge();
     }
 }
