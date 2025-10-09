@@ -5,26 +5,25 @@ const compression = require('compression');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+const MAX_DOWNLOAD_SIZE_MB = parseInt(process.env.MAX_DOWNLOAD_SIZE_MB || '50', 10); // safety cap
+const MAX_UPLOAD_SIZE_MB = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10); // for info endpoint (enforced via raw limit below if desired)
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || CORS_ORIGIN === '*' || origin === CORS_ORIGIN) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  }
+}));
 app.use(compression());
 app.use(express.json());
 app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
 
-// Store ping measurements temporarily (in production, use Redis)
-const pingStore = new Map();
-
-// Clean up old ping measurements every 5 minutes
-setInterval(() => {
-  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-  for (const [key, value] of pingStore.entries()) {
-    if (value.timestamp < fiveMinutesAgo) {
-      pingStore.delete(key);
-    }
-  }
-}, 5 * 60 * 1000);
+// (Removed unused pingStore to reduce memory footprint)
 
 /**
  * Ping endpoint - measures latency
@@ -44,7 +43,9 @@ app.get('/api/ping', (req, res) => {
  */
 app.get('/api/download', (req, res) => {
   // Default to 5MB, allow customization via query param
-  const sizeInMB = parseInt(req.query.size) || 5;
+  let sizeInMB = parseInt(req.query.size, 10) || 5;
+  if (sizeInMB < 1) sizeInMB = 1;
+  if (sizeInMB > MAX_DOWNLOAD_SIZE_MB) sizeInMB = MAX_DOWNLOAD_SIZE_MB; // clamp
   const sizeInBytes = sizeInMB * 1024 * 1024;
   
   // Generate random data for download
@@ -122,22 +123,15 @@ app.post('/api/upload', (req, res) => {
  * Allows batch ping measurements for statistical analysis
  */
 app.post('/api/ping-batch', (req, res) => {
-  const { count = 10, sessionId } = req.body;
+  let { count = 10 } = req.body || {};
+  count = parseInt(count, 10);
+  if (isNaN(count) || count < 1) count = 1;
+  if (count > 100) count = 100; // clamp to prevent abuse
   const measurements = [];
-  
-  // Return current server timestamp for each ping
   for (let i = 0; i < count; i++) {
-    measurements.push({
-      id: i,
-      timestamp: Date.now(),
-      nonce: crypto.randomBytes(8).toString('hex')
-    });
+    measurements.push({ id: i, timestamp: Date.now(), nonce: crypto.randomBytes(8).toString('hex') });
   }
-  
-  res.json({
-    measurements,
-    serverTime: Date.now()
-  });
+  res.json({ measurements, serverTime: Date.now(), count });
 });
 
 /**
@@ -147,10 +141,10 @@ app.post('/api/ping-batch', (req, res) => {
 app.get('/api/info', (req, res) => {
   res.json({
     serverLocation: process.env.SERVER_LOCATION || 'Unknown',
-    maxDownloadSize: 50, // MB
-    maxUploadSize: 50, // MB
+    maxDownloadSize: MAX_DOWNLOAD_SIZE_MB, // MB
+    maxUploadSize: MAX_UPLOAD_SIZE_MB, // MB (advisory)
     supportedTests: ['ping', 'download', 'upload', 'jitter'],
-    version: '1.0.0'
+    version: '1.0.1'
   });
 });
 
@@ -191,10 +185,12 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Speed test server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Server location: ${process.env.SERVER_LOCATION || 'Unknown'}`);
+  console.log(`CORS Origin: ${CORS_ORIGIN}`);
+  console.log(`Max download size: ${MAX_DOWNLOAD_SIZE_MB}MB`);
 });
 
 // Graceful shutdown

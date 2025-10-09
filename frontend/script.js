@@ -1,6 +1,25 @@
 // ===== Configuration =====
+// Dynamically determine backend API base URL.
+// Priority:
+// 1. Explicit global override window.__BACKEND_URL__ (can be injected server-side)
+// 2. data-backend-url attribute on <html>
+// 3. If current host includes 'localhost' -> use http://localhost:3000
+// 4. Fallback to production Railway backend URL
+function resolveBackendBase() {
+    if (typeof window !== 'undefined') {
+        if (window.__BACKEND_URL__) return window.__BACKEND_URL__.replace(/\/$/, '') + '/api';
+        const attr = document.documentElement.getAttribute('data-backend-url');
+        if (attr) return attr.replace(/\/$/, '') + '/api';
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            return 'http://localhost:3000/api';
+        }
+    }
+    // Railway deployed backend default
+    return 'https://speed-test-backend.up.railway.app/api';
+}
+
 const CONFIG = {
-    API_BASE_URL: 'http://localhost:3000/api',
+    API_BASE_URL: resolveBackendBase(),
     PING_COUNT: 10,
     DOWNLOAD_SIZE_MB: 5,
     UPLOAD_SIZE_MB: 2,
