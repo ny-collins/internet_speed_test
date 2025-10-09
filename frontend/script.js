@@ -135,23 +135,25 @@ const utils = {
         elements.connectionStatus.classList.add('hidden');
     },
     
-    ensureGauge(metric) {
-        const card = elements.metricCards[metric];
-        if (!card || card.querySelector('.gauge-wrapper')) return;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'gauge-wrapper';
-        wrapper.setAttribute('data-gauge-metric', metric);
-        const radius = 60;
+    // Global gauge methods
+    buildMainGauge() {
+        const container = document.getElementById('mainGaugeContainer');
+        if (!container || container._built) return;
+        // Gauge design notes:
+        // - 270° arc (classic speedometer) using stroke-dasharray with a gap.
+        // - Adaptive max scaling during test so needle occupies meaningful range.
+        // - Animated via requestAnimationFrame for smoothness (ease in/out).
+        const radius = 90;
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('viewBox', '0 0 150 150');
+        svg.setAttribute('viewBox', '0 0 220 220');
         const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        track.setAttribute('cx', '75'); track.setAttribute('cy', '75'); track.setAttribute('r', radius);
+        track.setAttribute('cx','110'); track.setAttribute('cy','110'); track.setAttribute('r', radius);
         track.classList.add('gauge-track');
         const prog = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        prog.setAttribute('cx', '75'); prog.setAttribute('cy', '75'); prog.setAttribute('r', radius);
+        prog.setAttribute('cx','110'); prog.setAttribute('cy','110'); prog.setAttribute('r', radius);
         prog.classList.add('gauge-progress');
         const fullCirc = 2 * Math.PI * radius;
-        const visibleFraction = 270/360; // 270° sweep
+        const visibleFraction = 270/360;
         const dashArray = fullCirc * visibleFraction;
         const gap = fullCirc - dashArray;
         track.setAttribute('stroke-dasharray', `${dashArray} ${gap}`);
@@ -159,57 +161,69 @@ const utils = {
         track.setAttribute('stroke-dashoffset', (gap/2).toString());
         prog.setAttribute('stroke-dashoffset', (gap/2 + dashArray).toString());
         svg.appendChild(track); svg.appendChild(prog);
+        const wrapper = document.createElement('div'); wrapper.className = 'gauge-wrapper main-gauge';
         const gaugeDiv = document.createElement('div'); gaugeDiv.className = 'gauge'; gaugeDiv.appendChild(svg);
         const needle = document.createElement('div'); needle.className = 'gauge-needle';
         const cap = document.createElement('div'); cap.className = 'gauge-center-cap';
         const live = document.createElement('div'); live.className = 'gauge-value-live'; live.textContent = '—';
-        wrapper.appendChild(gaugeDiv); wrapper.appendChild(needle); wrapper.appendChild(cap); wrapper.appendChild(live);
-        card.querySelector('.metric-card-content').prepend(wrapper);
-        card._gauge = { prog, needle, live, dashArray, gap, lastValue: 0 };
+        const label = document.createElement('div'); label.className = 'gauge-phase-label'; label.textContent = '';
+        wrapper.appendChild(gaugeDiv); wrapper.appendChild(needle); wrapper.appendChild(cap); wrapper.appendChild(live); wrapper.appendChild(label);
+        container.appendChild(wrapper);
+        container._built = true;
+        container._gauge = { prog, needle, live, label, dashArray, gap, lastValue: 0, max: 100 };
     },
-    gaugeMax(metric, value) {
-        if (metric === 'download' || metric === 'upload') {
-            const tiers = [10,25,50,100,200,500,1000];
-            const v = value || 0;
-            for (const t of tiers) if (v <= t) return t;
-            return tiers[tiers.length-1];
+    setGaugePhase(phase) {
+        const container = document.getElementById('mainGaugeContainer');
+        if (!container?._gauge) return;
+        const g = container._gauge;
+        if (phase === 'download') g.label.textContent = 'Download';
+        else if (phase === 'upload') g.label.textContent = 'Upload';
+        else g.label.textContent = '';
+        if (phase === 'download' || phase === 'upload') {
+            container.removeAttribute('aria-hidden');
+        } else {
+            container.setAttribute('aria-hidden','true');
         }
-        if (metric === 'ping') return 200;
-        if (metric === 'jitter') return 100;
-        return 100;
     },
-    animateGauge(metric, rawVal) {
-        const card = elements.metricCards[metric];
-        if (!card || !card._gauge) return;
-        const g = card._gauge;
-        const max = utils.gaugeMax(metric, rawVal);
-        // Gauge animation notes:
-        // - Sweep covers 270 degrees (-135deg to +135deg) for a classic speedometer arc.
-        // - gaugeMax() picks a contextual ceiling so the needle uses most of the arc; tweak tiers there.
-        // - To change duration, adjust 'duration'. Ease function is symmetric for smooth accel/decel.
-        // - Stroke-dashoffset drives arc fill; needle rotation is purely cosmetic.
+    animateMainGauge(rawVal) {
+        const container = document.getElementById('mainGaugeContainer');
+        if (!container?._gauge) return;
+        const g = container._gauge;
+        // Adaptive scaling
+        if (rawVal > g.max * 0.95) {
+            const tiers = [50,100,200,500,1000,2000];
+            for (const t of tiers) { if (rawVal <= t) { g.max = t; break; } }
+        }
         const start = g.lastValue || 0;
-        const end = Math.min(rawVal, max);
+        const end = Math.min(rawVal, g.max);
         const startTime = performance.now();
-        const duration = 700;
-        const ease = t => t < .5 ? 2*t*t : -1 + (4 - 2*t)*t;
+        const duration = 400;
+        const ease = t => t<.5? 2*t*t : -1 + (4 - 2*t)*t;
         function step(now) {
             const p = Math.min(1, (now - startTime) / duration);
             const v = start + (end - start) * ease(p);
-            const ratio = v / max;
+            const ratio = v / g.max;
             const angle = -135 + 270 * ratio;
             g.needle.style.transform = `translate(-50%, -90%) rotate(${angle}deg)`;
             const offset = g.gap/2 + g.dashArray * (1 - ratio);
             g.prog.setAttribute('stroke-dashoffset', offset.toString());
-            g.live.textContent = utils.formatNumber(v, (metric === 'ping' || metric === 'jitter') ? 0 : 1);
+            g.live.textContent = utils.formatNumber(v, 1);
             if (p < 1) requestAnimationFrame(step); else { g.lastValue = end; }
         }
         requestAnimationFrame(step);
     },
+    resetMainGauge() {
+        const container = document.getElementById('mainGaugeContainer');
+        if (!container?._gauge) return;
+        const g = container._gauge;
+        g.lastValue = 0; g.max = 100; g.live.textContent = '—';
+        g.needle.style.transform = 'translate(-50%, -90%) rotate(-135deg)';
+        g.prog.setAttribute('stroke-dashoffset', (g.gap/2 + g.dashArray).toString());
+    },
     updateMetricCard: (metric, value, unit = 'Mbps') => {
         const card = elements.metricCards[metric];
         if (!card) return;
-        utils.ensureGauge(metric);
+    // Per-metric gauges removed; single global gauge shown during active transfer phases.
         
         const valueElement = card.querySelector('.metric-value');
         const qualityElement = card.querySelector('.metric-quality');
@@ -217,8 +231,7 @@ const utils = {
         
         if (value !== null && value !== undefined && value !== 'error') {
             valueElement.textContent = value;
-            const numeric = parseFloat(value);
-            if (!isNaN(numeric)) utils.animateGauge(metric, numeric);
+            // Numeric animation handled by main gauge only for current phase.
             
             // Update quality indicator
             const quality = getQualityRating(metric, value);
@@ -418,36 +431,70 @@ const api = {
     },
     
     async measureDownload() {
-        const startTime = performance.now();
-        
+        // DOWNLOAD TEST METHODOLOGY
+        // 1. Begin fetch; only start timing at first chunk arrival to exclude handshake + initial RTT.
+        // 2. Stream chunks via readable stream reader; accumulate bytes.
+        // 3. Update gauge using moving average of last few instantaneous Mbps samples (~stabilizes jitter).
+        // 4. Compute final Mbps = total_bits / elapsed_seconds (elapsed from first chunk).
+        // 5. Increase minimum size to reduce slow-start bias; still single connection (multi-conn could improve further).
+        // Streaming download implementation with live updates
+        // Methodology: start timing at first received chunk to avoid inflating with initial RTT/headers.
+        // We request a target size, but may adapt later if needed.
         try {
+            utils.buildMainGauge();
+            utils.setGaugePhase('download');
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
-            
-            const response = await fetch(
-                `${CONFIG.API_BASE_URL}/download?size=${CONFIG.DOWNLOAD_SIZE_MB}`,
-                {
-                    method: 'GET',
-                    cache: 'no-store',
-                    signal: controller.signal
-                }
-            );
-            
+            const targetMB = Math.max(CONFIG.DOWNLOAD_SIZE_MB, 10); // ensure at least 10MB for better accuracy
+            const response = await fetch(`${CONFIG.API_BASE_URL}/download?size=${targetMB}`, {
+                method: 'GET',
+                cache: 'no-store',
+                signal: controller.signal
+            });
             clearTimeout(timeout);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+            if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
+            const reader = response.body.getReader();
+            let receivedBytes = 0;
+            let firstChunkTime = null;
+            const t0 = performance.now(); // request start (for diagnostic)
+            const samples = [];
+            let lastUpdate = 0;
+            const updateInterval = 120; // ms
+            const startTimeRef = { value: null };
+            const updateGauge = () => {
+                if (startTimeRef.value === null) return; // no data yet
+                const elapsed = (performance.now() - startTimeRef.value) / 1000;
+                if (elapsed <= 0) return;
+                const bits = receivedBytes * 8;
+                const instMbps = bits / (elapsed * 1_000_000);
+                samples.push(instMbps);
+                // use a short moving average of last 5 samples for stability
+                const recent = samples.slice(-5);
+                const avg = recent.reduce((a,b)=>a+b,0)/recent.length;
+                utils.animateMainGauge(avg);
+            };
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                if (!firstChunkTime) {
+                    firstChunkTime = performance.now();
+                    startTimeRef.value = firstChunkTime;
+                }
+                receivedBytes += value.length;
+                const now = performance.now();
+                if (now - lastUpdate > updateInterval) {
+                    lastUpdate = now;
+                    updateGauge();
+                }
             }
-            
-            // Read the entire response
-            const blob = await response.blob();
+            // Final update
+            updateGauge();
             const endTime = performance.now();
-            
-            // Calculate speed
-            const durationSeconds = (endTime - startTime) / 1000;
-            const bitsDownloaded = blob.size * 8;
-            const speedMbps = bitsDownloaded / (durationSeconds * 1000000);
-            
+            const start = startTimeRef.value || t0; // fallback
+            const durationSeconds = (endTime - start) / 1000;
+            if (durationSeconds === 0) throw new Error('No duration measured');
+            const bitsDownloaded = receivedBytes * 8;
+            const speedMbps = bitsDownloaded / (durationSeconds * 1_000_000);
             return utils.formatNumber(speedMbps, 2);
         } catch (error) {
             console.error('Download test failed:', error);
@@ -456,65 +503,70 @@ const api = {
     },
     
     async measureUpload() {
-        // Generate random data for upload
-        const uploadSize = CONFIG.UPLOAD_SIZE_MB * 1024 * 1024;
+        // UPLOAD TEST METHODOLOGY
+        // 1. Pre-generate random payload (>=5MB) to avoid generation cost mid-transfer.
+        // 2. Use XMLHttpRequest for upload progress events (fetch lacks granular upload progress in most browsers).
+        // 3. Start timing at first progress event (first bytes leaving) vs open time.
+        // 4. Gauge updates use smoothed moving average of latest Mbps.
+        // 5. Prefer server's computed speed if available (authoritative, measured post-receipt).
+        // Adaptive size: ensure enough data to reach steady state (min ~3s if possible)
+        const targetMB = Math.max(CONFIG.UPLOAD_SIZE_MB, 5); // bump to at least 5MB for better sampling
+        const uploadSize = targetMB * 1024 * 1024;
         const data = new Uint8Array(uploadSize);
-        // Prefer cryptographically strong fill if available for speed
-        if (window.crypto && window.crypto.getRandomValues) {
-            // getRandomValues limit is 65536 bytes per call; fill in chunks
-            const chunkSize = 65536; // 64KB
+        if (window.crypto?.getRandomValues) {
+            const chunkSize = 65536;
             for (let offset = 0; offset < data.length; offset += chunkSize) {
-                const slice = data.subarray(offset, Math.min(offset + chunkSize, data.length));
-                window.crypto.getRandomValues(slice);
+                window.crypto.getRandomValues(data.subarray(offset, Math.min(offset + chunkSize, data.length)));
             }
         } else {
-            for (let i = 0; i < uploadSize; i++) data[i] = Math.floor(Math.random() * 256);
+            for (let i = 0; i < uploadSize; i++) data[i] = (Math.random() * 256) | 0;
         }
-
-        const startTime = performance.now();
-        
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
-            
-            const response = await fetch(`${CONFIG.API_BASE_URL}/upload`, {
-                method: 'POST',
-                body: data,
-                headers: {
-                    'Content-Type': 'application/octet-stream'
-                },
-                cache: 'no-store',
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeout);
-            const endTime = performance.now();
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            // Optionally read JSON for server-side computed speed (authoritative)
-            let serverReported = null;
-            try {
-                serverReported = await response.json();
-            } catch (e) {
-                // ignore parse issues; we'll compute client-side
-            }
-            
-            // Calculate speed
-            const durationSeconds = (endTime - startTime) / 1000;
-            const bitsUploaded = uploadSize * 8;
-            const speedMbps = bitsUploaded / (durationSeconds * 1000000);
-            const clientValue = utils.formatNumber(speedMbps, 2);
-            if (serverReported && typeof serverReported.speedMbps === 'number') {
-                return utils.formatNumber(serverReported.speedMbps, 2);
-            }
-            return clientValue;
-        } catch (error) {
-            console.error('Upload test failed:', error);
-            throw error;
-        }
+        return await new Promise((resolve, reject) => {
+            utils.buildMainGauge();
+            utils.setGaugePhase('upload');
+            const xhr = new XMLHttpRequest();
+            let startTime = null;
+            let lastBytes = 0;
+            const samples = [];
+            xhr.open('POST', `${CONFIG.API_BASE_URL}/upload`);
+            xhr.timeout = CONFIG.TIMEOUT_MS;
+            xhr.responseType = 'json';
+            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    if (!startTime) startTime = performance.now();
+                    const now = performance.now();
+                    const bytes = e.loaded;
+                    const elapsed = (now - startTime) / 1000;
+                    if (elapsed > 0) {
+                        const bits = bytes * 8;
+                        const mbps = bits / (elapsed * 1_000_000);
+                        samples.push(mbps);
+                        const recent = samples.slice(-5);
+                        const avg = recent.reduce((a,b)=>a+b,0)/recent.length;
+                        utils.animateMainGauge(avg);
+                    }
+                    lastBytes = bytes;
+                }
+            };
+            xhr.onerror = () => reject(new Error('Upload network error'));
+            xhr.ontimeout = () => reject(new Error('Upload timeout'));
+            xhr.onload = () => {
+                try {
+                    const end = performance.now();
+                    const effectiveStart = startTime || (end - 1); // fallback
+                    const durationSeconds = (end - effectiveStart) / 1000;
+                    const bitsUploaded = uploadSize * 8;
+                    const speedMbps = bitsUploaded / (durationSeconds * 1_000_000);
+                    // Prefer server authoritative speed if present
+                    const serverReported = (xhr.response && typeof xhr.response.speedMbps === 'number') ? xhr.response.speedMbps : null;
+                    resolve(utils.formatNumber(serverReported ?? speedMbps, 2));
+                } catch (e) {
+                    reject(e);
+                }
+            };
+            xhr.send(data);
+        });
     }
 };
 
@@ -536,6 +588,11 @@ async function runSpeedTest() {
     elements.startButton.querySelector('.button-text').textContent = 'Testing...';
     utils.hideStatus();
     
+    // Build & reset global gauge
+    utils.buildMainGauge();
+    utils.resetMainGauge();
+    utils.setGaugePhase(null);
+
     // Reset metric cards
     Object.keys(elements.metricCards).forEach(metric => {
         utils.updateMetricCard(metric, null);
@@ -560,11 +617,12 @@ async function runSpeedTest() {
         }
         utils.hideStatus();
 
-        // Ping + Jitter
+    // Ping + Jitter
     phaseIndex = 0; updateProgress();
         utils.showStatus(`(${phaseIndex+1}/${phases.length}) Measuring latency...`, 'info');
         state.currentTest = 'ping';
         utils.setActiveCard('ping');
+    utils.setGaugePhase(null); // hide gauge during latency phase
         try {
             const pingResults = await api.measurePing();
             state.results.ping = pingResults.ping;
@@ -583,10 +641,12 @@ async function runSpeedTest() {
         utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing download speed...`, 'info');
         state.currentTest = 'download';
         utils.setActiveCard('download');
+        utils.setGaugePhase('download');
         try {
             const downloadSpeed = await api.measureDownload();
             state.results.download = downloadSpeed;
             utils.updateMetricCard('download', downloadSpeed);
+            const numeric = parseFloat(downloadSpeed); if (!isNaN(numeric)) utils.animateMainGauge(numeric);
         } catch (e) {
             console.error('Download failed', e);
             utils.updateMetricCard('download', 'error');
@@ -598,10 +658,12 @@ async function runSpeedTest() {
         utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing upload speed...`, 'info');
         state.currentTest = 'upload';
         utils.setActiveCard('upload');
+        utils.setGaugePhase('upload');
         try {
             const uploadSpeed = await api.measureUpload();
             state.results.upload = uploadSpeed;
             utils.updateMetricCard('upload', uploadSpeed);
+            const numeric = parseFloat(uploadSpeed); if (!isNaN(numeric)) utils.animateMainGauge(numeric);
         } catch (e) {
             console.error('Upload failed', e);
             utils.updateMetricCard('upload', 'error');
