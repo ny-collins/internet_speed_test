@@ -1,862 +1,1352 @@
-// ===== Configuration =====
-// Dynamically determine backend API base URL.
-// Priority:
-// 1. Explicit global override window.__BACKEND_URL__ (can be injected server-side)
-// 2. data-backend-url attribute on <html>
-// 3. If current host includes 'localhost' -> use http://localhost:3000
-// 4. Fallback to production Railway backend URL
-function resolveBackendBase() {
-    if (typeof window !== 'undefined') {
-        if (window.__BACKEND_URL__) return window.__BACKEND_URL__.replace(/\/$/, '') + '/api';
-        const attr = document.documentElement.getAttribute('data-backend-url');
-        if (attr) return attr.replace(/\/$/, '') + '/api';
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-            return 'http://localhost:3000/api';
-        }
-    }
-    // Railway deployed backend default
-    return 'https://speed-test-backend.up.railway.app/api';
-}
+/**
+ * ===========================================
+ * SPEEDCHECK PRO - ENHANCED CLIENT
+ * ===========================================
+ * 
+ * Features:
+ * - Multi-threaded download & upload with parallel streaming
+ * - Adaptive duration with stability detection
+ * - Real-time animated Google Fiber-style gauge
+ * - Cancel functionality for all operations
+ * - Configuration UI with localStorage persistence
+ * - Comprehensive error handling with retry logic
+ * - Full accessibility support (ARIA, keyboard nav)
+ * - Performance optimizations (RAF throttling, debouncing)
+ * - Test history with visualization and export
+ */
+
+// ========================================
+// CONFIGURATION & STATE
+// ========================================
 
 const CONFIG = {
-    API_BASE_URL: resolveBackendBase(),
-    PING_COUNT: 10,
-    DOWNLOAD_SIZE_MB: 5,
-    UPLOAD_SIZE_MB: 2,
-    TIMEOUT_MS: 30000,
-    DOWNLOAD_THREADS: 4, // parallel streams
-    MIN_DOWNLOAD_DURATION_MS: 3500,
-    MAX_DOWNLOAD_DURATION_MS: 8000,
-    STABILITY_WINDOW_MS: 1200, // window to assess stabilization
-    STABILITY_VARIANCE_PCT: 5 // stop early if variance within this percent
-};
-
-// ===== Theme Management =====
-const ThemeManager = {
-    STORAGE_KEY: 'speed-test-theme',
-    
-    init() {
-        // Check for user preference in localStorage
-        const savedTheme = localStorage.getItem(this.STORAGE_KEY);
-        
-        if (savedTheme) {
-            // User has a saved preference
-            this.setTheme(savedTheme);
-        } else {
-            // Detect system preference
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            this.setTheme(prefersDark ? 'dark' : 'light');
-        }
-        
-        // Listen for system theme changes (only if user hasn't set preference)
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            if (!localStorage.getItem(this.STORAGE_KEY)) {
-                this.setTheme(e.matches ? 'dark' : 'light');
-            }
-        });
+    // Test parameters (user configurable)
+    threads: {
+        download: 4,
+        upload: 4,
+        min: 1,
+        max: 8
     },
-    
-    setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        this.updateIcon(theme);
-    },
-    
-    updateIcon(theme) {
-        const themeIcon = document.querySelector('.theme-icon');
-        if (themeIcon) {
-            // Remove existing icon
-            themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-            // Reinitialize icons
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+    duration: {
+        download: {
+            min: 3.5,
+            max: 8,
+            default: 8
+        },
+        upload: {
+            min: 3,
+            max: 6,
+            default: 6
         }
     },
-    
-    toggle() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
-        // Save user preference
-        localStorage.setItem(this.STORAGE_KEY, newTheme);
-        this.setTheme(newTheme);
+    stability: {
+        sampleCount: 5,
+        varianceThreshold: 0.05
     },
-    
-    getCurrentTheme() {
-        return document.documentElement.getAttribute('data-theme');
-    }
+    // Performance
+    updateInterval: 100, // ms between gauge updates
+    rafThrottle: 16,     // ~60fps
+    // Data transfer
+    chunkSize: 512,      // KB for download chunks
+    uploadSize: 10,      // MB per upload thread
+    downloadSize: 50,    // MB per download thread
+    // Backend
+    apiBase: '',
+    // UI
+    animationDuration: 350
 };
 
-// ===== State Management =====
-const state = {
+// Global state
+const STATE = {
     testing: false,
-    currentTest: null,
-    results: {
+    cancelling: false,
+    currentPhase: null,
+    gaugeElement: null,
+    testResults: {
         download: null,
         upload: null,
-        ping: null,
+        latency: null,
         jitter: null
     },
-    info: null
+    abortControllers: [],
+    serverInfo: null,
+    history: [],
+    rafId: null
 };
 
-// ===== DOM Elements =====
-const elements = {
-    startButton: document.getElementById('startTest'),
-    connectionStatus: document.getElementById('connectionStatus'),
-    themeToggle: document.getElementById('themeToggle'),
-    progressBar: document.getElementById('progressBar'),
-    metricCards: {
-        download: document.querySelector('[data-metric="download"]'),
-        upload: document.querySelector('[data-metric="upload"]'),
-        ping: document.querySelector('[data-metric="ping"]'),
-        jitter: document.querySelector('[data-metric="jitter"]')
-    },
-    serverInfoBar: document.getElementById('serverInfo'),
-    serverLocation: document.getElementById('serverLocation'),
-    serverVersion: document.getElementById('serverVersion'),
-    serverLimits: document.getElementById('serverLimits'),
-    historyList: document.getElementById('historyList'),
-    copyLastResult: document.getElementById('copyLastResult'),
-    copyAllResults: document.getElementById('copyAllResults'),
-    clearHistory: document.getElementById('clearHistory')
-};
+// ========================================
+// INITIALIZATION
+// ========================================
 
-// ===== Utility Functions =====
-const utils = {
-    delay: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
-    
-    formatNumber: (num, decimals = 2) => {
-        return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
-    },
-    
-    showStatus: (message, type = 'info') => {
-        elements.connectionStatus.classList.remove('hidden', 'error', 'success');
-        elements.connectionStatus.classList.add(type);
-        elements.connectionStatus.querySelector('.status-text').textContent = message;
-    },
-    
-    hideStatus: () => {
-        elements.connectionStatus.classList.add('hidden');
-    },
-    
-    // Global gauge methods
-    buildMainGauge() {
-        const container = document.getElementById('mainGaugeContainer');
-        if (!container || container._built) return;
-        // Gauge design notes:
-        // - 270° arc (classic speedometer) using stroke-dasharray with a gap.
-        // - Adaptive max scaling during test so needle occupies meaningful range.
-        // - Animated via requestAnimationFrame for smoothness (ease in/out).
-        const radius = 90;
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('viewBox', '0 0 220 220');
-        // Gradient definition
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const lg = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        lg.setAttribute('id','gaugeGradient');
-        lg.setAttribute('x1','0%'); lg.setAttribute('y1','0%');
-        lg.setAttribute('x2','100%'); lg.setAttribute('y2','0%');
-        const stops = [
-            {o: '0%', c: 'var(--color-primary)'},
-            {o: '50%', c: 'var(--color-accent)'},
-            {o: '100%', c: 'var(--color-success)'}
-        ];
-        stops.forEach(s => { const st = document.createElementNS('http://www.w3.org/2000/svg','stop'); st.setAttribute('offset', s.o); st.setAttribute('stop-color', s.c); lg.appendChild(st); });
-        defs.appendChild(lg); svg.appendChild(defs);
-        const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        track.setAttribute('cx','110'); track.setAttribute('cy','110'); track.setAttribute('r', radius);
-        track.classList.add('gauge-track');
-        const prog = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        prog.setAttribute('cx','110'); prog.setAttribute('cy','110'); prog.setAttribute('r', radius);
-        prog.classList.add('gauge-progress');
-        const fullCirc = 2 * Math.PI * radius;
-        const visibleFraction = 270/360;
-        const dashArray = fullCirc * visibleFraction;
-        const gap = fullCirc - dashArray;
-        track.setAttribute('stroke-dasharray', `${dashArray} ${gap}`);
-        prog.setAttribute('stroke-dasharray', `${dashArray} ${gap}`);
-        track.setAttribute('stroke-dashoffset', (gap/2).toString());
-        prog.setAttribute('stroke-dashoffset', (gap/2 + dashArray).toString());
-        svg.appendChild(track); svg.appendChild(prog);
-        const wrapper = document.createElement('div'); wrapper.className = 'gauge-wrapper main-gauge';
-        const gaugeDiv = document.createElement('div'); gaugeDiv.className = 'gauge'; gaugeDiv.appendChild(svg);
-        const needle = document.createElement('div'); needle.className = 'gauge-needle';
-        const cap = document.createElement('div'); cap.className = 'gauge-center-cap';
-        const live = document.createElement('div'); live.className = 'gauge-value-live'; live.textContent = '—';
-        const label = document.createElement('div'); label.className = 'gauge-phase-label'; label.textContent = '';
-        // Zone band overlay
-        const zoneBand = document.createElement('div'); zoneBand.className = 'gauge-zone-band';
-        // Ticks (every 10 degrees inside 270 sweep). Sweep from -135 to +135.
-        const tickContainer = document.createElement('div'); tickContainer.className = 'gauge-ticks';
-        const totalSweep = 270;
-        const startAngle = -135;
-        for (let i=0;i<=27;i++) { // 0..27 inclusive (every 10 degrees)
-            const deg = startAngle + (totalSweep/27)*i;
-            const tick = document.createElement('div');
-            const strong = i % 3 === 0; // every 30 degrees stronger
-            tick.className = strong ? 'gauge-tick-strong' : 'gauge-tick';
-            tick.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
-            tickContainer.appendChild(tick);
-            if (strong) {
-                const lbl = document.createElement('div');
-                lbl.className = 'gauge-scale-label';
-                lbl.textContent = i === 0 ? '0' : '';
-                lbl.style.left = '50%';
-                lbl.style.top = '50%';
-                const r = 102; // radius for labels
-                const rad = (deg*Math.PI)/180;
-                const x = Math.cos(rad)*r;
-                const y = Math.sin(rad)*r;
-                lbl.style.transform = `translate(${x}px, ${y}px)`;
-                tickContainer.appendChild(lbl);
-            }
-        }
-        wrapper.appendChild(gaugeDiv); wrapper.appendChild(needle); wrapper.appendChild(cap); wrapper.appendChild(live); wrapper.appendChild(label);
-        wrapper.appendChild(zoneBand); wrapper.appendChild(tickContainer);
-        container.appendChild(wrapper);
-        container._built = true;
-        // Store references for dynamic scale labels we will create now
-        const scaleLabels = { zero: null, mid: null, max: null };
-        // Create mid & max labels (initial placement approximated; updated on rescale)
-        const mkLabel = (cls) => { const el = document.createElement('div'); el.className = 'gauge-scale-label '+cls; tickContainer.appendChild(el); return el; };
-        scaleLabels.zero = Array.from(tickContainer.querySelectorAll('.gauge-scale-label')).find(el=>el.textContent==='0');
-        scaleLabels.mid = mkLabel('gauge-scale-label-mid');
-        scaleLabels.max = mkLabel('gauge-scale-label-max');
-        container._gauge = { prog, needle, live, label, dashArray, gap, lastValue: 0, max: 100, scaleLabels };
-    },
-    setGaugePhase(phase) {
-        const container = document.getElementById('mainGaugeContainer');
-        if (!container?._gauge) return;
-        const g = container._gauge;
-        if (phase === 'download') g.label.textContent = 'Download';
-        else if (phase === 'upload') g.label.textContent = 'Upload';
-        else g.label.textContent = '';
-        if (phase === 'download' || phase === 'upload') {
-            container.removeAttribute('aria-hidden');
-        } else {
-            container.setAttribute('aria-hidden','true');
-        }
-    },
-    animateMainGauge(rawVal) {
-        const container = document.getElementById('mainGaugeContainer');
-        if (!container?._gauge) return;
-        const g = container._gauge;
-        // Adaptive scaling
-        if (rawVal > g.max * 0.95) {
-            const tiers = [50,100,200,500,1000,2000,5000];
-            for (const t of tiers) { if (rawVal <= t) { g.max = t; break; } }
-            // Update scale labels (0, mid, max) positions & text after rescale
-            if (g.scaleLabels) {
-                const { zero, mid, max } = g.scaleLabels;
-                const place = (el, frac, text) => {
-                    if (!el) return;
-                    const startAngle = -135; const sweep = 270; const ang = (startAngle + sweep * frac) * Math.PI/180;
-                    const r = 102; const x = Math.cos(ang)*r; const y = Math.sin(ang)*r;
-                    el.style.transform = `translate(${x}px, ${y}px)`; el.textContent = text;
-                };
-                place(zero, 0, '0');
-                place(mid, 0.5, g.max >= 1000 ? (g.max/2 >= 1000 ? (g.max/2000)+'G' : (g.max/2)) : g.max/2);
-                place(max, 1, g.max >= 1000 ? (g.max/1000)+'G' : g.max);
-            }
-        }
-        const start = g.lastValue || 0;
-        const end = Math.min(rawVal, g.max);
-        const startTime = performance.now();
-        const duration = 400;
-        const ease = t => t<.5? 2*t*t : -1 + (4 - 2*t)*t;
-        function step(now) {
-            const p = Math.min(1, (now - startTime) / duration);
-            const v = start + (end - start) * ease(p);
-            const ratio = v / g.max;
-            const angle = -135 + 270 * ratio;
-            g.needle.style.transform = `translate(-50%, -90%) rotate(${angle}deg)`;
-            const offset = g.gap/2 + g.dashArray * (1 - ratio);
-            g.prog.setAttribute('stroke-dashoffset', offset.toString());
-            g.live.textContent = utils.formatNumber(v, 1);
-            if (p < 1) requestAnimationFrame(step); else { g.lastValue = end; }
-        }
-        requestAnimationFrame(step);
-    },
-    resetMainGauge() {
-        const container = document.getElementById('mainGaugeContainer');
-        if (!container?._gauge) return;
-        const g = container._gauge;
-        g.lastValue = 0; g.max = 100; g.live.textContent = '—';
-        g.needle.style.transform = 'translate(-50%, -90%) rotate(-135deg)';
-        g.prog.setAttribute('stroke-dashoffset', (g.gap/2 + g.dashArray).toString());
-    },
-    updateMetricCard: (metric, value, unit = 'Mbps') => {
-        const card = elements.metricCards[metric];
-        if (!card) return;
-    // Per-metric gauges removed; single global gauge shown during active transfer phases.
-        
-        const valueElement = card.querySelector('.metric-value');
-        const qualityElement = card.querySelector('.metric-quality');
-        const subvalueElement = card.querySelector('.metric-subvalue');
-        
-        if (value !== null && value !== undefined && value !== 'error') {
-            valueElement.textContent = value;
-            // Numeric animation handled by main gauge only for current phase.
-            
-            // Update quality indicator
-            const quality = getQualityRating(metric, value);
-            if (quality && qualityElement) {
-                qualityElement.textContent = quality.label;
-                qualityElement.className = `metric-quality ${quality.class}`;
-            }
-            
-            // Update subvalue for jitter
-            if (metric === 'jitter' && subvalueElement) {
-                const stability = value < 5 ? 'Stable' : value < 15 ? 'Moderate' : 'Unstable';
-                subvalueElement.textContent = stability;
-            }
-        } else if (value === 'error') {
-            valueElement.textContent = 'Err';
-            const gw = card.querySelector('.gauge-wrapper'); if (gw) gw.classList.add('error');
-            if (qualityElement) qualityElement.textContent = '';
-            if (subvalueElement) subvalueElement.textContent = '';
-            card.classList.add('metric-error');
-        } else {
-            valueElement.textContent = '—';
-            const gw = card.querySelector('.gauge-wrapper'); if (gw) gw.classList.remove('error');
-            if (qualityElement) qualityElement.textContent = '';
-            if (subvalueElement) subvalueElement.textContent = '';
-        }
-    },
-    
-    setActiveCard: (metric) => {
-        Object.values(elements.metricCards).forEach(card => {
-            card.classList.remove('active');
-        });
-        
-        if (metric && elements.metricCards[metric]) {
-            elements.metricCards[metric].classList.add('active');
-        }
-    },
-    saveResultHistory(result) {
-        try {
-            const key = 'speed-test-history';
-            const existing = JSON.parse(localStorage.getItem(key) || '[]');
-            existing.unshift(result); // newest first
-            if (existing.length > 50) existing.length = 50; // cap
-            localStorage.setItem(key, JSON.stringify(existing));
-        } catch (e) { /* ignore */ }
-    },
-    loadHistory() {
-        try { return JSON.parse(localStorage.getItem('speed-test-history') || '[]'); } catch { return []; }
-    },
-    renderHistory() {
-        if (!elements.historyList) return;
-        const history = utils.loadHistory();
-        elements.historyList.innerHTML = '';
-        history.forEach((item, idx) => {
-            const li = document.createElement('li');
-            li.className = 'history-item';
-            li.textContent = `${idx + 1}. D:${item.download ?? '-'} U:${item.upload ?? '-'} P:${item.ping ?? '-'} J:${item.jitter ?? '-'} (${item.timestampReadable})`;
-            li.title = new Date(item.timestamp).toISOString();
-            elements.historyList.appendChild(li);
-        });
-    },
-    copyToClipboard(text) {
-        if (navigator.clipboard) return navigator.clipboard.writeText(text);
-        const ta = document.createElement('textarea');
-        ta.value = text; document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); } catch(_) {} finally { document.body.removeChild(ta); }
-    },
-    updateServerInfo(info) {
-        if (!info || !elements.serverInfoBar) return;
-        elements.serverLocation.textContent = `Location: ${info.serverLocation}`;
-        elements.serverVersion.textContent = `Version: ${info.version}`;
-        if (info.maxDownloadSize || info.maxUploadSize) {
-            elements.serverLimits.textContent = `Limits: ↓ ${info.maxDownloadSize}MB / ↑ ${info.maxUploadSize}MB`;
-        }
-        elements.serverInfoBar.hidden = false;
-    }
-};
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+});
 
-// ===== Quality Rating System =====
-function getQualityRating(metric, value) {
-    const ratings = {
-        download: [
-            { threshold: 100, label: 'Excellent', class: 'excellent' },
-            { threshold: 50, label: 'Good', class: 'good' },
-            { threshold: 25, label: 'Average', class: 'average' },
-            { threshold: 0, label: 'Slow', class: 'slow' }
-        ],
-        upload: [
-            { threshold: 50, label: 'Excellent', class: 'excellent' },
-            { threshold: 20, label: 'Good', class: 'good' },
-            { threshold: 10, label: 'Average', class: 'average' },
-            { threshold: 0, label: 'Slow', class: 'slow' }
-        ],
-        ping: [
-            { threshold: 0, label: 'Excellent', class: 'excellent', max: 20 },
-            { threshold: 0, label: 'Good', class: 'good', max: 50 },
-            { threshold: 0, label: 'Average', class: 'average', max: 100 },
-            { threshold: 0, label: 'High', class: 'high', max: Infinity }
-        ],
-        jitter: [
-            { threshold: 0, label: 'Excellent', class: 'excellent', max: 5 },
-            { threshold: 0, label: 'Good', class: 'good', max: 15 },
-            { threshold: 0, label: 'Moderate', class: 'average', max: 30 },
-            { threshold: 0, label: 'Unstable', class: 'unstable', max: Infinity }
-        ]
-    };
+async function initializeApp() {
+    console.log('[App] Initializing SpeedCheck Pro...');
     
-    const metricRatings = ratings[metric];
-    if (!metricRatings) return null;
+    // Load saved configuration
+    loadConfiguration();
     
-    if (metric === 'ping' || metric === 'jitter') {
-        // For ping and jitter, lower is better
-        for (const rating of metricRatings) {
-            if (value < rating.max) {
-                return rating;
-            }
-        }
-    } else {
-        // For download and upload, higher is better
-        for (const rating of metricRatings) {
-            if (value >= rating.threshold) {
-                return rating;
-            }
-        }
-    }
+    // Setup theme
+    initializeTheme();
     
-    return metricRatings[metricRatings.length - 1];
+    // Setup event listeners
+    initializeEventListeners();
+    
+    // Build gauge
+    buildMainGauge();
+    
+    // Load history
+    loadHistory();
+    
+    // Fetch server info
+    await fetchServerInfo();
+    
+    // Setup accessibility
+    initializeAccessibility();
+    
+    console.log('[App] Initialization complete');
+    announceToScreenReader('SpeedCheck Pro ready. Press the Start Test button to begin.');
 }
 
-// ===== API Functions =====
-const api = {
-    async checkConnection() {
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000);
-            
-            const response = await fetch(`${CONFIG.API_BASE_URL}/test`, {
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeout);
-            return response.ok;
-        } catch (error) {
-            console.error('Connection check failed:', error);
-            return false;
-        }
-    },
-    
-    async measurePing() {
-        const measurements = [];
-        
-        for (let i = 0; i < CONFIG.PING_COUNT; i++) {
-            const start = performance.now();
-            
-            try {
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 5000);
-                
-                await fetch(`${CONFIG.API_BASE_URL}/ping`, {
-                    method: 'GET',
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeout);
-                const end = performance.now();
-                measurements.push(end - start);
-            } catch (error) {
-                console.error('Ping measurement failed:', error);
-                measurements.push(null);
-            }
-            
-            // Small delay between pings
-            if (i < CONFIG.PING_COUNT - 1) {
-                await utils.delay(100);
-            }
-        }
-        
-        // Filter out failed measurements
-        const validMeasurements = measurements.filter(m => m !== null);
-        
-        if (validMeasurements.length === 0) {
-            throw new Error('All ping measurements failed');
-        }
-        
-        // Calculate average ping
-        const avgPing = validMeasurements.reduce((a, b) => a + b, 0) / validMeasurements.length;
-        
-        // Calculate jitter (standard deviation)
-        const squaredDiffs = validMeasurements.map(m => Math.pow(m - avgPing, 2));
-        const variance = squaredDiffs.reduce((a, b) => a + b, 0) / validMeasurements.length;
-        const jitter = Math.sqrt(variance);
-        
-        return {
-            ping: utils.formatNumber(avgPing, 0),
-            jitter: utils.formatNumber(jitter, 1)
-        };
-    },
-    
-    async measureDownload() {
-        // MULTI-THREAD STREAMING DOWNLOAD METHODOLOGY
-        // - Launch N parallel fetch streams to better saturate high-bandwidth connections and reduce single TCP slow-start impact.
-        // - Start timer at first chunk across all threads.
-        // - Continuously aggregate total bytes and compute moving average throughput.
-        // - Run for at least MIN_DOWNLOAD_DURATION_MS; allow early stop if recent variance < STABILITY_VARIANCE_PCT over STABILITY_WINDOW_MS.
-        // - Hard stop at MAX_DOWNLOAD_DURATION_MS.
-        utils.buildMainGauge();
-        utils.setGaugePhase('download');
-        const threads = CONFIG.DOWNLOAD_THREADS;
-        const targetMBPerThread = Math.max(CONFIG.DOWNLOAD_SIZE_MB, 10); // each thread target baseline size
-        const controllers = [];
-        const readers = [];
-        const states = Array.from({length: threads}, () => ({ bytes:0, done:false }));
-        let firstChunkTime = null;
-        const samples = []; // {t, mbps}
-        let aggBytes = 0;
-        const startWall = performance.now();
-        const minDuration = CONFIG.MIN_DOWNLOAD_DURATION_MS;
-        const maxDuration = CONFIG.MAX_DOWNLOAD_DURATION_MS;
-        const stabilityWindow = CONFIG.STABILITY_WINDOW_MS;
-        const variancePct = CONFIG.STABILITY_VARIANCE_PCT;
-        let stopped = false;
-        const launchThread = async (i) => {
-            const controller = new AbortController();
-            controllers.push(controller);
-            try {
-                const resp = await fetch(`${CONFIG.API_BASE_URL}/download?size=${targetMBPerThread}`, { cache:'no-store', signal: controller.signal });
-                if (!resp.ok || !resp.body) throw new Error('Thread HTTP '+resp.status);
-                const reader = resp.body.getReader();
-                readers.push(reader);
-                while (!stopped) {
-                    const {done, value} = await reader.read();
-                    if (done) { states[i].done = true; break; }
-                    if (value) {
-                        if (!firstChunkTime) firstChunkTime = performance.now();
-                        states[i].bytes += value.length;
-                        aggBytes += value.length;
-                    }
-                }
-            } catch(e) {
-                states[i].done = true; // mark as done on error
-            }
-        };
-        // Launch all threads concurrently
-        await Promise.all(Array.from({length: threads}, (_,i)=>launchThread(i)));
-        // Real-time monitor loop
-        const monitor = async () => {
-            while (!stopped) {
-                await utils.delay(120);
-                if (!firstChunkTime) continue;
-                const now = performance.now();
-                const elapsed = (now - firstChunkTime)/1000;
-                if (elapsed <= 0) continue;
-                const bits = aggBytes * 8;
-                const mbps = bits / (elapsed * 1_000_000);
-                samples.push({t: now, v: mbps});
-                // Keep last 50 samples
-                if (samples.length > 50) samples.shift();
-                // Compute moving average last ~600ms
-                const recent = samples.filter(s => now - s.t <= 600);
-                if (recent.length) {
-                    const avg = recent.reduce((a,b)=>a+b.v,0)/recent.length;
-                    utils.animateMainGauge(avg);
-                }
-                const totalElapsedMs = now - startWall;
-                if (totalElapsedMs >= minDuration) {
-                    // Stability check over stabilityWindow
-                    const windowSamples = samples.filter(s => now - s.t <= stabilityWindow);
-                    if (windowSamples.length >= 5) {
-                        const vals = windowSamples.map(s=>s.v);
-                        const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
-                        const min = Math.min(...vals), max = Math.max(...vals);
-                        const spread = ((max - min)/mean)*100;
-                        if (spread <= variancePct) {
-                            stopped = true; break;
-                        }
-                    }
-                }
-                if (totalElapsedMs >= maxDuration) { stopped = true; break; }
-            }
-        };
-        await monitor();
-        // Abort any still-running fetches
-        controllers.forEach(c=>{ try { c.abort(); } catch(_) {} });
-        const end = performance.now();
-        if (!firstChunkTime) throw new Error('No data received');
-        const durationSeconds = (end - firstChunkTime)/1000;
-        if (durationSeconds <= 0) throw new Error('Invalid duration');
-        const bits = aggBytes * 8;
-        const finalMbps = bits / (durationSeconds * 1_000_000);
-        return utils.formatNumber(finalMbps, 2);
-    },
-    
-    async measureUpload() {
-        // UPLOAD TEST METHODOLOGY
-        // 1. Pre-generate random payload (>=5MB) to avoid generation cost mid-transfer.
-        // 2. Use XMLHttpRequest for upload progress events (fetch lacks granular upload progress in most browsers).
-        // 3. Start timing at first progress event (first bytes leaving) vs open time.
-        // 4. Gauge updates use smoothed moving average of latest Mbps.
-        // 5. Prefer server's computed speed if available (authoritative, measured post-receipt).
-        // Adaptive size: ensure enough data to reach steady state (min ~3s if possible)
-        const targetMB = Math.max(CONFIG.UPLOAD_SIZE_MB, 5); // bump to at least 5MB for better sampling
-        const uploadSize = targetMB * 1024 * 1024;
-        const data = new Uint8Array(uploadSize);
-        if (window.crypto?.getRandomValues) {
-            const chunkSize = 65536;
-            for (let offset = 0; offset < data.length; offset += chunkSize) {
-                window.crypto.getRandomValues(data.subarray(offset, Math.min(offset + chunkSize, data.length)));
-            }
-        } else {
-            for (let i = 0; i < uploadSize; i++) data[i] = (Math.random() * 256) | 0;
-        }
-        return await new Promise((resolve, reject) => {
-            utils.buildMainGauge();
-            utils.setGaugePhase('upload');
-            const xhr = new XMLHttpRequest();
-            let startTime = null;
-            let lastBytes = 0;
-            const samples = [];
-            xhr.open('POST', `${CONFIG.API_BASE_URL}/upload`);
-            xhr.timeout = CONFIG.TIMEOUT_MS;
-            xhr.responseType = 'json';
-            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    if (!startTime) startTime = performance.now();
-                    const now = performance.now();
-                    const bytes = e.loaded;
-                    const elapsed = (now - startTime) / 1000;
-                    if (elapsed > 0) {
-                        const bits = bytes * 8;
-                        const mbps = bits / (elapsed * 1_000_000);
-                        samples.push(mbps);
-                        const recent = samples.slice(-5);
-                        const avg = recent.reduce((a,b)=>a+b,0)/recent.length;
-                        utils.animateMainGauge(avg);
-                    }
-                    lastBytes = bytes;
-                }
-            };
-            xhr.onerror = () => reject(new Error('Upload network error'));
-            xhr.ontimeout = () => reject(new Error('Upload timeout'));
-            xhr.onload = () => {
-                try {
-                    const end = performance.now();
-                    const effectiveStart = startTime || (end - 1); // fallback
-                    const durationSeconds = (end - effectiveStart) / 1000;
-                    const bitsUploaded = uploadSize * 8;
-                    const speedMbps = bitsUploaded / (durationSeconds * 1_000_000);
-                    // Prefer server authoritative speed if present
-                    const serverReported = (xhr.response && typeof xhr.response.speedMbps === 'number') ? xhr.response.speedMbps : null;
-                    resolve(utils.formatNumber(serverReported ?? speedMbps, 2));
-                } catch (e) {
-                    reject(e);
-                }
-            };
-            xhr.send(data);
-        });
-    }
-};
+// ========================================
+// THEME MANAGEMENT
+// ========================================
 
-// ===== Main Test Function =====
-async function runSpeedTest() {
-    if (state.testing) return;
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+    announceToScreenReader(`Theme changed to ${newTheme} mode`);
+}
+
+function updateThemeIcon(theme) {
+    const icon = document.querySelector('.theme-icon');
+    if (icon) {
+        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+        lucide.createIcons();
+    }
+}
+
+// ========================================
+// SETTINGS MANAGEMENT
+// ========================================
+
+function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    const isOpen = panel.getAttribute('data-open') === 'true';
+    panel.setAttribute('data-open', !isOpen);
     
-    // Reset state
-    state.testing = true;
-    state.results = {
+    if (!isOpen) {
+        // Opening: focus first input
+        setTimeout(() => {
+            document.getElementById('downloadThreads')?.focus();
+        }, 300);
+        announceToScreenReader('Settings panel opened');
+    } else {
+        // Closing: return focus to toggle button
+        document.querySelector('.settings-toggle')?.focus();
+        announceToScreenReader('Settings panel closed');
+    }
+}
+
+function updateSettingValue(id, value) {
+    const displayElement = document.getElementById(id + 'Value');
+    if (displayElement) {
+        displayElement.textContent = value;
+    }
+}
+
+function saveSettings() {
+    CONFIG.threads.download = parseInt(document.getElementById('downloadThreads').value);
+    CONFIG.threads.upload = parseInt(document.getElementById('uploadThreads').value);
+    CONFIG.duration.download.default = parseFloat(document.getElementById('downloadDuration').value);
+    CONFIG.duration.upload.default = parseFloat(document.getElementById('uploadDuration').value);
+    
+    localStorage.setItem('config', JSON.stringify(CONFIG));
+    showStatus('Settings saved successfully', 'success');
+    announceToScreenReader('Settings saved');
+}
+
+function resetSettings() {
+    // Reset to defaults
+    CONFIG.threads.download = 4;
+    CONFIG.threads.upload = 4;
+    CONFIG.duration.download.default = 8;
+    CONFIG.duration.upload.default = 6;
+    
+    // Update UI
+    document.getElementById('downloadThreads').value = CONFIG.threads.download;
+    document.getElementById('uploadThreads').value = CONFIG.threads.upload;
+    document.getElementById('downloadDuration').value = CONFIG.duration.download.default;
+    document.getElementById('uploadDuration').value = CONFIG.duration.upload.default;
+    
+    updateSettingValue('downloadThreads', CONFIG.threads.download);
+    updateSettingValue('uploadThreads', CONFIG.threads.upload);
+    updateSettingValue('downloadDuration', CONFIG.duration.download.default);
+    updateSettingValue('uploadDuration', CONFIG.duration.upload.default);
+    
+    localStorage.removeItem('config');
+    showStatus('Settings reset to defaults', 'info');
+    announceToScreenReader('Settings reset to defaults');
+}
+
+function loadConfiguration() {
+    try {
+        const saved = localStorage.getItem('config');
+        if (saved) {
+            const savedConfig = JSON.parse(saved);
+            Object.assign(CONFIG, savedConfig);
+        }
+        
+        // Populate UI if elements exist
+        if (document.getElementById('downloadThreads')) {
+            document.getElementById('downloadThreads').value = CONFIG.threads.download;
+            document.getElementById('uploadThreads').value = CONFIG.threads.upload;
+            document.getElementById('downloadDuration').value = CONFIG.duration.download.default;
+            document.getElementById('uploadDuration').value = CONFIG.duration.upload.default;
+            
+            updateSettingValue('downloadThreads', CONFIG.threads.download);
+            updateSettingValue('uploadThreads', CONFIG.threads.upload);
+            updateSettingValue('downloadDuration', CONFIG.duration.download.default);
+            updateSettingValue('uploadDuration', CONFIG.duration.upload.default);
+        }
+    } catch (error) {
+        console.error('[Config] Failed to load configuration:', error);
+    }
+}
+
+// ========================================
+// EVENT LISTENERS
+// ========================================
+
+function initializeEventListeners() {
+    // Theme toggle
+    document.querySelector('.theme-toggle')?.addEventListener('click', toggleTheme);
+    
+    // Settings panel
+    document.querySelector('.settings-toggle')?.addEventListener('click', toggleSettings);
+    document.getElementById('closeSettings')?.addEventListener('click', toggleSettings);
+    
+    // Settings controls
+    ['downloadThreads', 'uploadThreads', 'downloadDuration', 'uploadDuration'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', (e) => updateSettingValue(id, e.target.value));
+            input.addEventListener('change', saveSettings);
+        }
+    });
+    
+    document.getElementById('resetSettings')?.addEventListener('click', resetSettings);
+    
+    // Test controls
+    document.getElementById('startBtn')?.addEventListener('click', startTest);
+    document.getElementById('cancelBtn')?.addEventListener('click', cancelTest);
+    
+    // History actions
+    document.getElementById('clearHistory')?.addEventListener('click', clearHistory);
+    document.getElementById('exportHistory')?.addEventListener('click', exportHistory);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+    
+    // Result cards keyboard navigation
+    document.querySelectorAll('.result-card').forEach(card => {
+        card.setAttribute('tabindex', '0');
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                card.click();
+            }
+        });
+    });
+}
+
+function handleKeyboardShortcuts(e) {
+    // Don't trigger if typing in input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    // Ctrl/Cmd + T: Start test
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        if (!STATE.testing) {
+            startTest();
+        }
+    }
+    
+    // Escape: Cancel test or close settings
+    if (e.key === 'Escape') {
+        const settingsOpen = document.getElementById('settingsPanel')?.getAttribute('data-open') === 'true';
+        if (settingsOpen) {
+            toggleSettings();
+        } else if (STATE.testing) {
+            cancelTest();
+        }
+    }
+    
+    // Ctrl/Cmd + ,: Open settings
+    if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+        e.preventDefault();
+        toggleSettings();
+    }
+}
+
+// ========================================
+// SERVER INFO
+// ========================================
+
+async function fetchServerInfo() {
+    try {
+        const response = await fetch(`${CONFIG.apiBase}/api/info`);
+        if (!response.ok) throw new Error('Failed to fetch server info');
+        
+        STATE.serverInfo = await response.json();
+        
+        // Update UI
+        document.getElementById('serverLocation').textContent = STATE.serverInfo.location || 'Unknown';
+        document.getElementById('serverProvider').textContent = STATE.serverInfo.provider || 'Unknown';
+        
+        console.log('[Server] Info fetched:', STATE.serverInfo);
+    } catch (error) {
+        console.error('[Server] Failed to fetch info:', error);
+        showStatus('Could not fetch server information', 'error');
+    }
+}
+
+// ========================================
+// MAIN TEST ORCHESTRATION
+// ========================================
+
+async function startTest() {
+    if (STATE.testing) return;
+    
+    console.log('[Test] Starting comprehensive speed test...');
+    STATE.testing = true;
+    STATE.cancelling = false;
+    STATE.abortControllers = [];
+    
+    // Reset results
+    STATE.testResults = {
         download: null,
         upload: null,
-        ping: null,
+        latency: null,
         jitter: null
     };
     
     // Update UI
-    elements.startButton.disabled = true;
-    elements.startButton.querySelector('.button-text').textContent = 'Testing...';
-    utils.hideStatus();
-    
-    // Build & reset global gauge
-    utils.buildMainGauge();
-    utils.resetMainGauge();
-    utils.setGaugePhase(null);
-
-    // Reset metric cards
-    Object.keys(elements.metricCards).forEach(metric => {
-        utils.updateMetricCard(metric, null);
-    });
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('cancelBtn').disabled = false;
+    clearResultsDisplay();
+    setProgress(0);
+    announceToScreenReader('Speed test started');
     
     try {
-        const phases = ['ping+jitter', 'download', 'upload'];
-        let phaseIndex = 0;
-        const updateProgress = () => {
-            if (!elements.progressBar) return;
-            const percent = Math.min(100, Math.round((phaseIndex / phases.length) * 100));
-            elements.progressBar.style.width = percent + '%';
-        };
-        updateProgress();
-
-        // Connection check
-        utils.showStatus(`(Prep) Checking connection...`, 'info');
-
-        const connected = await api.checkConnection();
-        if (!connected) {
-            throw new Error('Cannot connect to test server');
-        }
-        utils.hideStatus();
-
-    // Ping + Jitter
-    phaseIndex = 0; updateProgress();
-        utils.showStatus(`(${phaseIndex+1}/${phases.length}) Measuring latency...`, 'info');
-        state.currentTest = 'ping';
-        utils.setActiveCard('ping');
-    utils.setGaugePhase(null); // hide gauge during latency phase
-        try {
-            const pingResults = await api.measurePing();
-            state.results.ping = pingResults.ping;
-            state.results.jitter = pingResults.jitter;
-            utils.updateMetricCard('ping', pingResults.ping, 'ms');
-            utils.updateMetricCard('jitter', pingResults.jitter, 'ms');
-        } catch (e) {
-            console.error('Ping/Jitter failed', e);
-            utils.updateMetricCard('ping', 'error', 'ms');
-            utils.updateMetricCard('jitter', 'error', 'ms');
-        }
-        await utils.delay(400);
-
-        // Download
-    phaseIndex = 1; updateProgress();
-        utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing download speed...`, 'info');
-        state.currentTest = 'download';
-        utils.setActiveCard('download');
-        utils.setGaugePhase('download');
-        try {
-            const downloadSpeed = await api.measureDownload();
-            state.results.download = downloadSpeed;
-            utils.updateMetricCard('download', downloadSpeed);
-            const numeric = parseFloat(downloadSpeed); if (!isNaN(numeric)) utils.animateMainGauge(numeric);
-        } catch (e) {
-            console.error('Download failed', e);
-            utils.updateMetricCard('download', 'error');
-        }
-        await utils.delay(400);
-
-        // Upload
-    phaseIndex = 2; updateProgress();
-        utils.showStatus(`(${phaseIndex+1}/${phases.length}) Testing upload speed...`, 'info');
-        state.currentTest = 'upload';
-        utils.setActiveCard('upload');
-        utils.setGaugePhase('upload');
-        try {
-            const uploadSpeed = await api.measureUpload();
-            state.results.upload = uploadSpeed;
-            utils.updateMetricCard('upload', uploadSpeed);
-            const numeric = parseFloat(uploadSpeed); if (!isNaN(numeric)) utils.animateMainGauge(numeric);
-        } catch (e) {
-            console.error('Upload failed', e);
-            utils.updateMetricCard('upload', 'error');
-        }
-
-        state.currentTest = null;
-        utils.setActiveCard(null);
-        phaseIndex = phases.length; updateProgress();
-        utils.showStatus('Test completed (see any error metrics).', 'success');
-        // Persist result summary at end
-        const summary = {
-            timestamp: Date.now(),
-            timestampReadable: new Date().toLocaleString(),
-            download: state.results.download,
-            upload: state.results.upload,
-            ping: state.results.ping,
-            jitter: state.results.jitter
-        };
-        utils.saveResultHistory(summary);
-        utils.renderHistory();
-        setTimeout(() => utils.hideStatus(), 4000);
+        // Phase 1: Latency test
+        await runPhase('latency', measureLatency);
+        if (STATE.cancelling) return;
+        
+        // Phase 2: Download test
+        await runPhase('download', measureDownload);
+        if (STATE.cancelling) return;
+        
+        // Phase 3: Upload test
+        await runPhase('upload', measureUpload);
+        if (STATE.cancelling) return;
+        
+        // Phase 4: Complete
+        completeTest();
+        
     } catch (error) {
-        console.error('Speed test fatal error:', error);
-        utils.showStatus(`Test aborted: ${error.message}`, 'error');
-        utils.setActiveCard(null);
+        console.error('[Test] Error during test:', error);
+        showStatus(`Test failed: ${error.message}`, 'error');
+        announceToScreenReader(`Test failed: ${error.message}`);
     } finally {
-        state.testing = false;
-        elements.startButton.disabled = false;
-        elements.startButton.querySelector('.button-text').textContent = 'Start Test';
+        STATE.testing = false;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('cancelBtn').disabled = true;
+        resetGauge();
     }
 }
 
-// ===== Info Section Accordion =====
-function initializeAccordions() {
-    const headers = document.querySelectorAll('.info-section-header');
+async function runPhase(phaseName, phaseFunction) {
+    STATE.currentPhase = phaseName;
+    updatePhaseUI(phaseName, 'active');
     
-    headers.forEach(header => {
-        header.addEventListener('click', () => {
-            const section = header.closest('.info-section');
-            const isExpanded = section.classList.contains('expanded');
+    console.log(`[Test] Starting ${phaseName} phase...`);
+    const result = await phaseFunction();
+    
+    if (!STATE.cancelling) {
+        STATE.testResults[phaseName] = result;
+        updatePhaseUI(phaseName, 'complete');
+        updateResultCard(phaseName, result);
+        console.log(`[Test] ${phaseName} complete:`, result);
+    }
+    
+    return result;
+}
+
+function cancelTest() {
+    if (!STATE.testing) return;
+    
+    console.log('[Test] Cancelling test...');
+    STATE.cancelling = true;
+    
+    // Abort all ongoing requests
+    STATE.abortControllers.forEach(controller => {
+        try {
+            controller.abort();
+        } catch (e) {
+            console.warn('[Test] Error aborting request:', e);
+        }
+    });
+    STATE.abortControllers = [];
+    
+    // Cancel animation frame
+    if (STATE.rafId) {
+        cancelAnimationFrame(STATE.rafId);
+        STATE.rafId = null;
+    }
+    
+    showStatus('Test cancelled', 'info');
+    announceToScreenReader('Test cancelled');
+    resetAllPhases();
+    resetGauge();
+}
+
+function completeTest() {
+    console.log('[Test] All phases complete');
+    setProgress(100);
+    showStatus('Test completed successfully!', 'success');
+    announceToScreenReader('Speed test completed successfully');
+    
+    // Save to history
+    saveToHistory({
+        timestamp: Date.now(),
+        download: STATE.testResults.download?.speed || 0,
+        upload: STATE.testResults.upload?.speed || 0,
+        latency: STATE.testResults.latency?.average || 0,
+        jitter: STATE.testResults.jitter?.value || 0
+    });
+    
+    // Reset phases
+    setTimeout(() => resetAllPhases(), 2000);
+}
+
+// ========================================
+// LATENCY MEASUREMENT
+// ========================================
+
+/**
+ * Measures latency (ping) to server using multiple samples
+ * Returns: { average, min, max, samples }
+ */
+async function measureLatency() {
+    const sampleCount = 10;
+    const samples = [];
+    const abortController = new AbortController();
+    STATE.abortControllers.push(abortController);
+    
+    announceToScreenReader('Measuring latency');
+    
+    try {
+        for (let i = 0; i < sampleCount; i++) {
+            if (STATE.cancelling) break;
             
-            // Toggle current section
-            if (isExpanded) {
-                section.classList.remove('expanded');
-            } else {
-                section.classList.add('expanded');
+            const start = performance.now();
+            await fetch(`${CONFIG.apiBase}/api/ping?t=${Date.now()}`, {
+                signal: abortController.signal,
+                cache: 'no-store'
+            });
+            const duration = performance.now() - start;
+            
+            samples.push(duration);
+            
+            // Update progress
+            setProgress((i + 1) / sampleCount * 25); // 25% of total
+            
+            // Small delay between pings
+            if (i < sampleCount - 1) {
+                await sleep(100);
+            }
+        }
+        
+        if (samples.length === 0) throw new Error('No latency samples collected');
+        
+        const average = samples.reduce((a, b) => a + b, 0) / samples.length;
+        const min = Math.min(...samples);
+        const max = Math.max(...samples);
+        
+        // Calculate jitter
+        const jitter = calculateJitter(samples);
+        STATE.testResults.jitter = { value: jitter };
+        updateResultCard('jitter', { value: jitter });
+        
+        announceToScreenReader(`Latency measured: ${average.toFixed(1)} milliseconds`);
+        
+        return { average, min, max, samples };
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('[Latency] Measurement aborted');
+            return null;
+        }
+        throw error;
+    }
+}
+
+function calculateJitter(samples) {
+    if (samples.length < 2) return 0;
+    
+    let sumDifferences = 0;
+    for (let i = 1; i < samples.length; i++) {
+        sumDifferences += Math.abs(samples[i] - samples[i - 1]);
+    }
+    
+    return sumDifferences / (samples.length - 1);
+}
+
+// ========================================
+// DOWNLOAD MEASUREMENT
+// ========================================
+
+/**
+ * Measures download speed using multi-threaded parallel streaming
+ * Returns: { speed, bytesTransferred, duration, stability }
+ */
+async function measureDownload() {
+    const threadCount = CONFIG.threads.download;
+    const maxDuration = CONFIG.duration.download.max * 1000;
+    const minDuration = CONFIG.duration.download.min * 1000;
+    
+    console.log(`[Download] Starting with ${threadCount} threads`);
+    announceToScreenReader(`Starting download test with ${threadCount} threads`);
+    
+    const startTime = performance.now();
+    let totalBytes = 0;
+    let isRunning = true;
+    
+    // Speed tracking for stability detection
+    const speedSamples = [];
+    let lastSampleTime = startTime;
+    let lastBytes = 0;
+    
+    // Launch all download threads (non-blocking)
+    const threadPromises = Array.from({ length: threadCount }, (_, i) => 
+        downloadThread(i, () => isRunning)
+    );
+    
+    // Accumulate bytes from all threads
+    const byteCounters = await Promise.all(threadPromises.map(p => p.then(counter => counter)));
+    
+    // Monitor loop - runs concurrently with threads
+    const monitorLoop = async () => {
+        while (isRunning && !STATE.cancelling) {
+            await sleep(CONFIG.updateInterval);
+            
+            const elapsed = performance.now() - startTime;
+            
+            // Sum bytes from all threads
+            totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+            
+            // Calculate current speed
+            const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
+            updateGauge(currentSpeed, 'download');
+            
+            // Track speed samples for stability check
+            if (elapsed - lastSampleTime >= 500) {
+                const intervalBytes = totalBytes - lastBytes;
+                const intervalDuration = (elapsed - lastSampleTime) / 1000;
+                const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
+                
+                speedSamples.push(intervalSpeed);
+                lastSampleTime = elapsed;
+                lastBytes = totalBytes;
+                
+                // Check for stability after minimum duration
+                if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
+                    const recentSamples = speedSamples.slice(-CONFIG.stability.sampleCount);
+                    if (isSpeedStable(recentSamples)) {
+                        console.log('[Download] Speed stabilized, stopping early');
+                        isRunning = false;
+                        break;
+                    }
+                }
+            }
+            
+            // Stop at max duration
+            if (elapsed >= maxDuration) {
+                console.log('[Download] Max duration reached');
+                isRunning = false;
+                break;
+            }
+            
+            // Update progress (25-60% range)
+            const progressPercent = 25 + (elapsed / maxDuration) * 35;
+            setProgress(Math.min(progressPercent, 60));
+        }
+    };
+    
+    // Run monitor concurrently
+    await monitorLoop();
+    
+    // Wait for all threads to complete
+    await Promise.all(threadPromises);
+    
+    const duration = (performance.now() - startTime) / 1000;
+    const speedMbps = (totalBytes * 8) / duration / 1_000_000;
+    
+    console.log(`[Download] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
+    announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
+    
+    return {
+        speed: speedMbps,
+        bytesTransferred: totalBytes,
+        duration,
+        stability: calculateStability(speedSamples)
+    };
+}
+
+/**
+ * Individual download thread - streams data and counts bytes
+ */
+async function downloadThread(threadId, isRunning) {
+    const byteCounter = { bytes: 0 };
+    const abortController = new AbortController();
+    STATE.abortControllers.push(abortController);
+    
+    try {
+        const url = `${CONFIG.apiBase}/api/download?size=${CONFIG.downloadSize}&chunk=${CONFIG.chunkSize}&t=${Date.now()}`;
+        const response = await fetch(url, { signal: abortController.signal });
+        
+        if (!response.ok) throw new Error(`Thread ${threadId} failed: ${response.status}`);
+        
+        const reader = response.body.getReader();
+        
+        while (isRunning()) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            byteCounter.bytes += value.length;
+        }
+        
+        reader.cancel();
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log(`[Download] Thread ${threadId} aborted`);
+        } else {
+            console.error(`[Download] Thread ${threadId} error:`, error);
+        }
+    }
+    
+    return byteCounter;
+}
+
+// ========================================
+// UPLOAD MEASUREMENT
+// ========================================
+
+/**
+ * Measures upload speed using multi-threaded parallel uploads
+ * Returns: { speed, bytesTransferred, duration, stability }
+ */
+async function measureUpload() {
+    const threadCount = CONFIG.threads.upload;
+    const maxDuration = CONFIG.duration.upload.max * 1000;
+    const minDuration = CONFIG.duration.upload.min * 1000;
+    
+    console.log(`[Upload] Starting with ${threadCount} threads`);
+    announceToScreenReader(`Starting upload test with ${threadCount} threads`);
+    
+    const startTime = performance.now();
+    let totalBytes = 0;
+    let isRunning = true;
+    
+    // Speed tracking
+    const speedSamples = [];
+    let lastSampleTime = startTime;
+    let lastBytes = 0;
+    
+    // Launch all upload threads
+    const threadPromises = Array.from({ length: threadCount }, (_, i) => 
+        uploadThread(i, () => isRunning)
+    );
+    
+    // Get byte counters
+    const byteCounters = await Promise.all(threadPromises.map(p => p.then(counter => counter)));
+    
+    // Monitor loop
+    const monitorLoop = async () => {
+        while (isRunning && !STATE.cancelling) {
+            await sleep(CONFIG.updateInterval);
+            
+            const elapsed = performance.now() - startTime;
+            
+            // Sum bytes from all threads
+            totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+            
+            // Calculate current speed
+            const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
+            updateGauge(currentSpeed, 'upload');
+            
+            // Track speed samples
+            if (elapsed - lastSampleTime >= 500) {
+                const intervalBytes = totalBytes - lastBytes;
+                const intervalDuration = (elapsed - lastSampleTime) / 1000;
+                const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
+                
+                speedSamples.push(intervalSpeed);
+                lastSampleTime = elapsed;
+                lastBytes = totalBytes;
+                
+                // Check stability
+                if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
+                    const recentSamples = speedSamples.slice(-CONFIG.stability.sampleCount);
+                    if (isSpeedStable(recentSamples)) {
+                        console.log('[Upload] Speed stabilized, stopping early');
+                        isRunning = false;
+                        break;
+                    }
+                }
+            }
+            
+            // Max duration check
+            if (elapsed >= maxDuration) {
+                console.log('[Upload] Max duration reached');
+                isRunning = false;
+                break;
+            }
+            
+            // Update progress (60-95% range)
+            const progressPercent = 60 + (elapsed / maxDuration) * 35;
+            setProgress(Math.min(progressPercent, 95));
+        }
+    };
+    
+    await monitorLoop();
+    await Promise.all(threadPromises);
+    
+    const duration = (performance.now() - startTime) / 1000;
+    const speedMbps = (totalBytes * 8) / duration / 1_000_000;
+    
+    console.log(`[Upload] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
+    announceToScreenReader(`Upload speed: ${speedMbps.toFixed(1)} megabits per second`);
+    
+    return {
+        speed: speedMbps,
+        bytesTransferred: totalBytes,
+        duration,
+        stability: calculateStability(speedSamples)
+    };
+}
+
+/**
+ * Individual upload thread - sends data using XHR for progress tracking
+ */
+async function uploadThread(threadId, isRunning) {
+    const byteCounter = { bytes: 0 };
+    const chunkSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
+    
+    // Generate random data
+    const data = new Uint8Array(chunkSize);
+    crypto.getRandomValues(data);
+    
+    const abortController = new AbortController();
+    STATE.abortControllers.push(abortController);
+    
+    return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                byteCounter.bytes = e.loaded;
             }
         });
+        
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(byteCounter);
+            } else {
+                console.error(`[Upload] Thread ${threadId} failed: ${xhr.status}`);
+                resolve(byteCounter);
+            }
+        });
+        
+        xhr.addEventListener('error', () => {
+            console.error(`[Upload] Thread ${threadId} network error`);
+            resolve(byteCounter);
+        });
+        
+        xhr.addEventListener('abort', () => {
+            console.log(`[Upload] Thread ${threadId} aborted`);
+            resolve(byteCounter);
+        });
+        
+        // Listen for abort signal
+        abortController.signal.addEventListener('abort', () => {
+            xhr.abort();
+        });
+        
+        // Check if we should still be running periodically
+        const checkInterval = setInterval(() => {
+            if (!isRunning() || STATE.cancelling) {
+                clearInterval(checkInterval);
+                xhr.abort();
+            }
+        }, 100);
+        
+        xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
+        xhr.send(data.buffer);
     });
 }
 
-// ===== Initialization =====
-function init() {
-    // Initialize theme
-    ThemeManager.init();
-    
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-    
-    // Bind event listeners
-    elements.startButton.addEventListener('click', runSpeedTest);
-    elements.themeToggle.addEventListener('click', () => ThemeManager.toggle());
-    
-    // Initialize accordions
-    initializeAccordions();
-    
-    // Fetch server info to adapt (non-blocking)
-    fetch(`${CONFIG.API_BASE_URL.replace(/\/$/, '')}/info`, { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : null)
-        .then(info => { state.info = info; utils.updateServerInfo(info); })
-        .catch(() => {});
+// ========================================
+// STABILITY DETECTION
+// ========================================
 
-    // History & export buttons
-    utils.renderHistory();
-    if (elements.copyLastResult) {
-        elements.copyLastResult.addEventListener('click', () => {
-            const history = utils.loadHistory();
-            if (history[0]) utils.copyToClipboard(JSON.stringify(history[0], null, 2));
-        });
+/**
+ * Checks if recent speed samples are stable (low variance)
+ */
+function isSpeedStable(samples) {
+    if (samples.length < CONFIG.stability.sampleCount) return false;
+    
+    const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const variance = samples.reduce((sum, speed) => {
+        const diff = (speed - avg) / avg;
+        return sum + (diff * diff);
+    }, 0) / samples.length;
+    
+    const isStable = variance < CONFIG.stability.varianceThreshold;
+    
+    if (isStable) {
+        console.log(`[Stability] Detected: variance=${variance.toFixed(4)}, threshold=${CONFIG.stability.varianceThreshold}`);
     }
-    if (elements.copyAllResults) {
-        elements.copyAllResults.addEventListener('click', () => {
-            utils.copyToClipboard(JSON.stringify(utils.loadHistory(), null, 2));
-        });
-    }
-    if (elements.clearHistory) {
-        elements.clearHistory.addEventListener('click', () => {
-            localStorage.removeItem('speed-test-history');
-            utils.renderHistory();
-        });
-    }
+    
+    return isStable;
+}
 
-    // Check initial connection (non-blocking UI enhancements above)
-    api.checkConnection().then(connected => {
-        if (!connected) {
-            utils.showStatus('Cannot connect to server. Please ensure the backend is running.', 'error');
+function calculateStability(samples) {
+    if (samples.length < 2) return 100;
+    
+    const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const variance = samples.reduce((sum, speed) => {
+        const diff = (speed - avg) / avg;
+        return sum + (diff * diff);
+    }, 0) / samples.length;
+    
+    // Convert variance to stability score (0-100)
+    const stabilityScore = Math.max(0, Math.min(100, (1 - variance * 10) * 100));
+    return stabilityScore;
+}
+
+// ========================================
+// GAUGE VISUALIZATION
+// ========================================
+
+function buildMainGauge() {
+    const container = document.getElementById('gaugeContainer');
+    if (!container) return;
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'gauge-wrapper';
+    wrapper.id = 'mainGauge';
+    
+    // SVG gauge
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'gauge-svg');
+    svg.setAttribute('viewBox', '0 0 200 200');
+    
+    // Define gradient
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', 'gaugeGradient');
+    gradient.setAttribute('x1', '0%');
+    gradient.setAttribute('y1', '0%');
+    gradient.setAttribute('x2', '100%');
+    gradient.setAttribute('y2', '100%');
+    
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('stop-color', '#3b82f6');
+    
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%');
+    stop2.setAttribute('stop-color', '#8b5cf6');
+    
+    gradient.appendChild(stop1);
+    gradient.appendChild(stop2);
+    defs.appendChild(gradient);
+    svg.appendChild(defs);
+    
+    // Track circle (background)
+    const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    track.setAttribute('class', 'gauge-track');
+    track.setAttribute('cx', '100');
+    track.setAttribute('cy', '100');
+    track.setAttribute('r', '80');
+    svg.appendChild(track);
+    
+    // Progress circle
+    const progress = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progress.setAttribute('class', 'gauge-progress');
+    progress.setAttribute('cx', '100');
+    progress.setAttribute('cy', '100');
+    progress.setAttribute('r', '80');
+    progress.setAttribute('id', 'gaugeProgress');
+    
+    const circumference = 2 * Math.PI * 80 * 0.75; // 270 degrees
+    progress.setAttribute('stroke-dasharray', `${circumference} ${circumference}`);
+    progress.setAttribute('stroke-dashoffset', circumference);
+    
+    svg.appendChild(progress);
+    wrapper.appendChild(svg);
+    
+    // Needle
+    const needle = document.createElement('div');
+    needle.className = 'gauge-needle';
+    needle.id = 'gaugeNeedle';
+    wrapper.appendChild(needle);
+    
+    // Center cap
+    const cap = document.createElement('div');
+    cap.className = 'gauge-center-cap';
+    wrapper.appendChild(cap);
+    
+    // Value display
+    const value = document.createElement('div');
+    value.className = 'gauge-value-live';
+    value.id = 'gaugeValue';
+    value.textContent = '0';
+    wrapper.appendChild(value);
+    
+    // Phase label
+    const phase = document.createElement('div');
+    phase.className = 'gauge-phase-label';
+    phase.id = 'gaugePhase';
+    phase.textContent = 'Ready';
+    wrapper.appendChild(phase);
+    
+    // Scale labels (will be dynamic)
+    const scaleContainer = document.createElement('div');
+    scaleContainer.id = 'gaugeScaleLabels';
+    wrapper.appendChild(scaleContainer);
+    
+    // Tick marks
+    buildGaugeTicks(wrapper);
+    
+    container.appendChild(wrapper);
+    STATE.gaugeElement = wrapper;
+}
+
+function buildGaugeTicks(wrapper) {
+    const tickCount = 27; // 270 degrees / 10 degrees per tick
+    
+    for (let i = 0; i <= tickCount; i++) {
+        const tick = document.createElement('div');
+        tick.className = 'gauge-tick';
+        
+        // Strong ticks at 0, 25, 50, 75, 100 percent
+        if (i % 7 === 0) {
+            tick.classList.add('gauge-tick-strong');
         }
+        
+        const angle = -135 + (i / tickCount) * 270;
+        tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        
+        wrapper.appendChild(tick);
+    }
+}
+
+function updateGauge(speed, phase) {
+    if (STATE.cancelling) return;
+    
+    // Throttle using RAF
+    if (STATE.rafId) return;
+    
+    STATE.rafId = requestAnimationFrame(() => {
+        const value = document.getElementById('gaugeValue');
+        const progress = document.getElementById('gaugeProgress');
+        const needle = document.getElementById('gaugeNeedle');
+        const phaseLabel = document.getElementById('gaugePhase');
+        
+        if (value) value.textContent = speed.toFixed(1);
+        if (phaseLabel) phaseLabel.textContent = phase.charAt(0).toUpperCase() + phase.slice(1);
+        
+        // Calculate max scale dynamically
+        const maxSpeed = calculateMaxScale(speed);
+        updateScaleLabels(maxSpeed);
+        
+        // Update progress arc and needle
+        const percentage = Math.min(speed / maxSpeed, 1);
+        const angle = -135 + (percentage * 270);
+        
+        if (needle) {
+            needle.style.transform = `translate(-50%, -90%) rotate(${angle}deg)`;
+        }
+        
+        if (progress) {
+            const circumference = 2 * Math.PI * 80 * 0.75;
+            const offset = circumference - (percentage * circumference);
+            progress.setAttribute('stroke-dashoffset', offset);
+        }
+        
+        STATE.rafId = null;
     });
 }
 
-// Start when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
+function calculateMaxScale(currentSpeed) {
+    // Dynamic scaling similar to Google Fiber
+    if (currentSpeed <= 10) return 10;
+    if (currentSpeed <= 25) return 25;
+    if (currentSpeed <= 50) return 50;
+    if (currentSpeed <= 100) return 100;
+    if (currentSpeed <= 250) return 250;
+    if (currentSpeed <= 500) return 500;
+    if (currentSpeed <= 1000) return 1000;
+    
+    // Round up to next 100
+    return Math.ceil(currentSpeed / 100) * 100;
+}
+
+function updateScaleLabels(maxSpeed) {
+    const container = document.getElementById('gaugeScaleLabels');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    const labels = [
+        { text: '0', angle: -135 },
+        { text: (maxSpeed / 2).toFixed(0), angle: 0 },
+        { text: maxSpeed.toFixed(0), angle: 135 }
+    ];
+    
+    labels.forEach(label => {
+        const el = document.createElement('div');
+        el.className = 'gauge-scale-label';
+        el.textContent = label.text;
+        
+        // Position at radius
+        const rad = (label.angle * Math.PI) / 180;
+        const x = 50 + Math.cos(rad) * 42;
+        const y = 50 + Math.sin(rad) * 42;
+        
+        el.style.left = `${x}%`;
+        el.style.top = `${y}%`;
+        el.style.transform = 'translate(-50%, -50%)';
+        
+        container.appendChild(el);
+    });
+}
+
+function resetGauge() {
+    const value = document.getElementById('gaugeValue');
+    const progress = document.getElementById('gaugeProgress');
+    const needle = document.getElementById('gaugeNeedle');
+    const phaseLabel = document.getElementById('gaugePhase');
+    
+    if (value) value.textContent = '0';
+    if (phaseLabel) phaseLabel.textContent = 'Ready';
+    
+    if (needle) {
+        needle.style.transform = 'translate(-50%, -90%) rotate(-135deg)';
+    }
+    
+    if (progress) {
+        const circumference = 2 * Math.PI * 80 * 0.75;
+        progress.setAttribute('stroke-dashoffset', circumference);
+    }
+    
+    updateScaleLabels(100);
+}
+
+// ========================================
+// UI UPDATES
+// ========================================
+
+function updatePhaseUI(phase, status) {
+    const phaseElement = document.querySelector(`[data-phase="${phase}"]`);
+    if (phaseElement) {
+        phaseElement.setAttribute('data-status', status);
+    }
+}
+
+function resetAllPhases() {
+    document.querySelectorAll('.phase').forEach(el => {
+        el.setAttribute('data-status', 'not-started');
+    });
+}
+
+function updateResultCard(type, result) {
+    const card = document.querySelector(`[data-metric="${type}"]`);
+    if (!card) return;
+    
+    card.setAttribute('data-status', 'active');
+    setTimeout(() => card.setAttribute('data-status', ''), 500);
+    
+    const valueEl = card.querySelector('.metric-value');
+    const detailsEl = card.querySelector('.metric-details');
+    const qualityEl = card.querySelector('.metric-quality');
+    
+    switch (type) {
+        case 'download':
+        case 'upload':
+            if (valueEl) valueEl.textContent = result.speed.toFixed(1);
+            if (detailsEl) {
+                detailsEl.innerHTML = `
+                    <div>Transferred: ${formatBytes(result.bytesTransferred)}</div>
+                    <div>Duration: ${result.duration.toFixed(2)}s</div>
+                    <div>Stability: ${result.stability.toFixed(0)}%</div>
+                `;
+            }
+            if (qualityEl) {
+                const quality = getSpeedQuality(result.speed, type);
+                qualityEl.textContent = quality;
+                qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+            }
+            break;
+            
+        case 'latency':
+            if (valueEl) valueEl.textContent = result.average.toFixed(1);
+            if (detailsEl) {
+                detailsEl.innerHTML = `
+                    <div>Min: ${result.min.toFixed(1)}ms</div>
+                    <div>Max: ${result.max.toFixed(1)}ms</div>
+                `;
+            }
+            if (qualityEl) {
+                const quality = getLatencyQuality(result.average);
+                qualityEl.textContent = quality;
+                qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+            }
+            break;
+            
+        case 'jitter':
+            if (valueEl) valueEl.textContent = result.value.toFixed(1);
+            if (qualityEl) {
+                const quality = getJitterQuality(result.value);
+                qualityEl.textContent = quality;
+                qualityEl.className = `metric-quality ${quality.toLowerCase()}`;
+            }
+            break;
+    }
+}
+
+function clearResultsDisplay() {
+    document.querySelectorAll('.result-card').forEach(card => {
+        card.setAttribute('data-status', '');
+        const valueEl = card.querySelector('.metric-value');
+        if (valueEl) valueEl.textContent = '—';
+        
+        const detailsEl = card.querySelector('.metric-details');
+        if (detailsEl) detailsEl.innerHTML = '<div>Testing...</div>';
+        
+        const qualityEl = card.querySelector('.metric-quality');
+        if (qualityEl) qualityEl.textContent = '';
+    });
+}
+
+function getSpeedQuality(speed, type) {
+    if (type === 'download') {
+        if (speed >= 100) return 'Excellent';
+        if (speed >= 50) return 'Good';
+        if (speed >= 25) return 'Average';
+        return 'Slow';
+    } else {
+        if (speed >= 50) return 'Excellent';
+        if (speed >= 25) return 'Good';
+        if (speed >= 10) return 'Average';
+        return 'Slow';
+    }
+}
+
+function getLatencyQuality(latency) {
+    if (latency <= 20) return 'Excellent';
+    if (latency <= 50) return 'Good';
+    if (latency <= 100) return 'Average';
+    return 'High';
+}
+
+function getJitterQuality(jitter) {
+    if (jitter <= 5) return 'Excellent';
+    if (jitter <= 15) return 'Good';
+    if (jitter <= 30) return 'Average';
+    return 'Unstable';
+}
+
+function setProgress(percent) {
+    const progressBar = document.querySelector('.progress-fill');
+    if (progressBar) {
+        progressBar.style.width = `${percent}%`;
+    }
+}
+
+function showStatus(message, type = 'info') {
+    const statusBar = document.getElementById('statusBar');
+    if (!statusBar) return;
+    
+    statusBar.setAttribute('data-type', type);
+    statusBar.hidden = false;
+    
+    const statusText = statusBar.querySelector('.status-text');
+    if (statusText) statusText.textContent = message;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        statusBar.hidden = true;
+    }, 5000);
+}
+
+// ========================================
+// HISTORY MANAGEMENT
+// ========================================
+
+function saveToHistory(result) {
+    STATE.history.unshift(result);
+    
+    // Keep only last 50 results
+    if (STATE.history.length > 50) {
+        STATE.history = STATE.history.slice(0, 50);
+    }
+    
+    localStorage.setItem('speedtest_history', JSON.stringify(STATE.history));
+    updateHistoryUI();
+}
+
+function loadHistory() {
+    try {
+        const saved = localStorage.getItem('speedtest_history');
+        if (saved) {
+            STATE.history = JSON.parse(saved);
+            updateHistoryUI();
+        }
+    } catch (error) {
+        console.error('[History] Failed to load:', error);
+    }
+}
+
+function updateHistoryUI() {
+    const container = document.getElementById('historyList');
+    if (!container) return;
+    
+    if (STATE.history.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--color-text-tertiary);padding:2rem;">No test history yet</div>';
+        return;
+    }
+    
+    container.innerHTML = STATE.history.slice(0, 10).map(result => {
+        const date = new Date(result.timestamp);
+        const timeStr = date.toLocaleString();
+        
+        return `
+            <div class="history-item">
+                <div class="history-item-data">
+                    <span>⬇ ${result.download.toFixed(1)} Mbps</span>
+                    <span>⬆ ${result.upload.toFixed(1)} Mbps</span>
+                    <span>🏓 ${result.latency.toFixed(0)} ms</span>
+                </div>
+                <div class="history-item-time">${timeStr}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function clearHistory() {
+    if (!confirm('Clear all test history?')) return;
+    
+    STATE.history = [];
+    localStorage.removeItem('speedtest_history');
+    updateHistoryUI();
+    showStatus('History cleared', 'info');
+    announceToScreenReader('Test history cleared');
+}
+
+function exportHistory() {
+    if (STATE.history.length === 0) {
+        showStatus('No history to export', 'info');
+        return;
+    }
+    
+    const csv = [
+        'Timestamp,Download (Mbps),Upload (Mbps),Latency (ms),Jitter (ms)',
+        ...STATE.history.map(r => 
+            `${new Date(r.timestamp).toISOString()},${r.download},${r.upload},${r.latency},${r.jitter}`
+        )
+    ].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `speedtest-history-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showStatus('History exported', 'success');
+    announceToScreenReader('Test history exported to CSV file');
+}
+
+// ========================================
+// ACCESSIBILITY
+// ========================================
+
+function initializeAccessibility() {
+    // Create live region for announcements
+    const liveRegion = document.createElement('div');
+    liveRegion.id = 'ariaLiveRegion';
+    liveRegion.className = 'sr-only';
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(liveRegion);
+    
+    // Add ARIA labels to gauge
+    if (STATE.gaugeElement) {
+        STATE.gaugeElement.setAttribute('role', 'img');
+        STATE.gaugeElement.setAttribute('aria-label', 'Speed gauge showing current test speed');
+    }
+}
+
+function announceToScreenReader(message) {
+    const liveRegion = document.getElementById('ariaLiveRegion');
+    if (liveRegion) {
+        // Clear and set to ensure announcement
+        liveRegion.textContent = '';
+        setTimeout(() => {
+            liveRegion.textContent = message;
+        }, 100);
+    }
+}
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Initialize Lucide icons when DOM is ready
+if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
 }
