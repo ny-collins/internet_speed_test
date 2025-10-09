@@ -2,6 +2,11 @@
    SPEEDCHECK PRO - MODERN CSS
    ======================================== */
 
+/* ===== Box Sizing Reset ===== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 /* ===== CSS Variables ===== */
 :root {
     /* Colors - Light Theme */
@@ -99,6 +104,8 @@
 html {
     font-size: 16px;
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 body {
@@ -154,6 +161,8 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--spacing-xl) var(--spacing-lg);
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* ===== Header ===== */
@@ -383,6 +392,8 @@ body {
     gap: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
     align-items: start;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 /* Desktop: Gauge left, Matrix right */
@@ -499,7 +510,7 @@ body {
     border-radius: var(--radius-full) var(--radius-full) 0 0;
     transform-origin: 50% 100%;
     transform: translate(-50%, -100%) rotate(-135deg);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.15s linear;
     z-index: 15;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }

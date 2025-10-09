@@ -247,7 +247,7 @@ function initializeEventListeners() {
     
     // Settings panel
     document.querySelector('.settings-toggle')?.addEventListener('click', toggleSettings);
-    document.getElementById('closeSettings')?.addEventListener('click', toggleSettings);
+    document.getElementById('settingsClose')?.addEventListener('click', toggleSettings);
     
     // Settings controls
     ['downloadThreads', 'uploadThreads', 'downloadDuration', 'uploadDuration'].forEach(id => {
@@ -915,12 +915,7 @@ function buildMainGauge() {
             responsive: true,
             maintainAspectRatio: true,
             cutout: '75%',
-            animation: {
-                animateRotate: true,
-                animateScale: false,
-                duration: 400,
-                easing: 'easeOutCubic'
-            },
+            animation: false, // Disable all animations for perfect sync with needle
             plugins: {
                 legend: { display: false },
                 tooltip: { enabled: false }
