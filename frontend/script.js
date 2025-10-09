@@ -135,9 +135,81 @@ const utils = {
         elements.connectionStatus.classList.add('hidden');
     },
     
+    ensureGauge(metric) {
+        const card = elements.metricCards[metric];
+        if (!card || card.querySelector('.gauge-wrapper')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'gauge-wrapper';
+        wrapper.setAttribute('data-gauge-metric', metric);
+        const radius = 60;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 150 150');
+        const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        track.setAttribute('cx', '75'); track.setAttribute('cy', '75'); track.setAttribute('r', radius);
+        track.classList.add('gauge-track');
+        const prog = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        prog.setAttribute('cx', '75'); prog.setAttribute('cy', '75'); prog.setAttribute('r', radius);
+        prog.classList.add('gauge-progress');
+        const fullCirc = 2 * Math.PI * radius;
+        const visibleFraction = 270/360; // 270° sweep
+        const dashArray = fullCirc * visibleFraction;
+        const gap = fullCirc - dashArray;
+        track.setAttribute('stroke-dasharray', `${dashArray} ${gap}`);
+        prog.setAttribute('stroke-dasharray', `${dashArray} ${gap}`);
+        track.setAttribute('stroke-dashoffset', (gap/2).toString());
+        prog.setAttribute('stroke-dashoffset', (gap/2 + dashArray).toString());
+        svg.appendChild(track); svg.appendChild(prog);
+        const gaugeDiv = document.createElement('div'); gaugeDiv.className = 'gauge'; gaugeDiv.appendChild(svg);
+        const needle = document.createElement('div'); needle.className = 'gauge-needle';
+        const cap = document.createElement('div'); cap.className = 'gauge-center-cap';
+        const live = document.createElement('div'); live.className = 'gauge-value-live'; live.textContent = '—';
+        wrapper.appendChild(gaugeDiv); wrapper.appendChild(needle); wrapper.appendChild(cap); wrapper.appendChild(live);
+        card.querySelector('.metric-card-content').prepend(wrapper);
+        card._gauge = { prog, needle, live, dashArray, gap, lastValue: 0 };
+    },
+    gaugeMax(metric, value) {
+        if (metric === 'download' || metric === 'upload') {
+            const tiers = [10,25,50,100,200,500,1000];
+            const v = value || 0;
+            for (const t of tiers) if (v <= t) return t;
+            return tiers[tiers.length-1];
+        }
+        if (metric === 'ping') return 200;
+        if (metric === 'jitter') return 100;
+        return 100;
+    },
+    animateGauge(metric, rawVal) {
+        const card = elements.metricCards[metric];
+        if (!card || !card._gauge) return;
+        const g = card._gauge;
+        const max = utils.gaugeMax(metric, rawVal);
+        // Gauge animation notes:
+        // - Sweep covers 270 degrees (-135deg to +135deg) for a classic speedometer arc.
+        // - gaugeMax() picks a contextual ceiling so the needle uses most of the arc; tweak tiers there.
+        // - To change duration, adjust 'duration'. Ease function is symmetric for smooth accel/decel.
+        // - Stroke-dashoffset drives arc fill; needle rotation is purely cosmetic.
+        const start = g.lastValue || 0;
+        const end = Math.min(rawVal, max);
+        const startTime = performance.now();
+        const duration = 700;
+        const ease = t => t < .5 ? 2*t*t : -1 + (4 - 2*t)*t;
+        function step(now) {
+            const p = Math.min(1, (now - startTime) / duration);
+            const v = start + (end - start) * ease(p);
+            const ratio = v / max;
+            const angle = -135 + 270 * ratio;
+            g.needle.style.transform = `translate(-50%, -90%) rotate(${angle}deg)`;
+            const offset = g.gap/2 + g.dashArray * (1 - ratio);
+            g.prog.setAttribute('stroke-dashoffset', offset.toString());
+            g.live.textContent = utils.formatNumber(v, (metric === 'ping' || metric === 'jitter') ? 0 : 1);
+            if (p < 1) requestAnimationFrame(step); else { g.lastValue = end; }
+        }
+        requestAnimationFrame(step);
+    },
     updateMetricCard: (metric, value, unit = 'Mbps') => {
         const card = elements.metricCards[metric];
         if (!card) return;
+        utils.ensureGauge(metric);
         
         const valueElement = card.querySelector('.metric-value');
         const qualityElement = card.querySelector('.metric-quality');
@@ -145,6 +217,8 @@ const utils = {
         
         if (value !== null && value !== undefined && value !== 'error') {
             valueElement.textContent = value;
+            const numeric = parseFloat(value);
+            if (!isNaN(numeric)) utils.animateGauge(metric, numeric);
             
             // Update quality indicator
             const quality = getQualityRating(metric, value);
@@ -160,11 +234,13 @@ const utils = {
             }
         } else if (value === 'error') {
             valueElement.textContent = 'Err';
+            const gw = card.querySelector('.gauge-wrapper'); if (gw) gw.classList.add('error');
             if (qualityElement) qualityElement.textContent = '';
             if (subvalueElement) subvalueElement.textContent = '';
             card.classList.add('metric-error');
         } else {
             valueElement.textContent = '—';
+            const gw = card.querySelector('.gauge-wrapper'); if (gw) gw.classList.remove('error');
             if (qualityElement) qualityElement.textContent = '';
             if (subvalueElement) subvalueElement.textContent = '';
         }
