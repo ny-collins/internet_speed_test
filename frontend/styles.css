@@ -594,7 +594,10 @@ body {
 }
 
 .gauge-inner {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: 65%;
     height: 65%;
     border-radius: 50%;
@@ -604,7 +607,8 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    z-index: 2;
+    z-index: 3;
+    box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .gauge-value-live {
