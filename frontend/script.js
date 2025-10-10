@@ -238,10 +238,8 @@ function toggleTheme() {
 
 function updateThemeIcon(theme) {
     const icon = document.querySelector('.theme-icon');
-    if (icon) {
-        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-        lucide.createIcons();
-    }
+    icon?.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+    if (icon) lucide.createIcons();
 }
 
 // ========================================
@@ -401,7 +399,7 @@ function handleKeyboardShortcuts(e) {
     
     // Escape: Cancel test or close settings
     if (e.key === 'Escape') {
-        const settingsOpen = document.getElementById('settingsPanel')?.getAttribute('data-open') === 'true';
+        const settingsOpen = DOM.settingsPanel?.getAttribute('data-open') === 'true';
         if (settingsOpen) {
             toggleSettings();
         } else if (STATE.testing) {
