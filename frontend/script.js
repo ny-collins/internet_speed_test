@@ -909,9 +909,11 @@ function showGauge() {
     const startButton = document.getElementById('gaugeStartButton');
     if (startButton) startButton.hidden = true;
     
-    // Show gauge circle
+    // Show gauge circle and inner content
     const gaugeCircle = document.getElementById('gaugeCircle');
+    const gaugeInner = document.getElementById('gaugeInner');
     if (gaugeCircle) gaugeCircle.hidden = false;
+    if (gaugeInner) gaugeInner.hidden = false;
 }
 
 function hideGauge() {
@@ -919,9 +921,11 @@ function hideGauge() {
     const startButton = document.getElementById('gaugeStartButton');
     if (startButton) startButton.hidden = false;
     
-    // Hide gauge circle
+    // Hide gauge circle and inner content
     const gaugeCircle = document.getElementById('gaugeCircle');
+    const gaugeInner = document.getElementById('gaugeInner');
     if (gaugeCircle) gaugeCircle.hidden = true;
+    if (gaugeInner) gaugeInner.hidden = true;
 }
 
 function updateGauge(speed, phase) {

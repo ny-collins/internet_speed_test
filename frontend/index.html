@@ -144,11 +144,13 @@
                         <!-- Pure CSS Circular Progress Gauge -->
                         <div class="gauge-circle" id="gaugeCircle" hidden>
                             <div class="gauge-progress" id="gaugeProgress"></div>
-                            <div class="gauge-inner">
-                                <div class="gauge-value-live" id="gaugeValue">0</div>
-                                <div class="gauge-unit" id="gaugeUnit">Mbps</div>
-                                <div class="gauge-phase-label" id="gaugePhase">Ready</div>
-                            </div>
+                        </div>
+                        
+                        <!-- Gauge Inner Content (outside mask) -->
+                        <div class="gauge-inner" id="gaugeInner" hidden>
+                            <div class="gauge-value-live" id="gaugeValue">0</div>
+                            <div class="gauge-unit" id="gaugeUnit">Mbps</div>
+                            <div class="gauge-phase-label" id="gaugePhase">Ready</div>
                         </div>
                     </div>
                 </div>
