@@ -177,23 +177,21 @@ function updateSettingValue(id, value) {
 }
 
 function saveSettings() {
-    CONFIG.threads.download = parseInt(document.getElementById('downloadThreads').value);
-    CONFIG.threads.upload = parseInt(document.getElementById('uploadThreads').value);
-    const minDur = parseFloat(document.getElementById('minDuration').value);
+    const threads = parseInt(document.getElementById('downloadThreads').value);
     const maxDur = parseFloat(document.getElementById('maxDuration').value);
     
-    // Apply to download (primary setting)
-    CONFIG.duration.download.min = minDur;
+    // Apply threads to both download and upload
+    CONFIG.threads.download = threads;
+    CONFIG.threads.upload = threads;
+    
+    // Apply duration settings
     CONFIG.duration.download.max = maxDur;
     CONFIG.duration.download.default = maxDur;
-    
-    // Apply to upload with slightly lower values
-    CONFIG.duration.upload.min = Math.max(2, minDur - 0.5);
     CONFIG.duration.upload.max = Math.max(3, maxDur - 2);
     CONFIG.duration.upload.default = CONFIG.duration.upload.max;
     
     localStorage.setItem('config', JSON.stringify(CONFIG));
-    showStatus('Settings saved successfully', 'success');
+    showStatus('Settings saved', 'success');
     announceToScreenReader('Settings saved');
 }
 
@@ -201,23 +199,17 @@ function resetSettings() {
     // Reset to defaults
     CONFIG.threads.download = 4;
     CONFIG.threads.upload = 4;
-    CONFIG.duration.download.min = 3.5;
     CONFIG.duration.download.max = 8;
     CONFIG.duration.download.default = 8;
-    CONFIG.duration.upload.min = 3;
     CONFIG.duration.upload.max = 6;
     CONFIG.duration.upload.default = 6;
     
     // Update UI
     document.getElementById('downloadThreads').value = CONFIG.threads.download;
-    document.getElementById('uploadThreads').value = CONFIG.threads.upload;
-    document.getElementById('minDuration').value = CONFIG.duration.download.min;
     document.getElementById('maxDuration').value = CONFIG.duration.download.max;
     
     updateSettingValue('downloadThreads', CONFIG.threads.download);
-    updateSettingValue('uploadThreads', CONFIG.threads.upload);
-    updateSettingValue('minDuration', CONFIG.duration.download.min);
-    updateSettingValue('maxDuration', CONFIG.duration.download.max);
+    updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
     
     localStorage.removeItem('config');
     showStatus('Settings reset to defaults', 'info');
@@ -232,27 +224,17 @@ function loadConfiguration() {
             Object.assign(CONFIG, savedConfig);
         }
         
-        // Populate UI if elements exist - check each individually
+        // Populate UI if elements exist
         const downloadThreadsEl = document.getElementById('downloadThreads');
-        const uploadThreadsEl = document.getElementById('uploadThreads');
-        const minDurationEl = document.getElementById('minDuration');
         const maxDurationEl = document.getElementById('maxDuration');
         
         if (downloadThreadsEl) {
             downloadThreadsEl.value = CONFIG.threads.download;
             updateSettingValue('downloadThreads', CONFIG.threads.download);
         }
-        if (uploadThreadsEl) {
-            uploadThreadsEl.value = CONFIG.threads.upload;
-            updateSettingValue('uploadThreads', CONFIG.threads.upload);
-        }
-        if (minDurationEl) {
-            minDurationEl.value = CONFIG.duration.download.min;
-            updateSettingValue('minDuration', CONFIG.duration.download.min);
-        }
         if (maxDurationEl) {
             maxDurationEl.value = CONFIG.duration.download.max;
-            updateSettingValue('maxDuration', CONFIG.duration.download.max);
+            updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
         }
     } catch (error) {
         console.error('[Config] Failed to load configuration:', error);
@@ -264,18 +246,21 @@ function loadConfiguration() {
 // ========================================
 
 function initializeEventListeners() {
-    // Theme toggle
-    document.querySelector('.theme-toggle')?.addEventListener('click', toggleTheme);
+    // Theme toggle (now in settings panel)
+    document.getElementById('themeToggleSwitch')?.addEventListener('click', toggleTheme);
     
     // Settings panel
     document.querySelector('.settings-toggle')?.addEventListener('click', toggleSettings);
     document.getElementById('settingsClose')?.addEventListener('click', toggleSettings);
     
-    // Settings controls
-    ['downloadThreads', 'uploadThreads', 'minDuration', 'maxDuration'].forEach(id => {
+    // Settings controls (simplified to just 2 controls)
+    ['downloadThreads', 'maxDuration'].forEach(id => {
         const input = document.getElementById(id);
         if (input) {
-            input.addEventListener('input', (e) => updateSettingValue(id, e.target.value));
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                updateSettingValue(id, id === 'maxDuration' ? value + 's' : value);
+            });
             input.addEventListener('change', saveSettings);
         }
     });
@@ -521,6 +506,10 @@ async function measureLatency() {
             
             samples.push(duration);
             
+            // Update live average in matrix card
+            const currentAvg = samples.reduce((a, b) => a + b, 0) / samples.length;
+            updateMatrixCardLive('latency', currentAvg);
+            
             // Update progress
             setProgress((i + 1) / sampleCount * 25); // 25% of total
             
@@ -539,6 +528,7 @@ async function measureLatency() {
         // Calculate jitter
         const jitter = calculateJitter(samples);
         STATE.testResults.jitter = { value: jitter };
+        updateMatrixCardLive('jitter', jitter);
         updateResultCard('jitter', { value: jitter });
         
         announceToScreenReader(`Latency measured: ${average.toFixed(1)} milliseconds`);
@@ -952,6 +942,9 @@ function updateGauge(speed, phase) {
             phaseLabel.textContent = `Testing ${phaseName}`;
         }
         
+        // Update corresponding matrix card with live value
+        updateMatrixCardLive(phase, speed);
+        
         // Calculate max scale dynamically
         const maxSpeed = calculateMaxScale(speed);
         
@@ -974,6 +967,16 @@ function updateGauge(speed, phase) {
         
         STATE.rafId = null;
     });
+}
+
+function updateMatrixCardLive(phase, speed) {
+    const matrixCard = document.querySelector(`.matrix-card[data-metric="${phase}"]`);
+    if (matrixCard) {
+        const numberEl = matrixCard.querySelector('.matrix-number');
+        if (numberEl) {
+            numberEl.textContent = speed.toFixed(1);
+        }
+    }
 }
 
 function calculateMaxScale(currentSpeed) {

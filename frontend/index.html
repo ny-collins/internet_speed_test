@@ -12,11 +12,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" aria-pressed="false">
-        <i data-lucide="moon" class="theme-icon"></i>
-    </button>
-
     <!-- Settings Toggle -->
     <button class="settings-toggle" id="settingsToggle" aria-label="Open settings" aria-expanded="false">
         <i data-lucide="settings" class="settings-icon"></i>
@@ -38,33 +33,58 @@
         <div class="settings-panel" id="settingsPanel" role="dialog" aria-labelledby="settingsTitle" data-open="false">
             <div class="settings-content">
                 <div class="settings-header">
-                    <h2 id="settingsTitle">Test Configuration</h2>
+                    <h2 id="settingsTitle">Settings</h2>
                     <button class="settings-close" id="settingsClose" aria-label="Close settings">
                         <i data-lucide="x"></i>
                     </button>
                 </div>
                 <div class="settings-body">
-                    <div class="setting-group">
-                        <label for="downloadThreads">Download Threads</label>
-                        <input type="range" id="downloadThreads" min="1" max="8" value="4" step="1">
-                        <span class="setting-value" id="downloadThreadsValue">4</span>
+                    <!-- Theme Section -->
+                    <div class="setting-section">
+                        <h3 class="setting-section-title">Appearance</h3>
+                        <div class="setting-group setting-group-row">
+                            <div class="setting-info">
+                                <label for="themeToggleSwitch">Dark Mode</label>
+                                <p class="setting-description">Toggle between light and dark theme</p>
+                            </div>
+                            <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
+                                <i data-lucide="moon" class="theme-icon"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="setting-group">
-                        <label for="minDuration">Min Test Duration (s)</label>
-                        <input type="range" id="minDuration" min="2" max="10" value="3.5" step="0.5">
-                        <span class="setting-value" id="minDurationValue">3.5</span>
+
+                    <!-- Test Configuration Section -->
+                    <div class="setting-section">
+                        <h3 class="setting-section-title">Test Configuration</h3>
+                        <p class="setting-section-description">Adjust how tests are performed. Higher values = more accurate but slower.</p>
+                        
+                        <div class="setting-group">
+                            <div class="setting-info">
+                                <label for="downloadThreads">Parallel Connections</label>
+                                <p class="setting-description">Number of simultaneous downloads (1-8)</p>
+                            </div>
+                            <div class="setting-control">
+                                <input type="range" id="downloadThreads" min="1" max="8" value="4" step="1">
+                                <span class="setting-value" id="downloadThreadsValue">4</span>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="setting-info">
+                                <label for="maxDuration">Test Duration</label>
+                                <p class="setting-description">Maximum seconds per test (5-20s)</p>
+                            </div>
+                            <div class="setting-control">
+                                <input type="range" id="maxDuration" min="5" max="20" value="8" step="1">
+                                <span class="setting-value" id="maxDurationValue">8s</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="setting-group">
-                        <label for="maxDuration">Max Test Duration (s)</label>
-                        <input type="range" id="maxDuration" min="5" max="20" value="8" step="1">
-                        <span class="setting-value" id="maxDurationValue">8</span>
-                    </div>
-                    <div class="setting-group">
-                        <label for="uploadThreads">Upload Threads</label>
-                        <input type="range" id="uploadThreads" min="1" max="8" value="3" step="1">
-                        <span class="setting-value" id="uploadThreadsValue">3</span>
-                    </div>
-                    <button class="btn-reset" id="resetSettings">Reset to Defaults</button>
+
+                    <button class="btn-reset" id="resetSettings">
+                        <i data-lucide="rotate-ccw"></i>
+                        Reset to Defaults
+                    </button>
                 </div>
             </div>
         </div>
