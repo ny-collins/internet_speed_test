@@ -202,6 +202,33 @@ body {
     font-size: var(--font-size-lg);
 }
 
+/* ===== Server Notice ===== */
+.server-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    background: var(--color-surface);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.notice-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.notice-text {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    margin: 0;
+}
+
 /* ===== Settings Panel ===== */
 .settings-panel {
     position: fixed;
@@ -565,6 +592,7 @@ body {
     position: absolute;
     inset: 0;
     border-radius: 50%;
+    z-index: 2;
     /* Progress gradient - same orientation as background */
     background: conic-gradient(
         from -135deg,
@@ -607,8 +635,9 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    z-index: 3;
+    z-index: 10;
     box-shadow: 0 0 0 1px var(--color-border);
+    pointer-events: none;
 }
 
 .gauge-value-live {
@@ -1096,6 +1125,16 @@ body {
     
     .tagline {
         font-size: var(--font-size-base);
+    }
+    
+    .server-notice {
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+        gap: var(--spacing-xs);
+    }
+    
+    .notice-text {
+        font-size: var(--font-size-xs);
     }
     
     .test-display {
