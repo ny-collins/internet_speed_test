@@ -4,9 +4,29 @@
     <meta name="google-site-verification" content="zdVZ1S33sjYK8fbzC_MPEwMIDRISvUkH7Z6W_WyGC9o" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Advanced internet speed test - measure download, upload, ping, and jitter with precision">
-    <title>SpeedCheck Pro - Internet Speed Test</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Test your internet speed with SpeedCheck. Measure download, upload, ping, and jitter. Server hosted in Amsterdam for European users.">
+    <meta name="keywords" content="internet speed test, bandwidth test, network speed, ping test, latency test, jitter test, download speed, upload speed">
+    <meta name="author" content="SpeedCheck">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="SpeedCheck - Internet Speed Test">
+    <meta property="og:description" content="Accurate internet speed testing with detailed metrics. Measure download, upload, ping, and jitter.">
+    <meta property="og:site_name" content="SpeedCheck">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="SpeedCheck - Internet Speed Test">
+    <meta name="twitter:description" content="Test your internet speed with accurate measurements">
+    
+    <title>SpeedCheck - Internet Speed Test</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -23,7 +43,7 @@
             <div class="header-content">
                 <div class="logo">
                     <i data-lucide="zap" class="logo-icon"></i>
-                    <h1 class="logo-text">SpeedCheck <span class="logo-accent">Pro</span></h1>
+                    <h1 class="logo-text">SpeedCheck</h1>
                 </div>
                 <p class="tagline">Accurate internet performance measurement</p>
             </div>
@@ -44,8 +64,8 @@
                         <h3 class="setting-section-title">Appearance</h3>
                         <div class="setting-group setting-group-row">
                             <div class="setting-info">
-                                <label for="themeToggleSwitch">Dark Mode</label>
-                                <p class="setting-description">Toggle between light and dark theme</p>
+                                <label for="themeToggleSwitch">Theme</label>
+                                <p class="setting-description">Switch between light and dark appearance</p>
                             </div>
                             <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
                                 <i data-lucide="moon" class="theme-icon"></i>
@@ -244,10 +264,52 @@
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p class="footer-note">
-                    <i data-lucide="info"></i>
-                    Results may vary based on network conditions, server location, and device performance.
-                </p>
+                <!-- Educational Info Section -->
+                <div class="footer-info-grid">
+                    <div class="info-card">
+                        <div class="info-icon-wrapper">
+                            <i data-lucide="server"></i>
+                        </div>
+                        <h3>Server Location</h3>
+                        <p>Our server is hosted in <strong>Amsterdam, Netherlands</strong>. Your internet packets travel from your location to Amsterdam and back, which affects the measurements.</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon-wrapper">
+                            <i data-lucide="route"></i>
+                        </div>
+                        <h3>Distance Matters</h3>
+                        <p>Unlike services that use nearby servers, we measure your <strong>real-world international speed</strong>. Tests from Nairobi, for example, reflect actual performance to European servers.</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon-wrapper">
+                            <i data-lucide="bar-chart-3"></i>
+                        </div>
+                        <h3>Comparing Results</h3>
+                        <p>Speed tests using local servers (like Google Fiber) show <strong>best-case scenarios</strong>. Our measurements reflect typical international browsing and streaming performance.</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon-wrapper">
+                            <i data-lucide="info"></i>
+                        </div>
+                        <h3>Understanding Metrics</h3>
+                        <p><strong>Download/Upload:</strong> Data transfer speeds. <strong>Ping:</strong> Response time (lower is better). <strong>Jitter:</strong> Connection stability (lower is better).</p>
+                    </div>
+                </div>
+                
+                <!-- Simple Footer Note -->
+                <div class="footer-note">
+                    <p>
+                        <i data-lucide="alert-circle"></i>
+                        Results may vary based on network conditions, time of day, and server load. For most accurate results, close other applications using internet.
+                    </p>
+                </div>
+                
+                <div class="footer-copyright">
+                    <p>&copy; 2025 SpeedCheck. Accurate internet performance measurement.</p>
+                </div>
             </div>
         </footer>
     </div>
