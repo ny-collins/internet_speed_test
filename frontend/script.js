@@ -1,6 +1,6 @@
 /**
  * ===========================================
- * SPEEDCHECK PRO - ENHANCED CLIENT
+ * SPEEDCHECK - ENHANCED CLIENT
  * ===========================================
  * 
  * Features:
@@ -76,6 +76,56 @@ const STATE = {
     rafId: null
 };
 
+// Centralized DOM element references
+const DOM = {
+    // Theme & Settings
+    themeToggleSwitch: null,
+    settingsToggle: null,
+    settingsPanel: null,
+    settingsClose: null,
+    
+    // Settings controls
+    downloadThreads: null,
+    downloadThreadsValue: null,
+    maxDuration: null,
+    maxDurationValue: null,
+    resetSettings: null,
+    
+    // Test controls
+    startTest: null,
+    cancelTest: null,
+    gaugeStartButton: null,
+    
+    // Gauge elements
+    gaugeCircle: null,
+    gaugeInner: null,
+    gaugeProgress: null,
+    gaugeValue: null,
+    gaugeUnit: null,
+    gaugePhase: null,
+    
+    // Results
+    resultsMatrix: null,
+    
+    // Server info
+    serverLocation: null,
+    serverLimits: null,
+    serverInfo: null,
+    
+    // Progress & Status
+    progressBar: null,
+    statusBar: null,
+    statusText: null,
+    
+    // History
+    historyList: null,
+    clearHistory: null,
+    exportHistory: null,
+    
+    // Accessibility
+    ariaLiveRegion: null
+};
+
 // ========================================
 // INITIALIZATION
 // ========================================
@@ -85,7 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    console.log('[App] Initializing SpeedCheck Pro...');
+    console.log('[App] Initializing SpeedCheck...');
+    
+    // Query all DOM elements once
+    queryDOMElements();
     
     // Load saved configuration
     loadConfiguration();
@@ -109,7 +162,59 @@ async function initializeApp() {
     initializeAccessibility();
     
     console.log('[App] Initialization complete');
-    announceToScreenReader('SpeedCheck Pro ready. Press the Start Test button to begin.');
+    announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
+}
+
+/**
+ * Query all necessary DOM elements once at initialization
+ * This improves performance by reducing repeated DOM queries
+ */
+function queryDOMElements() {
+    // Theme & Settings
+    DOM.themeToggleSwitch = document.getElementById('themeToggleSwitch');
+    DOM.settingsToggle = document.querySelector('.settings-toggle');
+    DOM.settingsPanel = document.getElementById('settingsPanel');
+    DOM.settingsClose = document.getElementById('settingsClose');
+    
+    // Settings controls
+    DOM.downloadThreads = document.getElementById('downloadThreads');
+    DOM.downloadThreadsValue = document.getElementById('downloadThreadsValue');
+    DOM.maxDuration = document.getElementById('maxDuration');
+    DOM.maxDurationValue = document.getElementById('maxDurationValue');
+    DOM.resetSettings = document.getElementById('resetSettings');
+    
+    // Test controls
+    DOM.startTest = document.getElementById('startTest');
+    DOM.cancelTest = document.getElementById('cancelTest');
+    DOM.gaugeStartButton = document.getElementById('gaugeStartButton');
+    
+    // Gauge elements
+    DOM.gaugeCircle = document.getElementById('gaugeCircle');
+    DOM.gaugeInner = document.getElementById('gaugeInner');
+    DOM.gaugeProgress = document.getElementById('gaugeProgress');
+    DOM.gaugeValue = document.getElementById('gaugeValue');
+    DOM.gaugeUnit = document.getElementById('gaugeUnit');
+    DOM.gaugePhase = document.getElementById('gaugePhase');
+    
+    // Results
+    DOM.resultsMatrix = document.getElementById('resultsMatrix');
+    
+    // Server info
+    DOM.serverLocation = document.getElementById('serverLocation');
+    DOM.serverLimits = document.getElementById('serverLimits');
+    DOM.serverInfo = document.getElementById('serverInfo');
+    
+    // Progress & Status
+    DOM.progressBar = document.querySelector('.progress-fill');
+    DOM.statusBar = document.getElementById('statusBar');
+    DOM.statusText = DOM.statusBar?.querySelector('.status-text');
+    
+    // History
+    DOM.historyList = document.getElementById('historyList');
+    DOM.clearHistory = document.getElementById('clearHistory');
+    DOM.exportHistory = document.getElementById('exportHistory');
+    
+    console.log('[DOM] All elements queried and cached');
 }
 
 // ========================================
@@ -144,41 +249,41 @@ function updateThemeIcon(theme) {
 // ========================================
 
 function toggleSettings() {
-    const panel = document.getElementById('settingsPanel');
-    const toggleBtn = document.querySelector('.settings-toggle');
-    const isOpen = panel.getAttribute('data-open') === 'true';
+    if (!DOM.settingsPanel || !DOM.settingsToggle) return;
+    
+    const isOpen = DOM.settingsPanel.getAttribute('data-open') === 'true';
     
     // Toggle data-open attribute for CSS transition
-    panel.setAttribute('data-open', !isOpen);
+    DOM.settingsPanel.setAttribute('data-open', !isOpen);
     
     // Update aria-expanded for accessibility
-    if (toggleBtn) {
-        toggleBtn.setAttribute('aria-expanded', !isOpen);
-    }
+    DOM.settingsToggle.setAttribute('aria-expanded', !isOpen);
     
     if (!isOpen) {
         // Opening: focus first input
         setTimeout(() => {
-            document.getElementById('downloadThreads')?.focus();
+            DOM.downloadThreads?.focus();
         }, 300);
         announceToScreenReader('Settings panel opened');
     } else {
         // Closing: return focus to toggle button
-        toggleBtn?.focus();
+        DOM.settingsToggle?.focus();
         announceToScreenReader('Settings panel closed');
     }
 }
 
 function updateSettingValue(id, value) {
-    const displayElement = document.getElementById(id + 'Value');
+    const displayElement = DOM[id + 'Value'];
     if (displayElement) {
         displayElement.textContent = value;
     }
 }
 
 function saveSettings() {
-    const threads = parseInt(document.getElementById('downloadThreads').value);
-    const maxDur = parseFloat(document.getElementById('maxDuration').value);
+    if (!DOM.downloadThreads || !DOM.maxDuration) return;
+    
+    const threads = parseInt(DOM.downloadThreads.value);
+    const maxDur = parseFloat(DOM.maxDuration.value);
     
     // Apply threads to both download and upload
     CONFIG.threads.download = threads;
@@ -205,8 +310,8 @@ function resetSettings() {
     CONFIG.duration.upload.default = 6;
     
     // Update UI
-    document.getElementById('downloadThreads').value = CONFIG.threads.download;
-    document.getElementById('maxDuration').value = CONFIG.duration.download.max;
+    if (DOM.downloadThreads) DOM.downloadThreads.value = CONFIG.threads.download;
+    if (DOM.maxDuration) DOM.maxDuration.value = CONFIG.duration.download.max;
     
     updateSettingValue('downloadThreads', CONFIG.threads.download);
     updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
@@ -225,15 +330,12 @@ function loadConfiguration() {
         }
         
         // Populate UI if elements exist
-        const downloadThreadsEl = document.getElementById('downloadThreads');
-        const maxDurationEl = document.getElementById('maxDuration');
-        
-        if (downloadThreadsEl) {
-            downloadThreadsEl.value = CONFIG.threads.download;
+        if (DOM.downloadThreads) {
+            DOM.downloadThreads.value = CONFIG.threads.download;
             updateSettingValue('downloadThreads', CONFIG.threads.download);
         }
-        if (maxDurationEl) {
-            maxDurationEl.value = CONFIG.duration.download.max;
+        if (DOM.maxDuration) {
+            DOM.maxDuration.value = CONFIG.duration.download.max;
             updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
         }
     } catch (error) {
@@ -247,34 +349,37 @@ function loadConfiguration() {
 
 function initializeEventListeners() {
     // Theme toggle (now in settings panel)
-    document.getElementById('themeToggleSwitch')?.addEventListener('click', toggleTheme);
+    DOM.themeToggleSwitch?.addEventListener('click', toggleTheme);
     
     // Settings panel
-    document.querySelector('.settings-toggle')?.addEventListener('click', toggleSettings);
-    document.getElementById('settingsClose')?.addEventListener('click', toggleSettings);
+    DOM.settingsToggle?.addEventListener('click', toggleSettings);
+    DOM.settingsClose?.addEventListener('click', toggleSettings);
     
     // Settings controls (simplified to just 2 controls)
-    ['downloadThreads', 'maxDuration'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.addEventListener('input', (e) => {
-                const value = e.target.value;
-                updateSettingValue(id, id === 'maxDuration' ? value + 's' : value);
-            });
-            input.addEventListener('change', saveSettings);
-        }
-    });
+    if (DOM.downloadThreads) {
+        DOM.downloadThreads.addEventListener('input', (e) => {
+            updateSettingValue('downloadThreads', e.target.value);
+        });
+        DOM.downloadThreads.addEventListener('change', saveSettings);
+    }
     
-    document.getElementById('resetSettings')?.addEventListener('click', resetSettings);
+    if (DOM.maxDuration) {
+        DOM.maxDuration.addEventListener('input', (e) => {
+            updateSettingValue('maxDuration', e.target.value + 's');
+        });
+        DOM.maxDuration.addEventListener('change', saveSettings);
+    }
+    
+    DOM.resetSettings?.addEventListener('click', resetSettings);
     
     // Test controls
-    document.getElementById('startTest')?.addEventListener('click', startTest);
-    document.getElementById('cancelTest')?.addEventListener('click', cancelTest);
-    document.getElementById('gaugeStartButton')?.addEventListener('click', startTest);
+    DOM.startTest?.addEventListener('click', startTest);
+    DOM.cancelTest?.addEventListener('click', cancelTest);
+    DOM.gaugeStartButton?.addEventListener('click', startTest);
     
     // History actions
-    document.getElementById('clearHistory')?.addEventListener('click', clearHistory);
-    document.getElementById('exportHistory')?.addEventListener('click', exportHistory);
+    DOM.clearHistory?.addEventListener('click', clearHistory);
+    DOM.exportHistory?.addEventListener('click', exportHistory);
     
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -323,18 +428,14 @@ async function fetchServerInfo() {
         STATE.serverInfo = await response.json();
         
         // Update UI
-        const locationEl = document.getElementById('serverLocation');
-        const limitsEl = document.getElementById('serverLimits');
-        const infoContainer = document.getElementById('serverInfo');
-        
-        if (locationEl) {
-            locationEl.textContent = STATE.serverInfo.serverLocation || 'Unknown';
+        if (DOM.serverLocation) {
+            DOM.serverLocation.textContent = STATE.serverInfo.serverLocation || 'Unknown';
         }
-        if (limitsEl && STATE.serverInfo.maxDownloadSize) {
-            limitsEl.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;
+        if (DOM.serverLimits && STATE.serverInfo.maxDownloadSize) {
+            DOM.serverLimits.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;
         }
-        if (infoContainer) {
-            infoContainer.hidden = false;
+        if (DOM.serverInfo) {
+            DOM.serverInfo.hidden = false;
         }
         
         console.log('[Server] Info fetched:', STATE.serverInfo);
@@ -369,12 +470,10 @@ async function startTest() {
     showGauge();
     
     // Update UI
-    const startBtn = document.getElementById('startTest');
-    const cancelBtn = document.getElementById('cancelTest');
-    if (startBtn) startBtn.disabled = true;
-    if (cancelBtn) {
-        cancelBtn.disabled = false;
-        cancelBtn.hidden = false;
+    if (DOM.startTest) DOM.startTest.disabled = true;
+    if (DOM.cancelTest) {
+        DOM.cancelTest.disabled = false;
+        DOM.cancelTest.hidden = false;
     }
     clearResultsDisplay();
     setProgress(0);
@@ -402,12 +501,10 @@ async function startTest() {
         announceToScreenReader(`Test failed: ${error.message}`);
     } finally {
         STATE.testing = false;
-        const startBtn = document.getElementById('startTest');
-        const cancelBtn = document.getElementById('cancelTest');
-        if (startBtn) startBtn.disabled = false;
-        if (cancelBtn) {
-            cancelBtn.disabled = true;
-            cancelBtn.hidden = true;
+        if (DOM.startTest) DOM.startTest.disabled = false;
+        if (DOM.cancelTest) {
+            DOM.cancelTest.disabled = true;
+            DOM.cancelTest.hidden = true;
         }
         resetGauge();
     }
@@ -906,26 +1003,20 @@ function buildMainGauge() {
 
 function showGauge() {
     // Hide start button
-    const startButton = document.getElementById('gaugeStartButton');
-    if (startButton) startButton.hidden = true;
+    if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = true;
     
     // Show gauge circle and inner content
-    const gaugeCircle = document.getElementById('gaugeCircle');
-    const gaugeInner = document.getElementById('gaugeInner');
-    if (gaugeCircle) gaugeCircle.hidden = false;
-    if (gaugeInner) gaugeInner.hidden = false;
+    if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
+    if (DOM.gaugeInner) DOM.gaugeInner.hidden = false;
 }
 
 function hideGauge() {
     // Show start button
-    const startButton = document.getElementById('gaugeStartButton');
-    if (startButton) startButton.hidden = false;
+    if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = false;
     
     // Hide gauge circle and inner content
-    const gaugeCircle = document.getElementById('gaugeCircle');
-    const gaugeInner = document.getElementById('gaugeInner');
-    if (gaugeCircle) gaugeCircle.hidden = true;
-    if (gaugeInner) gaugeInner.hidden = true;
+    if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = true;
+    if (DOM.gaugeInner) DOM.gaugeInner.hidden = true;
 }
 
 function updateGauge(speed, phase) {
@@ -935,15 +1026,11 @@ function updateGauge(speed, phase) {
     if (STATE.rafId) return;
     
     STATE.rafId = requestAnimationFrame(() => {
-        const value = document.getElementById('gaugeValue');
-        const phaseLabel = document.getElementById('gaugePhase');
-        const progressRing = document.getElementById('gaugeProgress');
-        
-        if (value) value.textContent = speed.toFixed(1);
-        if (phaseLabel) {
+        if (DOM.gaugeValue) DOM.gaugeValue.textContent = speed.toFixed(1);
+        if (DOM.gaugePhase) {
             // Format phase name for display
             const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
-            phaseLabel.textContent = `Testing ${phaseName}`;
+            DOM.gaugePhase.textContent = `Testing ${phaseName}`;
         }
         
         // Update corresponding matrix card with live value
@@ -953,12 +1040,12 @@ function updateGauge(speed, phase) {
         const maxSpeed = calculateMaxScale(speed);
         
         // Update CSS circular progress (inverted U orientation)
-        if (progressRing) {
+        if (DOM.gaugeProgress) {
             const percentage = Math.min(speed / maxSpeed, 1);
             const degrees = percentage * 270; // 270° arc
             
             // Update conic-gradient to show progress (from -135deg for inverted U)
-            progressRing.style.background = `conic-gradient(
+            DOM.gaugeProgress.style.background = `conic-gradient(
                 from -135deg,
                 transparent 0deg,
                 #3b82f6 0deg,
@@ -966,7 +1053,7 @@ function updateGauge(speed, phase) {
                 #ec4899 ${degrees}deg,
                 transparent ${degrees}deg
             )`;
-            progressRing.style.opacity = '1';
+            DOM.gaugeProgress.style.opacity = '1';
         }
         
         STATE.rafId = null;
@@ -998,17 +1085,13 @@ function calculateMaxScale(currentSpeed) {
 }
 
 function resetGauge() {
-    const value = document.getElementById('gaugeValue');
-    const phaseLabel = document.getElementById('gaugePhase');
-    const progressRing = document.getElementById('gaugeProgress');
-    
-    if (value) value.textContent = '0';
-    if (phaseLabel) phaseLabel.textContent = 'Ready';
+    if (DOM.gaugeValue) DOM.gaugeValue.textContent = '0';
+    if (DOM.gaugePhase) DOM.gaugePhase.textContent = 'Ready';
     
     // Reset CSS progress
-    if (progressRing) {
-        progressRing.style.opacity = '0';
-        progressRing.style.background = '';
+    if (DOM.gaugeProgress) {
+        DOM.gaugeProgress.style.opacity = '0';
+        DOM.gaugeProgress.style.background = '';
     }
     
     // Reset max scale
@@ -1184,25 +1267,22 @@ function getJitterQuality(jitter) {
 }
 
 function setProgress(percent) {
-    const progressBar = document.querySelector('.progress-fill');
-    if (progressBar) {
-        progressBar.style.width = `${percent}%`;
+    if (DOM.progressBar) {
+        DOM.progressBar.style.width = `${percent}%`;
     }
 }
 
 function showStatus(message, type = 'info') {
-    const statusBar = document.getElementById('statusBar');
-    if (!statusBar) return;
+    if (!DOM.statusBar) return;
     
-    statusBar.setAttribute('data-type', type);
-    statusBar.hidden = false;
+    DOM.statusBar.setAttribute('data-type', type);
+    DOM.statusBar.hidden = false;
     
-    const statusText = statusBar.querySelector('.status-text');
-    if (statusText) statusText.textContent = message;
+    if (DOM.statusText) DOM.statusText.textContent = message;
     
     // Auto-hide after 5 seconds
     setTimeout(() => {
-        statusBar.hidden = true;
+        if (DOM.statusBar) DOM.statusBar.hidden = true;
     }, 5000);
 }
 
@@ -1235,15 +1315,14 @@ function loadHistory() {
 }
 
 function updateHistoryUI() {
-    const container = document.getElementById('historyList');
-    if (!container) return;
+    if (!DOM.historyList) return;
     
     if (STATE.history.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:var(--color-text-tertiary);padding:2rem;">No test history yet</div>';
+        DOM.historyList.innerHTML = '<div style="text-align:center;color:var(--color-text-tertiary);padding:2rem;">No test history yet</div>';
         return;
     }
     
-    container.innerHTML = STATE.history.slice(0, 10).map(result => {
+    DOM.historyList.innerHTML = STATE.history.slice(0, 10).map(result => {
         const date = new Date(result.timestamp);
         const timeStr = date.toLocaleString();
         
@@ -1301,13 +1380,13 @@ function exportHistory() {
 
 function initializeAccessibility() {
     // Create live region for announcements
-    const liveRegion = document.createElement('div');
-    liveRegion.id = 'ariaLiveRegion';
-    liveRegion.className = 'sr-only';
-    liveRegion.setAttribute('role', 'status');
-    liveRegion.setAttribute('aria-live', 'polite');
-    liveRegion.setAttribute('aria-atomic', 'true');
-    document.body.appendChild(liveRegion);
+    DOM.ariaLiveRegion = document.createElement('div');
+    DOM.ariaLiveRegion.id = 'ariaLiveRegion';
+    DOM.ariaLiveRegion.className = 'sr-only';
+    DOM.ariaLiveRegion.setAttribute('role', 'status');
+    DOM.ariaLiveRegion.setAttribute('aria-live', 'polite');
+    DOM.ariaLiveRegion.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(DOM.ariaLiveRegion);
     
     // Add ARIA labels to gauge
     if (STATE.gaugeElement) {
@@ -1317,12 +1396,11 @@ function initializeAccessibility() {
 }
 
 function announceToScreenReader(message) {
-    const liveRegion = document.getElementById('ariaLiveRegion');
-    if (liveRegion) {
+    if (DOM.ariaLiveRegion) {
         // Clear and set to ensure announcement
-        liveRegion.textContent = '';
+        DOM.ariaLiveRegion.textContent = '';
         setTimeout(() => {
-            liveRegion.textContent = message;
+            if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
         }, 100);
     }
 }
