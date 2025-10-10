@@ -2,10 +2,10 @@
 
 > Test your connection speed to Europe
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://internet-speed-test-production-f59e.up.railway.app/)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
 
-**[🚀 Try it live](https://internet-speed-test-production-f59e.up.railway.app/)**
+**[🚀 Try it live](https://speed-test.up.railway.app/)**
 
 ---
 
@@ -112,7 +112,7 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 
 This application is deployed on **Railway** with automatic deployments from the main branch. The server location is **fixed to Amsterdam, Netherlands** to ensure consistent testing conditions across all users.
 
-**Live URL:** https://internet-speed-test-production-f59e.up.railway.app/
+**Live URL:** https://speed-test.up.railway.app/
 
 ### Environment Variables
 
@@ -160,7 +160,7 @@ cd ../frontend
 npx http-server -p 8080
 ```
 
-**Important:** Test against the [live deployed version](https://internet-speed-test-production-f59e.up.railway.app/) rather than localhost for meaningful measurements.
+**Important:** Test against the [live deployed version](https://speed-test.up.railway.app/) rather than localhost for meaningful measurements.
 
 ---
 
