@@ -35,7 +35,7 @@
         </header>
 
         <!-- Settings Panel -->
-        <div class="settings-panel" id="settingsPanel" role="dialog" aria-labelledby="settingsTitle" hidden>
+        <div class="settings-panel" id="settingsPanel" role="dialog" aria-labelledby="settingsTitle" data-open="false">
             <div class="settings-content">
                 <div class="settings-header">
                     <h2 id="settingsTitle">Test Configuration</h2>
@@ -173,12 +173,8 @@
                 </div>
             </div>
 
-            <!-- Test Controls -->
+            <!-- Test Controls (Cancel only, Start is on gauge) -->
             <div class="controls">
-                <button class="btn-primary btn-test" id="startTest" aria-describedby="statusText">
-                    <i data-lucide="play" class="btn-icon"></i>
-                    <span class="btn-text">Start Test</span>
-                </button>
                 <button class="btn-secondary btn-cancel" id="cancelTest" hidden>
                     <i data-lucide="x-circle" class="btn-icon"></i>
                     <span class="btn-text">Cancel</span>
@@ -191,7 +187,7 @@
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 <div class="progress-phases">
-                    <div class="phase" data-phase="ping">
+                    <div class="phase" data-phase="latency">
                         <div class="phase-dot"></div>
                         <span class="phase-label">Latency</span>
                     </div>
@@ -235,6 +231,9 @@
             </div>
         </footer>
     </div>
+
+    <!-- Accessibility: Screen reader announcements -->
+    <div id="ariaLiveRegion" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     <script src="script.js"></script>
 </body>

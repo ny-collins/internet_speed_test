@@ -275,6 +275,7 @@ body {
     background: var(--color-bg-secondary);
     outline: none;
     -webkit-appearance: none;
+    appearance: none;
 }
 
 .setting-group input[type="range"]::-webkit-slider-thumb {
@@ -433,6 +434,21 @@ body {
         var(--color-border) 270deg,
         transparent 270deg
     );
+    /* Same mask as progress to create ring shape */
+    mask: radial-gradient(
+        circle,
+        transparent 0%,
+        transparent 55%,
+        black 55%,
+        black 100%
+    );
+    -webkit-mask: radial-gradient(
+        circle,
+        transparent 0%,
+        transparent 55%,
+        black 55%,
+        black 100%
+    );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -575,9 +591,26 @@ body {
     border-color: var(--color-primary);
     background: linear-gradient(135deg, 
         var(--color-bg-elevated), 
-        rgba(59, 130, 246, 0.05)
+        rgba(59, 130, 246, 0.1)
     );
-    box-shadow: 0 0 0 3px var(--color-primary-glow);
+    box-shadow: 0 0 0 3px var(--color-primary-glow),
+                0 0 20px rgba(59, 130, 246, 0.3),
+                0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 0 3px var(--color-primary-glow),
+                    0 0 20px rgba(59, 130, 246, 0.3),
+                    0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    50% {
+        box-shadow: 0 0 0 3px var(--color-primary-glow),
+                    0 0 30px rgba(59, 130, 246, 0.5),
+                    0 4px 12px rgba(0, 0, 0, 0.15);
+    }
 }
 
 .matrix-icon {
