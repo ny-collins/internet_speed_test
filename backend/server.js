@@ -16,16 +16,17 @@ const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '120', 10); // req
 const ENABLE_RATE_LIMIT = (process.env.ENABLE_RATE_LIMIT || 'true').toLowerCase() === 'true';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
-// Middleware
-// Helmet for security headers (API-only, no CSP needed)
+// ========================================
+// MIDDLEWARE
+// ========================================
+
 app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP for API responses
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// Logging
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-// Support comma-separated list of allowed origins
+
 const allowedOrigins = CORS_ORIGIN === '*' ? '*' : new Set(CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean));
 app.use(cors({
   origin: (origin, callback) => {
@@ -33,17 +34,17 @@ app.use(cors({
     if (allowedOrigins === '*' || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
-  credentials: false, // No cookies needed for speed test
-  exposedHeaders: ['Content-Length', 'Content-Type'] // Expose headers for streaming
+  credentials: false,
+  exposedHeaders: ['Content-Length', 'Content-Type']
 }));
-// Selective compression: skip for /api/download to avoid skew in speed measurement
+
 app.use(compression({
   filter: (req, res) => {
     if (req.path.startsWith('/api/download')) return false;
     return compression.filter(req, res);
   }
 }));
-// Optional rate limiting (skip heavy throughput endpoints to avoid interfering with speed test)
+
 if (ENABLE_RATE_LIMIT) {
   const standardLimiter = rateLimit({
     windowMs: RATE_LIMIT_WINDOW_MS,
@@ -54,14 +55,11 @@ if (ENABLE_RATE_LIMIT) {
   app.use(['/api/ping', '/api/ping-batch', '/api/info', '/api/test'], standardLimiter);
 }
 app.use(express.json());
-// Removed global express.raw to allow streaming measurement of upload speed without buffering entire body first.
 
-// (Removed unused pingStore to reduce memory footprint)
+// ========================================
+// API ENDPOINTS
+// ========================================
 
-/**
- * Ping endpoint - measures latency
- * Returns minimal data for accurate RTT measurement
- */
 app.get('/api/ping', (req, res) => {
   const timestamp = Date.now();
   res.json({ 
@@ -70,12 +68,7 @@ app.get('/api/ping', (req, res) => {
   });
 });
 
-/**
- * Download endpoint - provides data for download speed testing
- * Generates random data of specified size
- */
 app.get('/api/download', (req, res) => {
-  // Default to 5MB, allow customization via query param
   let sizeInMB = parseInt(req.query.size, 10) || 5;
   if (sizeInMB < 1) sizeInMB = 1;
   if (sizeInMB > MAX_DOWNLOAD_SIZE_MB) sizeInMB = MAX_DOWNLOAD_SIZE_MB; // clamp
@@ -120,10 +113,6 @@ app.get('/api/download', (req, res) => {
   sendChunk();
 });
 
-/**
- * Upload endpoint - receives data for upload speed testing
- * Measures time to receive data from client
- */
 app.post('/api/upload', (req, res) => {
   const startTime = Date.now();
   let receivedBytes = 0;
@@ -162,10 +151,6 @@ app.post('/api/upload', (req, res) => {
   });
 });
 
-/**
- * Multi-ping endpoint for jitter calculation
- * Allows batch ping measurements for statistical analysis
- */
 app.post('/api/ping-batch', (req, res) => {
   let { count = 10 } = req.body || {};
   count = parseInt(count, 10);
@@ -178,24 +163,17 @@ app.post('/api/ping-batch', (req, res) => {
   res.json({ measurements, serverTime: Date.now(), count });
 });
 
-/**
- * Server info endpoint
- * Provides server location and capabilities
- */
 app.get('/api/info', (req, res) => {
   res.json({
     serverLocation: process.env.SERVER_LOCATION || 'Unknown',
-    maxDownloadSize: MAX_DOWNLOAD_SIZE_MB, // MB
-    maxUploadSize: MAX_UPLOAD_SIZE_MB, // MB (advisory)
+    maxDownloadSize: MAX_DOWNLOAD_SIZE_MB,
+    maxUploadSize: MAX_UPLOAD_SIZE_MB,
     supportedTests: ['ping', 'download', 'upload', 'jitter'],
     version: '1.0.3',
     rateLimit: ENABLE_RATE_LIMIT ? { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX } : null
   });
 });
 
-/**
- * Health check endpoint
- */
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy',
@@ -204,9 +182,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-/**
- * Simple endpoint to test connection
- */
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'Connection successful',
@@ -215,7 +190,10 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Error handling middleware
+// ========================================
+// ERROR HANDLERS
+// ========================================
+
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({ 
@@ -224,12 +202,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Start server
+// ========================================
+// SERVER START
+// ========================================
+
 let server;
 if (require.main === module) {
   server = app.listen(PORT, () => {
@@ -241,7 +221,6 @@ if (require.main === module) {
   });
 }
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
   if (!server) return process.exit(0);
   console.log('SIGTERM received, closing server...');

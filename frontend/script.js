@@ -1,20 +1,3 @@
-/**
- * ===========================================
- * SPEEDCHECK - ENHANCED CLIENT
- * ===========================================
- * 
- * Features:
- * - Multi-threaded download & upload with parallel streaming
- * - Adaptive duration with stability detection
- * - Real-time animated Google Fiber-style gauge
- * - Cancel functionality for all operations
- * - Configuration UI with localStorage persistence
- * - Comprehensive error handling with retry logic
- * - Full accessibility support (ARIA, keyboard nav)
- * - Performance optimizations (RAF throttling, debouncing)
- * - Test history with visualization and export
- */
-
 // ========================================
 // CONFIGURATION & STATE
 // ========================================
@@ -165,10 +148,6 @@ async function initializeApp() {
     announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
 }
 
-/**
- * Query all necessary DOM elements once at initialization
- * This improves performance by reducing repeated DOM queries
- */
 function queryDOMElements() {
     // Theme & Settings
     DOM.themeToggleSwitch = document.getElementById('themeToggleSwitch');
@@ -576,10 +555,6 @@ function completeTest() {
 // LATENCY MEASUREMENT
 // ========================================
 
-/**
- * Measures latency (ping) to server using multiple samples
- * Returns: { average, min, max, samples }
- */
 async function measureLatency() {
     const sampleCount = 10;
     const samples = [];
@@ -659,10 +634,6 @@ function calculateJitter(samples) {
 // DOWNLOAD MEASUREMENT
 // ========================================
 
-/**
- * Measures download speed using multi-threaded parallel streaming
- * Returns: { speed, bytesTransferred, duration, stability }
- */
 async function measureDownload() {
     const threadCount = CONFIG.threads.download;
     const maxDuration = CONFIG.duration.download.max * 1000;
@@ -758,9 +729,6 @@ async function measureDownload() {
     };
 }
 
-/**
- * Individual download thread - streams data and counts bytes
- */
 async function downloadThread(threadId, isRunning, byteCounter) {
     const abortController = new AbortController();
     STATE.abortControllers.push(abortController);
@@ -811,10 +779,6 @@ async function downloadThread(threadId, isRunning, byteCounter) {
 // UPLOAD MEASUREMENT
 // ========================================
 
-/**
- * Measures upload speed using multi-threaded parallel uploads
- * Returns: { speed, bytesTransferred, duration, stability }
- */
 async function measureUpload() {
     const threadCount = CONFIG.threads.upload;
     const maxDuration = CONFIG.duration.upload.max * 1000;
@@ -907,9 +871,6 @@ async function measureUpload() {
     };
 }
 
-/**
- * Individual upload thread - sends data using XHR for progress tracking
- */
 async function uploadThread(threadId, isRunning, byteCounter) {
     const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
     
@@ -976,9 +937,6 @@ async function uploadThread(threadId, isRunning, byteCounter) {
 // STABILITY DETECTION
 // ========================================
 
-/**
- * Checks if recent speed samples are stable (low variance)
- */
 function isSpeedStable(samples) {
     if (samples.length < CONFIG.stability.sampleCount) return false;
     
@@ -1016,54 +974,39 @@ function calculateStability(samples) {
 // ========================================
 
 function buildMainGauge() {
-    // Pure CSS gauge - no build needed
     console.log('[Gauge] Using CSS-based circular progress gauge');
 }
 
 function showGauge() {
-    // Hide start button
     if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = true;
-    
-    // Show gauge circle and inner content
     if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
     if (DOM.gaugeInner) DOM.gaugeInner.hidden = false;
 }
 
 function hideGauge() {
-    // Show start button
     if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = false;
-    
-    // Hide gauge circle and inner content
     if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = true;
     if (DOM.gaugeInner) DOM.gaugeInner.hidden = true;
 }
 
 function updateGauge(speed, phase) {
     if (STATE.cancelling) return;
-    
-    // Throttle using RAF
     if (STATE.rafId) return;
     
     STATE.rafId = requestAnimationFrame(() => {
         if (DOM.gaugeValue) DOM.gaugeValue.textContent = speed.toFixed(1);
         if (DOM.gaugePhase) {
-            // Format phase name for display
             const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
             DOM.gaugePhase.textContent = `Testing ${phaseName}`;
         }
         
-        // Update corresponding matrix card with live value
         updateMatrixCardLive(phase, speed);
-        
-        // Calculate max scale dynamically
         const maxSpeed = calculateMaxScale(speed);
         
-        // Update CSS circular progress (inverted U orientation)
         if (DOM.gaugeProgress) {
             const percentage = Math.min(speed / maxSpeed, 1);
-            const degrees = percentage * 270; // 270° arc
+            const degrees = percentage * 270;
             
-            // Update conic-gradient to show progress (from -135deg for inverted U)
             DOM.gaugeProgress.style.background = `conic-gradient(
                 from -135deg,
                 transparent 0deg,
@@ -1090,7 +1033,6 @@ function updateMatrixCardLive(phase, speed) {
 }
 
 function calculateMaxScale(currentSpeed) {
-    // Dynamic scaling similar to Google Fiber
     if (currentSpeed <= 10) return 10;
     if (currentSpeed <= 25) return 25;
     if (currentSpeed <= 50) return 50;
@@ -1098,8 +1040,6 @@ function calculateMaxScale(currentSpeed) {
     if (currentSpeed <= 250) return 250;
     if (currentSpeed <= 500) return 500;
     if (currentSpeed <= 1000) return 1000;
-    
-    // Round up to next 100
     return Math.ceil(currentSpeed / 100) * 100;
 }
 
@@ -1107,16 +1047,12 @@ function resetGauge() {
     if (DOM.gaugeValue) DOM.gaugeValue.textContent = '0';
     if (DOM.gaugePhase) DOM.gaugePhase.textContent = 'Ready';
     
-    // Reset CSS progress
     if (DOM.gaugeProgress) {
         DOM.gaugeProgress.style.opacity = '0';
         DOM.gaugeProgress.style.background = '';
     }
     
-    // Reset max scale
     STATE.lastMaxScale = 100;
-    
-    // Hide gauge and show start button
     hideGauge();
 }
 
@@ -1164,7 +1100,6 @@ function updatePhaseUI(phase, status) {
     }
 }
 
-// Animate border progress smoothly in real-time
 function animateBorderProgress(element, durationMs) {
     const startTime = performance.now();
     
@@ -1184,19 +1119,14 @@ function animateBorderProgress(element, durationMs) {
 }
 
 function resetAllPhases() {
-    // Reset all matrix cards to not-started
     document.querySelectorAll('.matrix-card[data-metric]').forEach(el => {
         el.setAttribute('data-status', 'not-started');
     });
 }
 
 function updateResultCard(type, result) {
-    // Update both matrix card and detailed result card (if exists)
     const matrixCard = document.querySelector(`.matrix-card[data-metric="${type}"]`);
     const resultCard = document.querySelector(`.result-card[data-metric="${type}"]`);
-    
-    // Note: Active state is managed by updatePhaseUI during test
-    // This function just updates the values
     
     switch (type) {
         case 'download':
@@ -1287,14 +1217,12 @@ function updateResultCard(type, result) {
 }
 
 function clearResultsDisplay() {
-    // Clear matrix cards
     document.querySelectorAll('.matrix-card').forEach(card => {
         card.setAttribute('data-status', '');
         const matrixNumber = card.querySelector('.matrix-number');
         if (matrixNumber) matrixNumber.textContent = '—';
     });
     
-    // Clear detailed result cards if they exist
     document.querySelectorAll('.result-card').forEach(card => {
         card.setAttribute('data-status', '');
         const valueEl = card.querySelector('.metric-value');
@@ -1362,12 +1290,9 @@ function showStatus(message, type = 'info') {
 
 function saveToHistory(result) {
     STATE.history.unshift(result);
-    
-    // Keep only last 50 results
     if (STATE.history.length > 50) {
         STATE.history = STATE.history.slice(0, 50);
     }
-    
     localStorage.setItem('speedtest_history', JSON.stringify(STATE.history));
     updateHistoryUI();
 }
@@ -1449,7 +1374,6 @@ function exportHistory() {
 // ========================================
 
 function initializeAccessibility() {
-    // Create live region for announcements
     DOM.ariaLiveRegion = document.createElement('div');
     DOM.ariaLiveRegion.id = 'ariaLiveRegion';
     DOM.ariaLiveRegion.className = 'sr-only';
@@ -1458,7 +1382,6 @@ function initializeAccessibility() {
     DOM.ariaLiveRegion.setAttribute('aria-atomic', 'true');
     document.body.appendChild(DOM.ariaLiveRegion);
     
-    // Add ARIA labels to gauge
     if (STATE.gaugeElement) {
         STATE.gaugeElement.setAttribute('role', 'img');
         STATE.gaugeElement.setAttribute('aria-label', 'Speed gauge showing current test speed');
@@ -1467,7 +1390,6 @@ function initializeAccessibility() {
 
 function announceToScreenReader(message) {
     if (DOM.ariaLiveRegion) {
-        // Clear and set to ensure announcement
         DOM.ariaLiveRegion.textContent = '';
         setTimeout(() => {
             if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
@@ -1485,15 +1407,12 @@ function sleep(ms) {
 
 function formatBytes(bytes) {
     if (bytes === 0) return '0 B';
-    
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Initialize Lucide icons when DOM is ready
 if (typeof lucide !== 'undefined') {
     lucide.createIcons();
 }

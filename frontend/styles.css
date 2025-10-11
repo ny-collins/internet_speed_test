@@ -1,7 +1,3 @@
-/* ========================================
-   SPEEDCHECK - MODERN CSS
-   ======================================== */
-
 /* ===== Box Sizing Reset ===== */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -9,7 +5,6 @@
 
 /* ===== CSS Variables ===== */
 :root {
-    /* Colors - Light Theme */
     --color-bg-primary: #ffffff;
     --color-bg-secondary: #f8f9fa;
     --color-bg-elevated: #ffffff;
@@ -404,16 +399,14 @@ body {
     height: 20px;
 }
 
-/* Dark mode = sun icon shown (to switch back to light) = orange/yellow sun */
 [data-theme="dark"] .theme-toggle-inline .theme-icon {
-    color: #fbbf24; /* Bright warm yellow/orange for sun */
+    color: #fbbf24;
     stroke: currentColor;
 }
 
-/* Light mode = moon icon shown (to switch to dark) = natural white/silver moon */
 [data-theme="light"] .theme-toggle-inline .theme-icon,
 :root:not([data-theme]) .theme-toggle-inline .theme-icon {
-    color: var(--color-text-secondary); /* Gray for subtle moon */
+    color: var(--color-text-secondary);
     stroke: currentColor;
 }
 
@@ -516,8 +509,7 @@ body {
     overflow: hidden;
 }
 
-/* Desktop: Gauge left, Matrix right */
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     .test-display {
         grid-template-columns: minmax(300px, 400px) 1fr;
         gap: var(--spacing-2xl);
@@ -539,13 +531,11 @@ body {
     aspect-ratio: 1 / 1;
 }
 
-/* Pure CSS Circular Progress Gauge */
 .gauge-circle {
     position: relative;
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    /* Background ring - inverted U shape (starts at bottom left, goes to bottom right) */
     background: conic-gradient(
         from -135deg,
         transparent 0deg,
@@ -553,7 +543,6 @@ body {
         var(--color-border) 270deg,
         transparent 270deg
     );
-    /* Same mask as progress to create ring shape */
     mask: radial-gradient(
         circle,
         transparent 0%,
@@ -578,7 +567,6 @@ body {
     inset: 0;
     border-radius: 50%;
     z-index: 1;
-    /* Progress gradient - same orientation as background */
     background: conic-gradient(
         from -135deg,
         transparent 0deg,
@@ -587,7 +575,6 @@ body {
         #ec4899 270deg,
         transparent 270deg
     );
-    /* Thicker ring - from 55% to 100% instead of 70% to 100% */
     mask: radial-gradient(
         circle,
         transparent 0%,
@@ -709,8 +696,6 @@ body {
     overflow: visible; /* Allow glow to show */
 }
 
-/* No hover effect - cards are not interactive */
-
 .matrix-card[data-status="complete"]::after {
     opacity: 0;
     transition: opacity 0.3s ease-out;
@@ -744,8 +729,6 @@ body {
 .matrix-card[data-status="measuring"]::before {
     opacity: 1;
 }
-
-/* Animation will be controlled via JavaScript for smooth real-time updates */
 
 .matrix-icon {
     flex-shrink: 0;
