@@ -761,11 +761,23 @@ async function downloadThread(threadId, isRunning) {
     
     try {
         const url = `${CONFIG.apiBase}/api/download?size=${CONFIG.downloadSize}&chunk=${CONFIG.chunkSize}&t=${Date.now()}`;
-        const response = await fetch(url, { signal: abortController.signal });
+        console.log(`[Download] Thread ${threadId} starting: ${url}`);
         
-        if (!response.ok) throw new Error(`Thread ${threadId} failed: ${response.status}`);
+        const response = await fetch(url, { 
+            signal: abortController.signal,
+            cache: 'no-store'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Thread ${threadId} failed: ${response.status} ${response.statusText}`);
+        }
+        
+        if (!response.body) {
+            throw new Error(`Thread ${threadId}: Response body is null`);
+        }
         
         const reader = response.body.getReader();
+        console.log(`[Download] Thread ${threadId} reader created, starting to read...`);
         
         while (isRunning()) {
             const { done, value } = await reader.read();
@@ -774,6 +786,7 @@ async function downloadThread(threadId, isRunning) {
             byteCounter.bytes += value.length;
         }
         
+        console.log(`[Download] Thread ${threadId} completed: ${byteCounter.bytes} bytes`);
         reader.cancel();
         
     } catch (error) {
@@ -781,6 +794,7 @@ async function downloadThread(threadId, isRunning) {
             console.log(`[Download] Thread ${threadId} aborted`);
         } else {
             console.error(`[Download] Thread ${threadId} error:`, error);
+            throw error; // Re-throw to help debug
         }
     }
     

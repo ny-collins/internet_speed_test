@@ -32,7 +32,9 @@ app.use(cors({
     if (!origin) return callback(null, true); // same-origin / curl
     if (allowedOrigins === '*' || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
-  }
+  },
+  credentials: false, // No cookies needed for speed test
+  exposedHeaders: ['Content-Length', 'Content-Type'] // Expose headers for streaming
 }));
 // Selective compression: skip for /api/download to avoid skew in speed measurement
 app.use(compression({
