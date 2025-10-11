@@ -17,7 +17,9 @@ const ENABLE_RATE_LIMIT = (process.env.ENABLE_RATE_LIMIT || 'true').toLowerCase(
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // Middleware
+// Helmet for security headers (API-only, no CSP needed)
 app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for API responses
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
