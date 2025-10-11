@@ -104,18 +104,20 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 
 ```
 internet_speed_test/
-├── frontend/              # Static web application
+├── frontend/              # Frontend web application
 │   ├── index.html        # Main speed test interface
 │   ├── learn.html        # Educational content page
 │   ├── 404.html          # Custom error page
 │   ├── script.js         # Speed test logic & UI management
 │   ├── styles.css        # Complete styling with theme support
+│   ├── server.js         # Express static server with 404 handling
+│   ├── package.json      # Frontend dependencies
 │   ├── favicon.svg       # Site icon (Lucide zap)
 │   ├── sitemap.xml       # SEO sitemap
 │   └── robots.txt        # Search engine directives
 └── backend/              # API server
     ├── server.js         # Express server with API endpoints
-    └── package.json      # Dependencies & scripts
+    └── package.json      # Backend dependencies & scripts
 ```
 
 ### Frontend Stack
@@ -169,12 +171,13 @@ internet_speed_test/
 
 This application uses a **split deployment** on Railway with two separate services:
 
-### Service 1: Frontend (Static Files)
+### Service 1: Frontend (Express Static Server)
 - **URL:** https://speed-test.up.railway.app/
-- **Type:** Static file serving
+- **Type:** Express.js static file server with 404 handling
 - **Port:** 8080
 - **Files:** HTML, CSS, JS, assets
 - **Purpose:** User interface and client-side logic
+- **Features:** Custom 404 error page, clean URL routing
 
 ### Service 2: Backend (API)
 - **URL:** https://speed-test-backend.up.railway.app/
@@ -193,11 +196,14 @@ Create two services in your Railway project:
 
 **Frontend Service:**
 ```bash
-# Build Command: (none - static files)
+# Build Command:
+cd frontend && npm install
+
 # Start Command:
-npx http-server frontend -p 8080 --cors
+cd frontend && npm start
 
 # Root Directory: /
+# Watch Paths: frontend/**
 ```
 
 **Backend Service:**
@@ -209,6 +215,7 @@ cd backend && npm install
 cd backend && npm start
 
 # Root Directory: /
+# Watch Paths: backend/**
 ```
 
 ### Environment Variables (Backend)
@@ -241,6 +248,10 @@ cd internet_speed_test
 # Install backend dependencies
 cd backend
 npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
 ```
 
 ### Running Locally
@@ -254,7 +265,7 @@ npm run dev  # Starts on http://localhost:3000
 **Frontend (Terminal 2):**
 ```bash
 cd frontend
-npx http-server -p 8080 --cors
+npm start  # Starts on http://localhost:8080
 # Access at http://localhost:8080
 ```
 

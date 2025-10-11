@@ -1,0 +1,11 @@
+{
+  "name": "speedcheck-frontend",
+  "version": "1.03.0",
+  "description": "Frontend static file server with 404 handling",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
