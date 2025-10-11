@@ -217,12 +217,14 @@ app.get('/api/test', (req, res) => {
 const frontendPath = path.join(__dirname, '..', 'frontend');
 app.use(express.static(frontendPath));
 
-// Send index.html for any non-API routes (SPA fallback)
-app.get('*', (req, res, next) => {
-  // Skip if it's an API route
+// SPA fallback - serve index.html for any non-API routes
+// This catches any unmatched routes (like /about, /dashboard, etc.)
+app.use((req, res, next) => {
+  // Skip if it's an API route - let it fall through to 404 handler
   if (req.path.startsWith('/api/')) {
     return next();
   }
+  // For all other routes, serve index.html (SPA support)
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
