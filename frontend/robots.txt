@@ -1,0 +1,11 @@
+# SpeedCheck - Robots.txt
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://speed-test.up.railway.app/sitemap.xml
+
+# Crawl-delay (be nice to the server)
+Crawl-delay: 1
