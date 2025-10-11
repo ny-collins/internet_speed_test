@@ -709,42 +709,11 @@ body {
     overflow: visible; /* Allow glow to show */
 }
 
-.matrix-card:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.matrix-card[data-status="active"],
-.matrix-card[data-status="measuring"] {
-    border-color: var(--color-primary);
-    background: linear-gradient(135deg, 
-        var(--color-bg-elevated), 
-        rgba(59, 130, 246, 0.1)
-    );
-    box-shadow: 0 0 0 3px var(--color-primary-glow),
-                0 0 20px rgba(59, 130, 246, 0.3),
-                0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: scale(1.02);
-    animation: pulse-glow 2s ease-in-out infinite;
-}
+/* No hover effect - cards are not interactive */
 
 .matrix-card[data-status="complete"]::before {
     opacity: 0;
     transition: opacity 0.5s ease-out;
-}
-
-@keyframes pulse-glow {
-    0%, 100% {
-        box-shadow: 0 0 0 3px var(--color-primary-glow),
-                    0 0 20px rgba(59, 130, 246, 0.3),
-                    0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    50% {
-        box-shadow: 0 0 0 3px var(--color-primary-glow),
-                    0 0 30px rgba(59, 130, 246, 0.5),
-                    0 4px 12px rgba(0, 0, 0, 0.15);
-    }
 }
 
 /* Progress border indicator for active measurements */
