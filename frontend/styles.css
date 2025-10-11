@@ -711,54 +711,109 @@ body {
 
 /* No hover effect - cards are not interactive */
 
-.matrix-card[data-status="complete"]::before {
+.matrix-card[data-status="complete"]::after {
     opacity: 0;
-    transition: opacity 0.5s ease-out;
+    transition: opacity 0.3s ease-out;
 }
 
-/* Progress border indicator for active measurements */
-.matrix-card::before {
+/* Snake-like progress border - colored line traveling around edges */
+.matrix-card::after {
     content: '';
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border-radius: var(--radius-xl);
-    padding: 2px;
+    width: 20px;
+    height: 3px;
     background: linear-gradient(90deg, 
-        var(--color-primary) 0%, 
-        var(--color-primary) var(--progress, 0%), 
-        transparent var(--progress, 0%)
+        transparent 0%, 
+        var(--color-primary) 20%, 
+        var(--color-primary) 80%, 
+        transparent 100%
     );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    opacity: 0;
+    border-radius: 2px;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    opacity: 0;
+    top: -1.5px;
+    left: 0;
+    box-shadow: 0 0 8px var(--color-primary);
 }
 
-.matrix-card[data-status="measuring"]::before {
+.matrix-card[data-status="measuring"]::after {
     opacity: 1;
-    animation: border-progress var(--test-duration, 10s) linear forwards;
+    animation: snake-travel var(--test-duration, 10s) linear forwards;
 }
 
-@keyframes border-progress {
+@keyframes snake-travel {
+    /* Start at top-left, move right along top edge */
     0% {
-        background: conic-gradient(
-            from 0deg at 50% 50%,
-            var(--color-primary) 0deg,
-            transparent 0deg
-        );
+        top: -1.5px;
+        left: 0;
+        width: 20px;
+        height: 3px;
+        transform: rotate(0deg);
     }
+    24% {
+        top: -1.5px;
+        left: calc(100% - 20px);
+        width: 20px;
+        height: 3px;
+        transform: rotate(0deg);
+    }
+    
+    /* Turn corner, move down along right edge */
+    25% {
+        top: 0;
+        left: calc(100% - 1.5px);
+        width: 3px;
+        height: 20px;
+        transform: rotate(0deg);
+    }
+    49% {
+        top: calc(100% - 20px);
+        left: calc(100% - 1.5px);
+        width: 3px;
+        height: 20px;
+        transform: rotate(0deg);
+    }
+    
+    /* Turn corner, move left along bottom edge */
+    50% {
+        top: calc(100% - 1.5px);
+        left: calc(100% - 20px);
+        width: 20px;
+        height: 3px;
+        transform: rotate(0deg);
+    }
+    74% {
+        top: calc(100% - 1.5px);
+        left: 0;
+        width: 20px;
+        height: 3px;
+        transform: rotate(0deg);
+    }
+    
+    /* Turn corner, move up along left edge */
+    75% {
+        top: calc(100% - 20px);
+        left: -1.5px;
+        width: 3px;
+        height: 20px;
+        transform: rotate(0deg);
+    }
+    99% {
+        top: 0;
+        left: -1.5px;
+        width: 3px;
+        height: 20px;
+        transform: rotate(0deg);
+    }
+    
+    /* Complete the loop */
     100% {
-        background: conic-gradient(
-            from 0deg at 50% 50%,
-            var(--color-primary) 360deg,
-            transparent 360deg
-        );
+        top: -1.5px;
+        left: 0;
+        width: 20px;
+        height: 3px;
+        transform: rotate(0deg);
+        opacity: 0;
     }
 }
 
