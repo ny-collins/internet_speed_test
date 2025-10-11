@@ -404,16 +404,16 @@ body {
     height: 20px;
 }
 
-/* Sun icon in light mode - warm orange/yellow for better visibility */
-[data-theme="light"] .theme-toggle-inline .theme-icon,
-:root:not([data-theme]) .theme-toggle-inline .theme-icon {
-    color: #f59e0b;
+/* Dark mode = sun icon shown (to switch back to light) = orange/yellow sun */
+[data-theme="dark"] .theme-toggle-inline .theme-icon {
+    color: #fbbf24; /* Bright warm yellow/orange for sun */
     stroke: currentColor;
 }
 
-/* Moon icon in dark mode - keep natural light color (not yellow) */
-[data-theme="dark"] .theme-toggle-inline .theme-icon {
-    color: var(--color-text-primary);
+/* Light mode = moon icon shown (to switch to dark) = natural white/silver moon */
+[data-theme="light"] .theme-toggle-inline .theme-icon,
+:root:not([data-theme]) .theme-toggle-inline .theme-icon {
+    color: var(--color-text-secondary); /* Gray for subtle moon */
     stroke: currentColor;
 }
 

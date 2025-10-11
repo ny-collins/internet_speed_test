@@ -675,13 +675,15 @@ async function measureDownload() {
     let lastSampleTime = startTime;
     let lastBytes = 0;
     
-    // Launch all download threads (non-blocking)
-    const threadPromises = Array.from({ length: threadCount }, (_, i) => 
-        downloadThread(i, () => isRunning)
-    );
+    // Create byte counters that threads will update
+    const byteCounters = [];
     
-    // Accumulate bytes from all threads
-    const byteCounters = await Promise.all(threadPromises.map(p => p.then(counter => counter)));
+    // Launch all download threads (non-blocking)
+    const threadPromises = Array.from({ length: threadCount }, (_, i) => {
+        const counter = { bytes: 0 };
+        byteCounters.push(counter);
+        return downloadThread(i, () => isRunning, counter);
+    });
     
     // Monitor loop - runs concurrently with threads
     const monitorLoop = async () => {
@@ -754,8 +756,7 @@ async function measureDownload() {
 /**
  * Individual download thread - streams data and counts bytes
  */
-async function downloadThread(threadId, isRunning) {
-    const byteCounter = { bytes: 0 };
+async function downloadThread(threadId, isRunning, byteCounter) {
     const abortController = new AbortController();
     STATE.abortControllers.push(abortController);
     
@@ -826,13 +827,15 @@ async function measureUpload() {
     let lastSampleTime = startTime;
     let lastBytes = 0;
     
-    // Launch all upload threads
-    const threadPromises = Array.from({ length: threadCount }, (_, i) => 
-        uploadThread(i, () => isRunning)
-    );
+    // Create byte counters that threads will update
+    const byteCounters = [];
     
-    // Get byte counters
-    const byteCounters = await Promise.all(threadPromises.map(p => p.then(counter => counter)));
+    // Launch all upload threads
+    const threadPromises = Array.from({ length: threadCount }, (_, i) => {
+        const counter = { bytes: 0 };
+        byteCounters.push(counter);
+        return uploadThread(i, () => isRunning, counter);
+    });
     
     // Monitor loop
     const monitorLoop = async () => {
@@ -902,8 +905,7 @@ async function measureUpload() {
 /**
  * Individual upload thread - sends data using XHR for progress tracking
  */
-async function uploadThread(threadId, isRunning) {
-    const byteCounter = { bytes: 0 };
+async function uploadThread(threadId, isRunning, byteCounter) {
     const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
     
     // Generate random data in chunks (crypto.getRandomValues has 65KB limit)
