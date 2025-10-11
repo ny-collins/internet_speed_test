@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
+const path = require('path');
 
 const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 3000;
@@ -209,6 +210,20 @@ app.get('/api/test', (req, res) => {
     clientIp: req.ip,
     timestamp: Date.now()
   });
+});
+
+// Serve static files from frontend directory (for production)
+// This must come AFTER all API routes to avoid conflicts
+const frontendPath = path.join(__dirname, '..', 'frontend');
+app.use(express.static(frontendPath));
+
+// Send index.html for any non-API routes (SPA fallback)
+app.get('*', (req, res, next) => {
+  // Skip if it's an API route
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Error handling middleware
