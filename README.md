@@ -7,6 +7,8 @@
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)**
 
+![SpeedCheck Screenshot](website_screenshot.png)
+
 ---
 
 ## 🎯 What Makes SpeedCheck Different?
