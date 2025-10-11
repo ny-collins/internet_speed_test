@@ -213,11 +213,18 @@ app.get('/api/test', (req, res) => {
 });
 
 // Serve static files from frontend directory (for production)
-// This must come AFTER all API routes to avoid conflicts
+// Skip API routes to prevent conflicts with backend endpoints
 const frontendPath = path.join(__dirname, '..', 'frontend');
-app.use(express.static(frontendPath));
+app.use((req, res, next) => {
+  // Skip static file serving for API routes
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  // Serve static files for everything else
+  express.static(frontendPath)(req, res, next);
+});
 
-// SPA fallback - serve index.html for any non-API routes
+// SPA fallback - serve index.html for any non-API, non-static routes
 // This catches any unmatched routes (like /about, /dashboard, etc.)
 app.use((req, res, next) => {
   // Skip if it's an API route - let it fall through to 404 handler
