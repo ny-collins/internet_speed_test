@@ -6,7 +6,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
-const path = require('path');
 
 const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 3000;
@@ -210,29 +209,6 @@ app.get('/api/test', (req, res) => {
     clientIp: req.ip,
     timestamp: Date.now()
   });
-});
-
-// Serve static files from frontend directory (for production)
-// Skip API routes to prevent conflicts with backend endpoints
-const frontendPath = path.join(__dirname, '..', 'frontend');
-app.use((req, res, next) => {
-  // Skip static file serving for API routes
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
-  // Serve static files for everything else
-  express.static(frontendPath)(req, res, next);
-});
-
-// SPA fallback - serve index.html for any non-API, non-static routes
-// This catches any unmatched routes (like /about, /dashboard, etc.)
-app.use((req, res, next) => {
-  // Skip if it's an API route - let it fall through to 404 handler
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
-  // For all other routes, serve index.html (SPA support)
-  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Error handling middleware

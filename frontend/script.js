@@ -51,7 +51,7 @@ const CONFIG = {
     uploadSize: 10,      // MB per upload thread
     downloadSize: 50,    // MB per download thread
     // Backend
-    apiBase: '',
+    apiBase: 'https://speed-test-backend.up.railway.app',
     // UI
     animationDuration: 350
 };
