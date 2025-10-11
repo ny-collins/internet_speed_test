@@ -1128,7 +1128,7 @@ function updatePhaseUI(phase, status) {
     // Update matrix card with matching data-metric attribute
     const metricCard = document.querySelector(`.matrix-card[data-metric="${phase}"]`);
     if (metricCard) {
-        // For active status, set to "measuring" and add duration
+        // For active status, set to "measuring" and start progress animation
         if (status === 'active') {
             metricCard.setAttribute('data-status', 'measuring');
             
@@ -1141,25 +1141,46 @@ function updatePhaseUI(phase, status) {
             } else if (phase === 'upload') {
                 duration = CONFIG.duration.upload.default;
             } else if (phase === 'jitter') {
-                duration = 2; // Jitter calculation is quick
+                duration = 0.8; // Jitter calculation is quick
             }
             
             if (duration) {
-                metricCard.style.setProperty('--test-duration', `${duration}s`);
+                // Start animating the border progress
+                animateBorderProgress(metricCard, duration * 1000); // Convert to ms
             }
         } else if (status === 'complete') {
-            // When complete, briefly show completed state then fade out the border
+            // When complete, set to 100% and fade out
+            metricCard.style.setProperty('--progress', '100');
             metricCard.setAttribute('data-status', 'complete');
             
-            // Remove measuring status after a brief moment
+            // Remove measuring status after fade out
             setTimeout(() => {
-                metricCard.setAttribute('data-status', 'complete');
-                metricCard.style.removeProperty('--test-duration');
+                metricCard.style.setProperty('--progress', '0');
             }, 500);
         } else {
             metricCard.setAttribute('data-status', status);
+            metricCard.style.setProperty('--progress', '0');
         }
     }
+}
+
+// Animate border progress smoothly in real-time
+function animateBorderProgress(element, durationMs) {
+    const startTime = performance.now();
+    
+    function updateProgress(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min((elapsed / durationMs) * 100, 100);
+        
+        element.style.setProperty('--progress', progress.toFixed(2));
+        
+        // Continue animation if not complete and still measuring
+        if (progress < 100 && element.getAttribute('data-status') === 'measuring') {
+            requestAnimationFrame(updateProgress);
+        }
+    }
+    
+    requestAnimationFrame(updateProgress);
 }
 
 function resetAllPhases() {
