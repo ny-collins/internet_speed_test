@@ -1,0 +1,17 @@
+{
+  "name": "SpeedCheck - Internet Speed Test",
+  "short_name": "SpeedCheck",
+  "description": "Test your internet speed to Europe with detailed metrics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
