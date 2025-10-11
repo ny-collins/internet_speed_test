@@ -690,8 +690,9 @@ body {
 .results-matrix {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg); /* Increased gap to prevent clipping */
     width: 100%;
+    padding: var(--spacing-xs); /* Add padding to prevent glow clipping */
 }
 
 .matrix-card {
@@ -704,6 +705,8 @@ body {
     gap: var(--spacing-lg);
     transition: all var(--transition-base);
     min-height: 110px;
+    position: relative; /* For progress border positioning */
+    overflow: visible; /* Allow glow to show */
 }
 
 .matrix-card:hover {
@@ -712,7 +715,8 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-.matrix-card[data-status="active"] {
+.matrix-card[data-status="active"],
+.matrix-card[data-status="measuring"] {
     border-color: var(--color-primary);
     background: linear-gradient(135deg, 
         var(--color-bg-elevated), 
@@ -725,6 +729,11 @@ body {
     animation: pulse-glow 2s ease-in-out infinite;
 }
 
+.matrix-card[data-status="complete"]::before {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+}
+
 @keyframes pulse-glow {
     0%, 100% {
         box-shadow: 0 0 0 3px var(--color-primary-glow),
@@ -735,6 +744,52 @@ body {
         box-shadow: 0 0 0 3px var(--color-primary-glow),
                     0 0 30px rgba(59, 130, 246, 0.5),
                     0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+}
+
+/* Progress border indicator for active measurements */
+.matrix-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: var(--radius-xl);
+    padding: 2px;
+    background: linear-gradient(90deg, 
+        var(--color-primary) 0%, 
+        var(--color-primary) var(--progress, 0%), 
+        transparent var(--progress, 0%)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.matrix-card[data-status="measuring"]::before {
+    opacity: 1;
+    animation: border-progress var(--test-duration, 10s) linear forwards;
+}
+
+@keyframes border-progress {
+    0% {
+        background: conic-gradient(
+            from 0deg at 50% 50%,
+            var(--color-primary) 0deg,
+            transparent 0deg
+        );
+    }
+    100% {
+        background: conic-gradient(
+            from 0deg at 50% 50%,
+            var(--color-primary) 360deg,
+            transparent 360deg
+        );
     }
 }
 
@@ -1142,9 +1197,10 @@ body {
     }
     
     .results-matrix {
-        gap: var(--spacing-sm);
+        gap: var(--spacing-md); /* Increased for mobile to prevent horizontal clipping */
         width: 100%;
         max-width: 100%;
+        padding: var(--spacing-xs); /* Padding to prevent glow clipping */
     }
     
     .matrix-card {

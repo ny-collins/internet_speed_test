@@ -620,11 +620,16 @@ async function measureLatency() {
         const min = Math.min(...samples);
         const max = Math.max(...samples);
         
-        // Calculate jitter
+        // Calculate jitter - start animation for jitter card
+        updatePhaseUI('jitter', 'active');
         const jitter = calculateJitter(samples);
         STATE.testResults.jitter = { value: jitter };
         updateMatrixCardLive('jitter', jitter);
         updateResultCard('jitter', { value: jitter });
+        
+        // Wait a brief moment to show the jitter calculation animation
+        await new Promise(resolve => setTimeout(resolve, 800));
+        updatePhaseUI('jitter', 'complete');
         
         announceToScreenReader(`Latency measured: ${average.toFixed(1)} milliseconds`);
         
@@ -1123,7 +1128,37 @@ function updatePhaseUI(phase, status) {
     // Update matrix card with matching data-metric attribute
     const metricCard = document.querySelector(`.matrix-card[data-metric="${phase}"]`);
     if (metricCard) {
-        metricCard.setAttribute('data-status', status);
+        // For active status, set to "measuring" and add duration
+        if (status === 'active') {
+            metricCard.setAttribute('data-status', 'measuring');
+            
+            // Set animation duration based on phase
+            let duration;
+            if (phase === 'latency') {
+                duration = 3; // Latency is quick (3 pings)
+            } else if (phase === 'download') {
+                duration = CONFIG.duration.download.default;
+            } else if (phase === 'upload') {
+                duration = CONFIG.duration.upload.default;
+            } else if (phase === 'jitter') {
+                duration = 2; // Jitter calculation is quick
+            }
+            
+            if (duration) {
+                metricCard.style.setProperty('--test-duration', `${duration}s`);
+            }
+        } else if (status === 'complete') {
+            // When complete, briefly show completed state then fade out the border
+            metricCard.setAttribute('data-status', 'complete');
+            
+            // Remove measuring status after a brief moment
+            setTimeout(() => {
+                metricCard.setAttribute('data-status', 'complete');
+                metricCard.style.removeProperty('--test-duration');
+            }, 500);
+        } else {
+            metricCard.setAttribute('data-status', status);
+        }
     }
 }
 
