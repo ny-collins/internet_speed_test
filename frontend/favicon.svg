@@ -5,8 +5,8 @@
       <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <!-- Lucide "zap" icon - OUTLINED style (hollow cavity) identical to website header -->
-  <g transform="translate(50, 50) scale(2.5)">
+  <!-- Lucide "zap" icon - OUTLINED style, scaled up for better visibility in tabs -->
+  <g transform="translate(50, 50) scale(3.8)">
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" 
              fill="none" 
              stroke="url(#boltGradient)"
