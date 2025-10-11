@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn why internet speed testing from Amsterdam shows real-world international speeds. Understand Mbps vs MB/s, routing, and factors affecting your connection.">
+    <meta name="keywords" content="internet speed test, international speed, Mbps vs MB/s, network latency, speed test explained, global internet speed">
+    <meta name="author" content="Speed Test App">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://speed-test.up.railway.app/learn">
+    <meta property="og:title" content="Understanding Internet Speed Tests - Learn">
+    <meta property="og:description" content="Discover why testing from Amsterdam reveals your true international internet speed. Learn the difference between local and global speed tests.">
+    <meta property="og:image" content="https://speed-test.up.railway.app/og-image.png">
+    <meta property="fb:app_id" content="24685616031079978">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://speed-test.up.railway.app/learn">
+    <meta property="twitter:title" content="Understanding Internet Speed Tests - Learn">
+    <meta property="twitter:description" content="Discover why testing from Amsterdam reveals your true international internet speed.">
+    <meta property="twitter:image" content="https://speed-test.up.railway.app/og-image.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    
+    <title>Learn - Internet Speed Test</title>
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Understanding Internet Speed Tests: Real-World vs Local Testing",
+        "description": "Comprehensive guide to internet speed testing, international routing, and understanding your true connection speed.",
+        "author": {
+            "@type": "Organization",
+            "name": "Speed Test App"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Speed Test App"
+        },
+        "datePublished": "2025-10-11",
+        "dateModified": "2025-10-11"
+    }
+    </script>
+    
+    <style>
+        /* ===== Base Styles ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #151515;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #2a2a2a;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-card: #fafafa;
+            --text-primary: #0a0a0a;
+            --text-secondary: #525252;
+            --text-muted: #a3a3a3;
+            --accent-primary: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border: #e5e5e5;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        /* ===== Header ===== */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        .logo:hover {
+            opacity: 0.8;
+        }
+        
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-weight: 500;
+        }
+        
+        nav a:hover,
+        nav a.active {
+            color: var(--accent-primary);
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+        }
+        
+        /* ===== Main Content ===== */
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* ===== Content Sections ===== */
+        section {
+            margin-bottom: 4rem;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1.0625rem;
+        }
+        
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        /* ===== Comparison Card ===== */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .comparison-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .comparison-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
+        }
+        
+        .comparison-card h4 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        .comparison-card .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .tag.local {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .tag.global {
+            background: var(--success);
+            color: white;
+        }
+        
+        /* ===== Example Box ===== */
+        .example-box {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .example-box h4 {
+            color: var(--accent-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1.125rem;
+        }
+        
+        .example-box .speed-comparison {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .speed-stat {
+            text-align: center;
+        }
+        
+        .speed-stat .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .speed-stat .label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        /* ===== Info Box ===== */
+        .info-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+        }
+        
+        .info-box.tip {
+            border-left: 4px solid var(--success);
+        }
+        
+        .info-box.warning {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        /* ===== List Styles ===== */
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+        
+        /* ===== Glossary ===== */
+        .glossary-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .glossary-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+        }
+        
+        .glossary-item dt {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .glossary-item dd {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        /* ===== CTA Section ===== */
+        .cta-section {
+            background: linear-gradient(135deg, var(--accent-primary), var(--success));
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            margin: 4rem 0;
+        }
+        
+        .cta-section h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            color: var(--accent-primary);
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* ===== Footer ===== */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav {
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-section {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                Speed Test
+            </a>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/learn.html" class="active">Learn</a>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero">
+            <h1>Understanding Internet Speed Tests</h1>
+            <p>Learn why testing from Amsterdam reveals your true international internet speed and how it differs from traditional local speed tests.</p>
+        </div>
+
+        <!-- Section: The Problem with Traditional Speed Tests -->
+        <section>
+            <h2>The Problem with Traditional Speed Tests</h2>
+            <p>Most internet speed tests tell you how fast your connection is to a <strong>nearby server</strong>. While this sounds useful, it's often misleading because <strong>most of your internet usage happens internationally</strong>.</p>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Traditional Speed Tests</h4>
+                    <span class="tag local">Local Testing</span>
+                    <p>Test to the nearest server in your country or city. Shows your ISP's maximum local speed but doesn't reflect real-world usage.</p>
+                    <ul>
+                        <li>Tests to nearby servers</li>
+                        <li>Shows maximum potential speed</li>
+                        <li>Doesn't reflect international usage</li>
+                        <li>Often misleading for streaming/gaming</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>Our Amsterdam Test</h4>
+                    <span class="tag global">Global Testing</span>
+                    <p>Tests to Amsterdam, Europe. Shows your actual speed to international servers where most content is hosted.</p>
+                    <ul>
+                        <li>Tests across continents</li>
+                        <li>Shows real-world performance</li>
+                        <li>Reflects streaming/gaming speeds</li>
+                        <li>Honest about your connection</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Real-World Examples -->
+        <section>
+            <h2>Real-World Examples</h2>
+            
+            <div class="example-box">
+                <h4>🇰🇪 User in Kenya Testing to London</h4>
+                <p>A user in Nairobi wants to stream Netflix, which often uses European servers for African users.</p>
+                <div class="speed-comparison">
+                    <div class="speed-stat">
+                        <div class="value">40 Mbps</div>
+                        <div class="label">Local Test (Nairobi)</div>
+                    </div>
+                    <div class="speed-stat">
+                        <div class="value">8 Mbps</div>
+                        <div class="label">Amsterdam Test (Reality)</div>
+                    </div>
+                </div>
+                <p style="margin-top: 1rem;">The local test shows 40 Mbps, but streaming from European servers only gets 8 Mbps. Our test shows the <strong>actual speed you'll experience</strong> when watching Netflix or gaming online.</p>
+            </div>
+            
+            <div class="example-box">
+                <h4>🇧🇷 User in Brazil Testing to US Servers</h4>
+                <p>A user in São Paulo plays online games hosted on US servers (common for multiplayer games).</p>
+                <div class="speed-comparison">
+                    <div class="speed-stat">
+                        <div class="value">100 Mbps</div>
+                        <div class="label">Local Test (São Paulo)</div>
+                    </div>
+                    <div class="speed-stat">
+                        <div class="value">25 Mbps</div>
+                        <div class="label">International Reality</div>
+                    </div>
+                </div>
+                <p style="margin-top: 1rem;">Your ISP advertises 100 Mbps, but connecting to US game servers gives you only 25 Mbps. Understanding this helps you set realistic expectations.</p>
+            </div>
+        </section>
+
+        <!-- Section: Why Location Matters -->
+        <section>
+            <h2>Why Server Location Matters</h2>
+            <p>Internet traffic doesn't travel in straight lines. Your data goes through multiple networks, undersea cables, and routing points before reaching its destination.</p>
+            
+            <h3>The Journey of Your Data</h3>
+            <ol>
+                <li><strong>Your Device</strong> sends data to your router</li>
+                <li><strong>Your ISP's Network</strong> routes it within your country</li>
+                <li><strong>International Gateway</strong> connects to undersea cables</li>
+                <li><strong>Transit Networks</strong> carry data across continents</li>
+                <li><strong>Destination Network</strong> delivers to the target server</li>
+            </ol>
+            
+            <div class="info-box tip">
+                <strong>💡 Real-World Usage</strong>
+                <p>Services like Netflix, YouTube, Xbox Live, PlayStation Network, and most cloud services use international servers. Testing to Amsterdam simulates this real-world usage.</p>
+            </div>
+            
+            <h3>Factors That Slow International Connections</h3>
+            <ul>
+                <li><strong>Distance:</strong> Physical distance adds latency and reduces throughput</li>
+                <li><strong>Undersea Cables:</strong> Limited capacity shared by millions of users</li>
+                <li><strong>Routing:</strong> Data may take inefficient paths through multiple countries</li>
+                <li><strong>Peering Agreements:</strong> ISPs may not have direct connections to international networks</li>
+                <li><strong>Congestion:</strong> International links are often more congested than local ones</li>
+            </ul>
+        </section>
+
+        <!-- Section: The Netflix Approach -->
+        <section>
+            <h2>The Netflix Approach: Fast.com</h2>
+            <p>Netflix created <strong>Fast.com</strong> for a similar reason. They realized traditional speed tests didn't reflect actual Netflix streaming performance.</p>
+            
+            <div class="info-box">
+                <strong>How Fast.com Works:</strong>
+                <p>Fast.com tests your speed by downloading data from Netflix's actual CDN (Content Delivery Network). This shows the speed you'll get when streaming Netflix content, not just your theoretical maximum speed to a nearby test server.</p>
+            </div>
+            
+            <p>Our approach is similar but broader: we test to Amsterdam to simulate <strong>international connections</strong> used by most online services, not just streaming.</p>
+        </section>
+
+        <!-- Section: Understanding Speed Units -->
+        <section>
+            <h2>Understanding Speed Units: Mbps vs MB/s</h2>
+            <p>One of the most common sources of confusion is the difference between <strong>Mbps</strong> (Megabits per second) and <strong>MB/s</strong> (Megabytes per second).</p>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Mbps (Megabits per second)</h4>
+                    <p><strong>Used for:</strong> Internet speeds, network speeds</p>
+                    <p><strong>Example:</strong> "I have a 100 Mbps connection"</p>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>MB/s (Megabytes per second)</h4>
+                    <p><strong>Used for:</strong> Download speeds, file transfers</p>
+                    <p><strong>Example:</strong> "Steam downloads at 12.5 MB/s"</p>
+                </div>
+            </div>
+            
+            <div class="info-box warning">
+                <strong>⚠️ The Confusion</strong>
+                <p>There are <strong>8 bits in 1 byte</strong>. So a 100 Mbps connection downloads at <strong>12.5 MB/s</strong> (100 ÷ 8 = 12.5).</p>
+            </div>
+            
+            <h3>Quick Conversion Guide</h3>
+            <ul>
+                <li><strong>25 Mbps</strong> = 3.1 MB/s (Good for HD streaming)</li>
+                <li><strong>50 Mbps</strong> = 6.25 MB/s (Good for 4K streaming)</li>
+                <li><strong>100 Mbps</strong> = 12.5 MB/s (Multiple devices, 4K)</li>
+                <li><strong>200 Mbps</strong> = 25 MB/s (Heavy usage, large downloads)</li>
+                <li><strong>500 Mbps</strong> = 62.5 MB/s (Professional/business use)</li>
+            </ul>
+        </section>
+
+        <!-- Section: What Speed Do You Need? -->
+        <section>
+            <h2>What Speed Do You Actually Need?</h2>
+            
+            <h3>Streaming Video</h3>
+            <ul>
+                <li><strong>Netflix HD (1080p):</strong> 5 Mbps</li>
+                <li><strong>Netflix 4K:</strong> 25 Mbps</li>
+                <li><strong>YouTube 1080p:</strong> 5 Mbps</li>
+                <li><strong>YouTube 4K:</strong> 20 Mbps</li>
+            </ul>
+            
+            <h3>Gaming</h3>
+            <ul>
+                <li><strong>Online Gaming:</strong> 3-6 Mbps (but latency matters more!)</li>
+                <li><strong>Game Downloads:</strong> 50+ Mbps recommended</li>
+                <li><strong>Cloud Gaming (Stadia, GeForce Now):</strong> 35+ Mbps</li>
+            </ul>
+            
+            <h3>Video Calls</h3>
+            <ul>
+                <li><strong>Zoom HD:</strong> 2.6 Mbps</li>
+                <li><strong>Google Meet HD:</strong> 3.2 Mbps</li>
+                <li><strong>Microsoft Teams:</strong> 4 Mbps</li>
+            </ul>
+            
+            <div class="info-box tip">
+                <strong>💡 Multiple Devices</strong>
+                <p>Multiply these numbers by the number of devices using your internet simultaneously. A family of 4 streaming HD video needs at least 20 Mbps (4 × 5 Mbps).</p>
+            </div>
+        </section>
+
+        <!-- Section: Glossary -->
+        <section>
+            <h2>Glossary of Terms</h2>
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <dt>Latency (Ping)</dt>
+                    <dd>The time it takes for data to travel from your device to the server and back, measured in milliseconds (ms). Lower is better. Good for gaming: &lt;50ms. Acceptable: &lt;100ms.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Download Speed</dt>
+                    <dd>How fast data comes from the internet to your device. This affects streaming, downloading files, and loading web pages. Measured in Mbps.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Upload Speed</dt>
+                    <dd>How fast data goes from your device to the internet. Important for video calls, uploading files, and live streaming. Usually slower than download speed.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Jitter</dt>
+                    <dd>Variation in latency over time. High jitter causes choppy video calls and inconsistent gaming performance. Good: &lt;10ms. Acceptable: &lt;30ms.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>ISP (Internet Service Provider)</dt>
+                    <dd>The company that provides your internet connection (e.g., Comcast, BT, Vodafone). They control your local network speed.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>CDN (Content Delivery Network)</dt>
+                    <dd>A network of servers around the world that host copies of content. Services like Netflix and YouTube use CDNs to deliver content faster.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Throughput</dt>
+                    <dd>The actual amount of data successfully transferred over time. Often lower than advertised speeds due to network conditions.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Packet Loss</dt>
+                    <dd>When data packets fail to reach their destination and must be resent. Causes buffering, lag, and poor call quality. Good: &lt;1%. Problematic: &gt;2%.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Bandwidth</dt>
+                    <dd>The maximum capacity of your internet connection. Like a pipe: wider bandwidth allows more data to flow simultaneously.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Peering</dt>
+                    <dd>Agreement between ISPs to exchange traffic directly. Better peering = faster international speeds. Poor peering = slower connections.</dd>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2>Ready to Test Your Real Internet Speed?</h2>
+            <p>See what your actual international connection speed is, not just what your ISP promises.</p>
+            <a href="/" class="cta-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                Test Your Speed Now
+            </a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Speed Test. <a href="/">Home</a> • <a href="/learn.html">Learn</a></p>
+    </footer>
+
+    <script>
+        // ======================================== THEME MANAGEMENT
+        
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    </script>
+</body>
+</html>

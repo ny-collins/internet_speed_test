@@ -992,6 +992,82 @@ body {
     margin: 0 auto;
 }
 
+.why-amsterdam-banner {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.banner-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.banner-icon i {
+    width: 32px;
+    height: 32px;
+}
+
+.banner-text {
+    flex: 1;
+    min-width: 280px;
+    color: white;
+}
+
+.banner-text h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: white;
+}
+
+.banner-text p {
+    margin: 0;
+    line-height: 1.6;
+    opacity: 0.95;
+    font-size: var(--font-size-base);
+}
+
+.banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: white;
+    color: var(--color-primary);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+}
+
+.banner-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.banner-cta i {
+    width: 18px;
+    height: 18px;
+}
+
 .footer-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -1102,6 +1178,36 @@ body {
     
     .tagline {
         font-size: var(--font-size-base);
+    }
+    
+    .why-amsterdam-banner {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+    
+    .banner-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .banner-icon {
+        margin: 0 auto;
+    }
+    
+    .banner-text {
+        min-width: auto;
+    }
+    
+    .banner-text h3 {
+        font-size: var(--font-size-lg);
+    }
+    
+    .banner-text p {
+        font-size: var(--font-size-sm);
+    }
+    
+    .banner-cta {
+        width: 100%;
+        justify-content: center;
     }
     
     .test-display {

@@ -1,11 +1,12 @@
 # SpeedCheck ⚡
 
-> Test your connection speed to Europe
+> Test your real-world international internet speed
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
+[![Version](https://img.shields.io/badge/version-1.03-blue)](#)
 
-**[🚀 Try it live](https://speed-test.up.railway.app/)**
+**[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
 ![SpeedCheck Screenshot](website_screenshot.png)
 
@@ -71,52 +72,146 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 
 ## ✨ Features
 
-- ⚡ **Real-time Updates** - Live speed measurements during test
+### User Experience
+- ⚡ **Real-time Updates** - Live gauge and metrics during test
+- 🎯 **Progress Indicators** - Animated border progress on each measurement phase
 - 📱 **Mobile Responsive** - Seamless experience on all devices
-- 🌓 **Dark/Light Theme** - Automatic system preference detection
-- 🎨 **Pure CSS Gauge** - Beautiful 270° arc progress indicator (no dependencies)
-- 📊 **Comprehensive Metrics** - Download, Upload, Ping, Jitter
+- 🌓 **Dark/Light Theme** - System preference detection with manual toggle
+- 🎨 **Pure CSS Gauge** - 270° arc progress indicator (no chart libraries)
+- 📊 **Comprehensive Metrics** - Download, Upload, Latency, Jitter
 - ⚙️ **Configurable Tests** - Adjust parallel connections and test duration
-- 🔒 **Secure & Private** - No data logging, no tracking
-- 📚 **Educational Content** - Learn about internet connectivity and routing
+- 🔒 **Secure & Private** - No data logging, no tracking, no analytics
+
+### Educational Content
+- 📚 **Comprehensive Guide** - [/learn](https://speed-test.up.railway.app/learn) page explaining concepts
+- 🌍 **Real-world Examples** - Kenya, Brazil cases showing local vs international speeds
+- 📖 **Glossary** - All networking terms explained
+- 💡 **Why Amsterdam** - Understanding server location impact
+- 🔢 **Mbps vs MB/s** - Unit conversion guide
+
+### Technical Features
+- 🚀 **Zero Dependencies** - Pure vanilla JavaScript, no frameworks
+- 📦 **Minimal Bundle** - Fast loading, efficient code
+- ♿ **Accessible** - WCAG compliant, keyboard navigation
+- 🔍 **SEO Optimized** - Open Graph, JSON-LD, sitemap.xml
+- 🎭 **Custom 404** - Helpful error page with navigation
 
 ---
 
 ## 🔧 Technical Architecture
 
-### Frontend
-- **Pure HTML/CSS/JavaScript** - No frameworks, fast loading
-- **CSS Conic Gradient Gauge** - Smooth animated progress indicator
-- **Multi-threaded Testing** - Parallel connections for accurate speed measurement
-- **Responsive Design** - Mobile-first approach
-- **Lucide Icons** - Clean, modern iconography
+### Project Structure
 
-### Backend
-- **Node.js + Express 5.1.0**
-- **Railway Hosting** - Amsterdam, Netherlands deployment
-- **REST API** - Optimized endpoints for speed testing
-- **Efficient Binary Transfer** - Uncompressed data streams for accuracy
-- **Security** - Helmet.js, rate limiting, CORS protection
+```
+internet_speed_test/
+├── frontend/              # Static web application
+│   ├── index.html        # Main speed test interface
+│   ├── learn.html        # Educational content page
+│   ├── 404.html          # Custom error page
+│   ├── script.js         # Speed test logic & UI management
+│   ├── styles.css        # Complete styling with theme support
+│   ├── favicon.svg       # Site icon (Lucide zap)
+│   ├── sitemap.xml       # SEO sitemap
+│   └── robots.txt        # Search engine directives
+└── backend/              # API server
+    ├── server.js         # Express server with API endpoints
+    └── package.json      # Dependencies & scripts
+```
+
+### Frontend Stack
+- **Pure HTML/CSS/JavaScript** - Zero frameworks, fast loading, minimal bundle
+- **CSS Conic Gradient Gauge** - 270° arc progress indicator with real-time updates
+- **Progress Border Animation** - Real-time requestAnimationFrame-driven border progress
+- **Multi-threaded Testing** - Parallel connections for accurate speed measurement
+- **Responsive Design** - Mobile-first approach with breakpoints
+- **Lucide Icons** - Clean, modern SVG iconography
+- **Theme Support** - Dark/light mode with system preference detection
+- **SEO Optimized** - Open Graph, JSON-LD structured data, sitemap
+
+### Backend Stack
+- **Node.js + Express 5.1.0** - Lightweight REST API
+- **Railway Hosting** - Deployed in Amsterdam, Netherlands (fixed location)
+- **Security Middleware** - Helmet.js, CORS, compression
+- **Efficient Binary Transfer** - Uncompressed data streams for accurate testing
+- **Rate Limiting** - Protection against abuse
+- **Health Monitoring** - `/health` endpoint for uptime checks
 
 ### API Endpoints
 
-- `GET /api/ping` - Single ping round-trip time
-- `POST /api/ping-batch` - Multiple pings for jitter calculation
-- `GET /api/download?size=MB` - Download speed test (uncompressed)
-- `POST /api/upload` - Upload speed test with streaming
-- `GET /api/info` - Server metadata and configuration
-- `GET /api/test` - Connectivity check
-- `GET /health` - Health status
+#### Speed Testing
+- **`GET /api/ping`** - Single ping round-trip time measurement
+  - Returns: `{ latency: number }` in milliseconds
+  
+- **`POST /api/ping-batch`** - Multiple pings for jitter calculation
+  - Body: `{ count: number }` (default: 10)
+  - Returns: `{ latencies: number[], jitter: number }`
+  
+- **`GET /api/download`** - Download speed test
+  - Query: `?size=<MB>` (default: 10MB, max: 50MB)
+  - Returns: Binary data stream (uncompressed for accuracy)
+  - CORS: Enabled for browser testing
+  
+- **`POST /api/upload`** - Upload speed test
+  - Body: Binary data stream
+  - Returns: `{ receivedBytes: number, duration: number }`
+  - Note: Uses streaming for memory efficiency
+
+#### Metadata & Health
+- **`GET /api/info`** - Server information
+  - Returns: `{ location, provider, region, timestamp }`
+  
+- **`GET /health`** - Health check endpoint
+  - Returns: `{ status: 'healthy', uptime: number }`
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deployment Architecture
 
-This application is deployed on **Railway** with automatic deployments from the main branch. The server location is **fixed to Amsterdam, Netherlands** to ensure consistent testing conditions across all users.
+This application uses a **split deployment** on Railway with two separate services:
 
-**Live URL:** https://speed-test.up.railway.app/
+### Service 1: Frontend (Static Files)
+- **URL:** https://speed-test.up.railway.app/
+- **Type:** Static file serving
+- **Port:** 8080
+- **Files:** HTML, CSS, JS, assets
+- **Purpose:** User interface and client-side logic
 
-### Environment Variables
+### Service 2: Backend (API)
+- **URL:** https://speed-test-backend.up.railway.app/
+- **Type:** Node.js Express server
+- **Port:** 3000
+- **Location:** Amsterdam, Netherlands (fixed)
+- **Purpose:** Speed test API endpoints
+
+Both services are deployed from the same repository with automatic deployments on push to `main` branch.
+
+---
+
+### Railway Configuration
+
+Create two services in your Railway project:
+
+**Frontend Service:**
+```bash
+# Build Command: (none - static files)
+# Start Command:
+npx http-server frontend -p 8080 --cors
+
+# Root Directory: /
+```
+
+**Backend Service:**
+```bash
+# Build Command:
+cd backend && npm install
+
+# Start Command:
+cd backend && npm start
+
+# Root Directory: /
+```
+
+### Environment Variables (Backend)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -130,20 +225,13 @@ This application is deployed on **Railway** with automatic deployments from the 
 
 ---
 
-## ⚠️ Important Note on Local Development
+## 💻 Local Development
 
-**Running SpeedCheck locally is not recommended for accurate testing.** If you run the server on your local machine (`localhost`), you'll see unrealistically high speeds (often 1000+ Mbps) because:
+### Prerequisites
+- Node.js 18+ and npm
+- Git
 
-- ❌ **No network distance** - Data doesn't leave your computer
-- ❌ **No routing overhead** - Bypasses all internet infrastructure  
-- ❌ **No ISP throttling** - No real internet connection involved
-- ❌ **Perfect conditions** - Not representative of actual internet performance
-
-**The value of SpeedCheck comes from testing against a real server in Amsterdam.** Local testing defeats the purpose of measuring international connectivity.
-
-### For Development
-
-If you want to explore the code or contribute:
+### Setup
 
 ```bash
 # Clone the repository
@@ -153,16 +241,40 @@ cd internet_speed_test
 # Install backend dependencies
 cd backend
 npm install
-
-# Start backend (for development only)
-npm run dev
-
-# Serve frontend (separate terminal)
-cd ../frontend
-npx http-server -p 8080
 ```
 
-**Important:** Test against the [live deployed version](https://speed-test.up.railway.app/) rather than localhost for meaningful measurements.
+### Running Locally
+
+**Backend (Terminal 1):**
+```bash
+cd backend
+npm run dev  # Starts on http://localhost:3000
+```
+
+**Frontend (Terminal 2):**
+```bash
+cd frontend
+npx http-server -p 8080 --cors
+# Access at http://localhost:8080
+```
+
+### ⚠️ Important Note on Local Testing
+
+**Local speed tests will show unrealistic results!** If you test against `localhost`, you'll see speeds of 1000+ Mbps because:
+
+- ❌ **No network distance** - Data doesn't leave your computer
+- ❌ **No routing overhead** - Bypasses all internet infrastructure  
+- ❌ **No ISP involvement** - No real internet connection
+- ❌ **Perfect conditions** - Not representative of actual performance
+
+**For accurate measurements, always test against the [live deployment](https://speed-test.up.railway.app/).** The value of this tool is measuring real international connectivity.
+
+### Development Workflow
+
+1. **Make changes** to frontend or backend code
+2. **Test locally** for UI/UX and functionality
+3. **Test speed measurements** against live deployment
+4. **Commit and push** to trigger automatic Railway deployment
 
 ---
 
@@ -204,15 +316,56 @@ This project demonstrates real-world internet concepts:
 
 ## 🤝 Contributing
 
-While local development isn't useful for speed testing, contributions are welcome for:
+Contributions are welcome! Areas for improvement:
 
-- 🎨 UI/UX improvements
-- 📚 Additional educational content
-- ⚡ Performance optimizations
-- ♿ Accessibility enhancements
-- 📝 Documentation updates
+- 🎨 **UI/UX improvements** - Better visualizations, animations
+- 📚 **Educational content** - More examples, diagrams, explanations
+- ⚡ **Performance optimizations** - Faster loading, better caching
+- ♿ **Accessibility** - Screen reader support, keyboard navigation
+- 🌍 **Internationalization** - Multi-language support
+- 📝 **Documentation** - Better guides, API docs, tutorials
+- 🧪 **Testing** - Unit tests, integration tests
 
-Please ensure any speed measurement changes are tested against the live deployed version.
+### Contribution Guidelines
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Test** your changes locally
+4. **Verify** speed measurements against live deployment (not localhost)
+5. **Commit** with clear messages (`git commit -m 'Add amazing feature'`)
+6. **Push** to your branch (`git push origin feature/amazing-feature`)
+7. **Open** a Pull Request
+
+### Code Style
+- Use consistent formatting (2 spaces, semicolons)
+- Keep comments minimal (section markers only)
+- Self-documenting code preferred
+- Test on multiple browsers/devices
+
+---
+
+## 📋 Version History
+
+### v1.03 (Current)
+- ✨ Added comprehensive `/learn` educational page
+- 🎯 Real-time progress border animations during measurements
+- 🎨 Refined favicon matching header icon
+- 🧹 Complete code cleanup (removed verbose comments)
+- 📄 Custom 404 error page
+- 📚 Enhanced README with technical documentation
+- 🔍 Improved SEO with updated sitemap
+
+### v1.02
+- 🌓 Dark/light theme toggle
+- 📊 Enhanced gauge visualization
+- ⚙️ Configurable test settings
+- 📱 Mobile responsive improvements
+
+### v1.01
+- ⚡ Initial release
+- 🎯 Core speed testing functionality
+- 🎨 Pure CSS gauge
+- 📊 Basic metrics display
 
 ---
 
