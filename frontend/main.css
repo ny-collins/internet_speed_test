@@ -1165,7 +1165,7 @@ body {
 /* ===== Responsive Design ===== */
 
 /* Tablet/Medium screens (769px - 1024px) */
-@media (max-width: 1024px) and (min-width: 769px) {
+@media (min-width: 769px) and (max-width: 1024px) {
     .page-home .app-container {
         max-width: 100%;
         padding: var(--spacing-lg) var(--spacing-md);
@@ -1201,8 +1201,8 @@ body {
     }
 }
 
-/* Small tablets (600px - 768px) */
-@media (max-width: 768px) and (min-width: 601px) {
+/* Small tablets (601px - 768px) */
+@media (min-width: 601px) and (max-width: 768px) {
     .page-home .app-container {
         padding: var(--spacing-lg) var(--spacing-md);
     }
@@ -2272,7 +2272,7 @@ body.page-404 {
 /* ===== RESPONSIVE STYLES (Learn & 404 pages) ===== */
 
 /* Tablet styles (medium screens) */
-@media (max-width: 1024px) and (min-width: 769px) {
+@media (min-width: 769px) and (max-width: 1024px) {
     .page-learn .section-inner {
         max-width: 700px;
         padding: 2rem 1.5rem;
@@ -2292,8 +2292,8 @@ body.page-404 {
     }
 }
 
-/* Small tablets (600px - 768px) */
-@media (max-width: 768px) and (min-width: 601px) {
+/* Small tablets (601px - 768px) */
+@media (min-width: 601px) and (max-width: 768px) {
     .page-learn .section-inner {
         max-width: 600px;
         padding: 1.75rem 1.5rem;
