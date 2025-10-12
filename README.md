@@ -4,11 +4,23 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.03-blue)](#)
+[![Version](https://img.shields.io/badge/version-1.04-blue)](#)
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
+### 📸 Application Screenshots
+
+<div align="center">
+
+**Main Speed Test Interface**
+
 ![SpeedCheck Screenshot](frontend/website_screenshot.png)
+
+**Educational Content Page**
+
+<img src="frontend/learn_page.png" alt="Learn Page" width="600">
+
+</div>
 
 ---
 
@@ -81,6 +93,7 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 - 📊 **Comprehensive Metrics** - Download, Upload, Latency, Jitter
 - ⚙️ **Configurable Tests** - Adjust parallel connections and test duration
 - 🔒 **Secure & Private** - No data logging, no tracking, no analytics
+- 📲 **PWA Support** - Add to Home Screen capability with proper icons
 
 ### Educational Content
 - 📚 **Comprehensive Guide** - [/learn](https://speed-test.up.railway.app/learn) page explaining concepts
@@ -95,6 +108,8 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 - ♿ **Accessible** - WCAG compliant, keyboard navigation
 - 🔍 **SEO Optimized** - Open Graph, JSON-LD, sitemap.xml
 - 🎭 **Custom 404** - Helpful error page with navigation
+- 🎨 **Multi-format Icons** - SVG + PNG fallbacks for maximum compatibility
+- ⚡ **Optimized Routing** - Express static middleware for clean URLs
 
 ---
 
@@ -104,20 +119,23 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 
 ```
 internet_speed_test/
-├── frontend/              # Frontend web application
-│   ├── index.html        # Main speed test interface
-│   ├── learn.html        # Educational content page
-│   ├── 404.html          # Custom error page
-│   ├── script.js         # Speed test logic & UI management
-│   ├── styles.css        # Complete styling with theme support
-│   ├── server.js         # Express static server with 404 handling
-│   ├── package.json      # Frontend dependencies
-│   ├── favicon.svg       # Site icon (Lucide zap)
-│   ├── sitemap.xml       # SEO sitemap
-│   └── robots.txt        # Search engine directives
-└── backend/              # API server
-    ├── server.js         # Express server with API endpoints
-    └── package.json      # Backend dependencies & scripts
+├── frontend/                 # Frontend web application
+│   ├── index.html           # Main speed test interface
+│   ├── learn.html           # Educational content page
+│   ├── 404.html             # Custom error page
+│   ├── main.js              # Speed test logic & UI management
+│   ├── main.css             # Complete styling with theme support
+│   ├── server.js            # Express static server with 404 handling
+│   ├── package.json         # Frontend dependencies
+│   ├── site.webmanifest     # PWA manifest for Add to Home Screen
+│   ├── favicon.svg          # Scalable site icon (Lucide zap)
+│   ├── favicon-192x192.png  # PWA icon (Android/Chrome)
+│   ├── favicon-512x512.png  # PWA icon (high-res devices)
+│   ├── sitemap.xml          # SEO sitemap
+│   └── robots.txt           # Search engine directives
+└── backend/                 # API server
+    ├── server.js            # Express server with API endpoints
+    └── package.json         # Backend dependencies & scripts
 ```
 
 ### Frontend Stack
@@ -128,6 +146,7 @@ internet_speed_test/
 - **Responsive Design** - Mobile-first approach with breakpoints
 - **Lucide Icons** - Clean, modern SVG iconography
 - **Theme Support** - Dark/light mode with system preference detection
+- **PWA Manifest** - Add to Home Screen with multiple icon formats (SVG + PNG)
 - **SEO Optimized** - Open Graph, JSON-LD structured data, sitemap
 
 ### Backend Stack
@@ -357,7 +376,15 @@ Contributions are welcome! Areas for improvement:
 
 ## 📋 Version History
 
-### v1.03 (Current)
+### v1.04 (Current)
+- 🎨 Added PWA support with multi-format icons (SVG + PNG fallbacks)
+- ⚡ Optimized Express routing (removed redundant explicit routes)
+- 🔍 Fixed sitemap.xml (removed 404.html for better SEO)
+- 🧹 Applied DRY principle to theme icon updates
+- 📸 Added learn page screenshot to documentation
+- 🗂️ Removed redundant files for better organization
+
+### v1.03
 - ✨ Added comprehensive `/learn` educational page
 - 🎯 Real-time progress border animations during measurements
 - 🎨 Refined favicon matching header icon

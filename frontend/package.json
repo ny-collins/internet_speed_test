@@ -1,7 +1,7 @@
 {
   "name": "speedcheck-frontend",
-  "version": "1.03.0",
-  "description": "Frontend static file server with 404 handling",
+  "version": "1.04.0",
+  "description": "Frontend static file server with PWA support",
   "scripts": {
     "start": "node server.js"
   },
