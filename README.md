@@ -85,7 +85,7 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 ## ✨ Features
 
 ### User Experience
-- ⚡ **Real-time Updates** - Live gauge and metrics during test
+- <img src="frontend/favicon.svg" alt="⚡" width="16" height="16" style="vertical-align: middle;"> **Real-time Updates** - Live gauge and metrics during test
 - 🎯 **Progress Indicators** - Animated border progress on each measurement phase
 - 📱 **Mobile Responsive** - Seamless experience on all devices
 - 🌓 **Dark/Light Theme** - System preference detection with manual toggle
@@ -109,7 +109,7 @@ How consistent your connection is. **Lower is better.** High jitter causes stutt
 - 🔍 **SEO Optimized** - Open Graph, JSON-LD, sitemap.xml
 - 🎭 **Custom 404** - Helpful error page with navigation
 - 🎨 **Multi-format Icons** - SVG + PNG fallbacks for maximum compatibility
-- ⚡ **Optimized Routing** - Express static middleware for clean URLs
+- <img src="frontend/favicon.svg" alt="⚡" width="16" height="16" style="vertical-align: middle;"> **Optimized Routing** - Express static middleware for clean URLs
 
 ---
 
@@ -350,7 +350,7 @@ Contributions are welcome! Areas for improvement:
 
 - 🎨 **UI/UX improvements** - Better visualizations, animations
 - 📚 **Educational content** - More examples, diagrams, explanations
-- ⚡ **Performance optimizations** - Faster loading, better caching
+- <img src="frontend/favicon.svg" alt="⚡" width="16" height="16" style="vertical-align: middle;"> **Performance optimizations** - Faster loading, better caching
 - ♿ **Accessibility** - Screen reader support, keyboard navigation
 - 🌍 **Internationalization** - Multi-language support
 - 📝 **Documentation** - Better guides, API docs, tutorials
@@ -378,7 +378,7 @@ Contributions are welcome! Areas for improvement:
 
 ### v1.04 (Current)
 - 🎨 Added PWA support with multi-format icons (SVG + PNG fallbacks)
-- ⚡ Optimized Express routing (removed redundant explicit routes)
+- <img src="frontend/favicon.svg" alt="⚡" width="16" height="16" style="vertical-align: middle;"> Optimized Express routing (removed redundant explicit routes)
 - 🔍 Fixed sitemap.xml (removed 404.html for better SEO)
 - 🧹 Applied DRY principle to theme icon updates
 - 📸 Added learn page screenshot to documentation
@@ -400,7 +400,7 @@ Contributions are welcome! Areas for improvement:
 - 📱 Mobile responsive improvements
 
 ### v1.01
-- ⚡ Initial release
+- <img src="frontend/favicon.svg" alt="⚡" width="16" height="16" style="vertical-align: middle;"> Initial release
 - 🎯 Core speed testing functionality
 - 🎨 Pure CSS gauge
 - 📊 Basic metrics display
@@ -422,4 +422,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with <img src="frontend/favicon.svg" alt="⚡" width="32" height="32" style="vertical-align: middle;"> to show real internet performance, not just marketing numbers.**
+**Made with <img src="frontend/favicon.svg" alt="⚡" width="18" height="18" style="vertical-align: middle;"> to show real internet performance, not just marketing numbers.**
