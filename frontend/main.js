@@ -33,8 +33,8 @@ const CONFIG = {
     chunkSize: 512,      // KB for download chunks
     uploadSize: 10,      // MB per upload thread
     downloadSize: 50,    // MB per download thread
-    // Backend
-    apiBase: 'https://speed-test-backend.up.railway.app',
+    // Backend (supports environment variable override for dev/production flexibility)
+    apiBase: typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'https://speed-test-backend.up.railway.app',
     // UI
     animationDuration: 350
 };
@@ -251,28 +251,17 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme) {
-    // Update icon for homepage settings toggle (in settings panel)
-    const settingsIcon = document.querySelector('.theme-toggle-inline .theme-icon');
-    if (settingsIcon) {
-        settingsIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
+    // Update all theme toggle icons across all pages (DRY approach)
+    const themeIcons = document.querySelectorAll('.theme-icon');
+    const iconName = theme === 'dark' ? 'sun' : 'moon';
     
-    // Update icon for learn page toggle (in nav)
-    const learnToggle = document.querySelector('.page-learn .theme-toggle-inline .theme-icon');
-    if (learnToggle) {
-        learnToggle.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
+    themeIcons.forEach(icon => {
+        icon.setAttribute('data-lucide', iconName);
+    });
     
-    // Update icon for 404 page toggle
-    const errorToggle = document.querySelector('.page-404 .theme-toggle');
-    if (errorToggle) {
-        const toggleIcon = errorToggle.querySelector('i[data-lucide]');
-        if (toggleIcon) {
-            toggleIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
+    // Reinitialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
     }
 }
 
