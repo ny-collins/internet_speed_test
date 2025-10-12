@@ -1,4 +1,4 @@
-# SpeedCheck ⚡
+# SpeedCheck <img src="frontend/favicon.svg" alt="⚡" width="32" height="32" style="vertical-align: middle;">
 
 > Test your real-world international internet speed
 
