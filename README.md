@@ -422,4 +422,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ⚡ to show real internet performance, not just marketing numbers.**
+**Made with <img src="frontend/favicon.svg" alt="⚡" width="32" height="32" style="vertical-align: middle;"> to show real internet performance, not just marketing numbers.**
