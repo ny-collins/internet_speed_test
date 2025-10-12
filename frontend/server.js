@@ -31,5 +31,4 @@ app.use((req, res) => {
 // ======================================== START SERVER
 app.listen(PORT, () => {
     console.log(`Frontend server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
