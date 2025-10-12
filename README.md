@@ -8,7 +8,7 @@
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
-![SpeedCheck Screenshot](website_screenshot.png)
+![SpeedCheck Screenshot](frontend/website_screenshot.png)
 
 ---
 
