@@ -15,12 +15,4 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  
-  <!-- 404 Error Page (included for completeness) -->
-  <url>
-    <loc>https://speed-test.up.railway.app/404.html</loc>
-    <lastmod>2025-10-11</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.1</priority>
-  </url>
 </urlset>
