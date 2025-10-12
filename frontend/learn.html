@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Learn why internet speed testing from Amsterdam shows real-world international speeds. Understand Mbps vs MB/s, routing, and factors affecting your connection.">
-    <meta name="keywords" content="internet speed test, international speed, Mbps vs MB/s, network latency, speed test explained, global internet speed">
+    <meta name="keywords" content="internet speed test, international speed test, Amsterdam server, Mbps vs MB/s, network latency, speed test explained, global internet speed">
     <meta name="author" content="Speed Test App">
     
     <!-- Open Graph / Facebook -->
@@ -12,7 +12,7 @@
     <meta property="og:url" content="https://speed-test.up.railway.app/learn">
     <meta property="og:title" content="Understanding Internet Speed Tests - Learn">
     <meta property="og:description" content="Discover why testing from Amsterdam reveals your true international internet speed. Learn the difference between local and global speed tests.">
-    <meta property="og:image" content="https://speed-test.up.railway.app/og-image.png">
+    <meta property="og:image" content="https://speed-test.up.railway.app/learn_page.png">
     <meta property="fb:app_id" content="24685616031079978">
     
     <!-- Twitter -->
@@ -20,10 +20,13 @@
     <meta property="twitter:url" content="https://speed-test.up.railway.app/learn">
     <meta property="twitter:title" content="Understanding Internet Speed Tests - Learn">
     <meta property="twitter:description" content="Discover why testing from Amsterdam reveals your true international internet speed.">
-    <meta property="twitter:image" content="https://speed-test.up.railway.app/og-image.png">
+    <meta property="twitter:image" content="https://speed-test.up.railway.app/learn_page.png">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="/main.css">
     
     <title>Learn - Internet Speed Test</title>
     
@@ -43,451 +46,69 @@
             "name": "Speed Test App"
         },
         "datePublished": "2025-10-11",
-        "dateModified": "2025-10-11"
+        "dateModified": "2025-10-12"
     }
     </script>
-    
-    <style>
-        /* ===== Base Styles ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #151515;
-            --bg-card: #1a1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-muted: #666666;
-            --accent-primary: #3b82f6;
-            --accent-hover: #2563eb;
-            --border: #2a2a2a;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-        
-        [data-theme="light"] {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --bg-card: #fafafa;
-            --text-primary: #0a0a0a;
-            --text-secondary: #525252;
-            --text-muted: #a3a3a3;
-            --accent-primary: #2563eb;
-            --accent-hover: #1d4ed8;
-            --border: #e5e5e5;
-            --success: #059669;
-            --warning: #d97706;
-            --danger: #dc2626;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        
-        /* ===== Header ===== */
-        header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 1.5rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-        
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 1.125rem;
-        }
-        
-        .logo:hover {
-            opacity: 0.8;
-        }
-        
-        nav {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-        
-        nav a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.2s;
-            font-weight: 500;
-        }
-        
-        nav a:hover,
-        nav a.active {
-            color: var(--accent-primary);
-        }
-        
-        .theme-toggle {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        
-        .theme-toggle:hover {
-            background: var(--bg-card);
-            border-color: var(--accent-primary);
-        }
-        
-        /* ===== Main Content ===== */
-        main {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-        }
-        
-        .hero {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-        
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--accent-primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        /* ===== Content Sections ===== */
-        section {
-            margin-bottom: 4rem;
-        }
-        
-        h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-        }
-        
-        h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-        
-        p {
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-            font-size: 1.0625rem;
-        }
-        
-        strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-        
-        /* ===== Comparison Card ===== */
-        .comparison-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .comparison-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        
-        .comparison-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-primary);
-        }
-        
-        .comparison-card h4 {
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-            color: var(--text-primary);
-        }
-        
-        .comparison-card .tag {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-        }
-        
-        .tag.local {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .tag.global {
-            background: var(--success);
-            color: white;
-        }
-        
-        /* ===== Example Box ===== */
-        .example-box {
-            background: var(--bg-card);
-            border-left: 4px solid var(--accent-primary);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .example-box h4 {
-            color: var(--accent-primary);
-            margin-bottom: 0.75rem;
-            font-size: 1.125rem;
-        }
-        
-        .example-box .speed-comparison {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .speed-stat {
-            text-align: center;
-        }
-        
-        .speed-stat .value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .speed-stat .label {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-        
-        /* ===== Info Box ===== */
-        .info-box {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.25rem;
-            margin: 1.5rem 0;
-        }
-        
-        .info-box.tip {
-            border-left: 4px solid var(--success);
-        }
-        
-        .info-box.warning {
-            border-left: 4px solid var(--warning);
-        }
-        
-        .info-box strong {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-        
-        /* ===== List Styles ===== */
-        ul, ol {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-        }
-        
-        li {
-            margin-bottom: 0.5rem;
-            padding-left: 0.5rem;
-        }
-        
-        /* ===== Glossary ===== */
-        .glossary-grid {
-            display: grid;
-            gap: 1.5rem;
-        }
-        
-        .glossary-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.25rem;
-        }
-        
-        .glossary-item dt {
-            font-weight: 700;
-            font-size: 1.125rem;
-            color: var(--accent-primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .glossary-item dd {
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-        
-        /* ===== CTA Section ===== */
-        .cta-section {
-            background: linear-gradient(135deg, var(--accent-primary), var(--success));
-            border-radius: 1rem;
-            padding: 3rem;
-            text-align: center;
-            margin: 4rem 0;
-        }
-        
-        .cta-section h2 {
-            color: white;
-            margin-bottom: 1rem;
-        }
-        
-        .cta-section p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.125rem;
-            margin-bottom: 2rem;
-        }
-        
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: white;
-            color: var(--accent-primary);
-            padding: 1rem 2rem;
-            border-radius: 0.75rem;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* ===== Footer ===== */
-        footer {
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border);
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-        
-        footer a {
-            color: var(--accent-primary);
-            text-decoration: none;
-        }
-        
-        footer a:hover {
-            text-decoration: underline;
-        }
-        
-        /* ===== Responsive ===== */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            nav {
-                gap: 1rem;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .hero p {
-                font-size: 1rem;
-            }
-            
-            h2 {
-                font-size: 1.5rem;
-            }
-            
-            .comparison-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .cta-section {
-                padding: 2rem 1rem;
-            }
-        }
-    </style>
 </head>
-<body>
+<body class="page-learn">
     <header>
         <div class="header-container">
-            <a href="/" class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
-                </svg>
-                Speed Test
-            </a>
-            <nav>
-                <a href="/">Home</a>
-                <a href="/learn.html" class="active">Learn</a>
-                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                </button>
-            </nav>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i data-lucide="menu"></i>
+            </button>
+            
+            <div class="logo">
+                <i data-lucide="zap"></i>
+                <span>SpeedCheck</span>
+            </div>
+            
+            <button class="theme-toggle-inline" id="themeToggle" aria-label="Toggle theme" aria-pressed="false">
+                <i data-lucide="moon" class="theme-icon"></i>
+            </button>
         </div>
     </header>
 
-    <main>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="/" class="sidebar-link">
+                <i data-lucide="home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#speed-testing" class="sidebar-link active" data-section="speed-testing">
+                <i data-lucide="gauge"></i>
+                <span>Speed Testing Explained</span>
+            </a>
+            <a href="#internet-knowledge" class="sidebar-link" data-section="internet-knowledge">
+                <i data-lucide="book-open"></i>
+                <span>Internet Knowledge</span>
+            </a>
+            <a href="#glossary" class="sidebar-link" data-section="glossary">
+                <i data-lucide="book-text"></i>
+                <span>Glossary</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <!-- Hero Section -->
         <div class="hero">
             <h1>Understanding Internet Speed Tests</h1>
-            <p>Learn why testing from Amsterdam reveals your true international internet speed and how it differs from traditional local speed tests.</p>
+            <p>Everything you need to know about testing your internet connection and understanding network performance</p>
         </div>
 
-        <!-- Section: The Problem with Traditional Speed Tests -->
-        <section>
-            <h2>The Problem with Traditional Speed Tests</h2>
+        <!-- Content Sections -->
+        <div class="content-wrapper">
+            <!-- Section 1: Speed Testing Explained -->
+            <section id="speed-testing" class="content-section active">
+                <div class="section-inner">
+
+            <!-- Section: The Problem with Traditional Speed Tests -->
+            <section id="problem-traditional" class="article-section">
+                <h3>The Problem with Traditional Speed Tests</h3>
             <p>Most internet speed tests tell you how fast your connection is to a <strong>nearby server</strong>. While this sounds useful, it's often misleading because <strong>most of your internet usage happens internationally</strong>.</p>
             
             <div class="comparison-grid">
@@ -515,11 +136,11 @@
                     </ul>
                 </div>
             </div>
-        </section>
+            </section>
 
-        <!-- Section: Real-World Examples -->
-        <section>
-            <h2>Real-World Examples</h2>
+            <!-- Section: Real-World Examples -->
+            <section id="real-world-examples" class="article-section">
+                <h3>Real-World Examples</h3>
             
             <div class="example-box">
                 <h4>🇰🇪 User in Kenya Testing to London</h4>
@@ -552,14 +173,14 @@
                 </div>
                 <p style="margin-top: 1rem;">Your ISP advertises 100 Mbps, but connecting to US game servers gives you only 25 Mbps. Understanding this helps you set realistic expectations.</p>
             </div>
-        </section>
+            </section>
 
-        <!-- Section: Why Location Matters -->
-        <section>
-            <h2>Why Server Location Matters</h2>
+            <!-- Section: Why Location Matters -->
+            <section id="server-location" class="article-section">
+                <h3>Why Server Location Matters</h3>
             <p>Internet traffic doesn't travel in straight lines. Your data goes through multiple networks, undersea cables, and routing points before reaching its destination.</p>
             
-            <h3>The Journey of Your Data</h3>
+            <h4>The Journey of Your Data</h4>
             <ol>
                 <li><strong>Your Device</strong> sends data to your router</li>
                 <li><strong>Your ISP's Network</strong> routes it within your country</li>
@@ -573,7 +194,7 @@
                 <p>Services like Netflix, YouTube, Xbox Live, PlayStation Network, and most cloud services use international servers. Testing to Amsterdam simulates this real-world usage.</p>
             </div>
             
-            <h3>Factors That Slow International Connections</h3>
+            <h4>Factors That Slow International Connections</h4>
             <ul>
                 <li><strong>Distance:</strong> Physical distance adds latency and reduces throughput</li>
                 <li><strong>Undersea Cables:</strong> Limited capacity shared by millions of users</li>
@@ -581,12 +202,12 @@
                 <li><strong>Peering Agreements:</strong> ISPs may not have direct connections to international networks</li>
                 <li><strong>Congestion:</strong> International links are often more congested than local ones</li>
             </ul>
-        </section>
+            </section>
 
-        <!-- Section: The Netflix Approach -->
-        <section>
-            <h2>The Netflix Approach: Fast.com</h2>
-            <p>Netflix created <strong>Fast.com</strong> for a similar reason. They realized traditional speed tests didn't reflect actual Netflix streaming performance.</p>
+            <!-- Section: The Netflix Approach -->
+            <section id="netflix-approach" class="article-section">
+                <h3>The Netflix Approach: Fast.com</h3>
+            <p>Netflix created <strong><a href="https://fast.com" target="_blank" rel="noopener noreferrer">Fast.com</a></strong> for a similar reason. They realized traditional speed tests didn't reflect actual Netflix streaming performance.</p>
             
             <div class="info-box">
                 <strong>How Fast.com Works:</strong>
@@ -594,11 +215,73 @@
             </div>
             
             <p>Our approach is similar but broader: we test to Amsterdam to simulate <strong>international connections</strong> used by most online services, not just streaming.</p>
-        </section>
+            
+            <h4>Other Popular Speed Tests</h4>
+            <ul>
+                <li><strong><a href="https://www.speedtest.net" target="_blank" rel="noopener noreferrer">Speedtest.net by Ookla</a></strong> - Tests to nearest server (shows local speed)</li>
+                <li><strong><a href="https://fast.com" target="_blank" rel="noopener noreferrer">Fast.com by Netflix</a></strong> - Tests Netflix CDN performance</li>
+                <li><strong><a href="https://speed.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare Speed Test</a></strong> - Tests to Cloudflare network</li>
+                <li><strong><a href="https://www.google.com/search?q=internet+speed+test" target="_blank" rel="noopener noreferrer">Google Speed Test</a></strong> - Quick test via Google Search</li>
+                <li><strong>Our Test</strong> - Shows realistic international speed to Europe</li>
+            </ul>
+            </section>
 
-        <!-- Section: Understanding Speed Units -->
-        <section>
-            <h2>Understanding Speed Units: Mbps vs MB/s</h2>
+            <!-- Section: Why Amsterdam? -->
+            <section id="amsterdam-server" class="article-section">
+                <h3>Why We Chose Amsterdam as Our Test Server</h3>
+            <p>Amsterdam is one of the world's most important internet hubs and an ideal location for international speed testing:</p>
+            
+            <ul>
+                <li><strong>Major Internet Exchange Point:</strong> Amsterdam hosts <a href="https://www.ams-ix.net" target="_blank" rel="noopener noreferrer">AMS-IX</a>, one of the world's largest internet exchanges</li>
+                <li><strong>Central European Location:</strong> Well-connected to Africa, Middle East, Asia, and the Americas via undersea cables</li>
+                <li><strong>Content Hosting Hub:</strong> Many global services (Netflix, Google, Amazon, Microsoft) have major data centers in Amsterdam</li>
+                <li><strong>Neutral Territory:</strong> Excellent infrastructure and politically neutral location for global testing</li>
+                <li><strong>Real-World Simulation:</strong> Most international content you access likely routes through or near Amsterdam</li>
+            </ul>
+            
+            <div class="info-box tip">
+                <strong>💡 Fun Fact</strong>
+                <p>Amsterdam handles over 10 terabits per second of internet traffic, making it one of the busiest internet hubs on the planet!</p>
+            </div>
+            </section>
+
+            <!-- Section: When to Use Which Test -->
+            <section id="when-to-use" class="article-section">
+                <h3>When to Use Which Speed Test</h3>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Use Local Tests (Speedtest.net) When:</h4>
+                    <ul>
+                        <li>Troubleshooting your ISP connection</li>
+                        <li>Verifying you're getting advertised speeds</li>
+                        <li>Testing local network issues</li>
+                        <li>Comparing ISP packages</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>Use International Tests (Ours) When:</h4>
+                    <ul>
+                        <li>You stream content from international services</li>
+                        <li>You play games on international servers</li>
+                        <li>You work with international teams/clients</li>
+                        <li>You want realistic everyday performance</li>
+                    </ul>
+                </div>
+            </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Internet Knowledge -->
+            <section id="internet-knowledge" class="content-section">
+                <div class="section-inner">
+                    <h2>Internet Knowledge</h2>
+                    <p>Understanding how the internet works helps you make better decisions about your connection and troubleshoot issues effectively.</p>
+
+            <!-- Section: Understanding Speed Units -->
+            <section id="mbps-vs-mbs" class="article-section">
+                <h3>Understanding Speed Units: Mbps vs MB/s</h3>
             <p>One of the most common sources of confusion is the difference between <strong>Mbps</strong> (Megabits per second) and <strong>MB/s</strong> (Megabytes per second).</p>
             
             <div class="comparison-grid">
@@ -620,7 +303,7 @@
                 <p>There are <strong>8 bits in 1 byte</strong>. So a 100 Mbps connection downloads at <strong>12.5 MB/s</strong> (100 ÷ 8 = 12.5).</p>
             </div>
             
-            <h3>Quick Conversion Guide</h3>
+            <h4>Quick Conversion Guide</h4>
             <ul>
                 <li><strong>25 Mbps</strong> = 3.1 MB/s (Good for HD streaming)</li>
                 <li><strong>50 Mbps</strong> = 6.25 MB/s (Good for 4K streaming)</li>
@@ -628,104 +311,333 @@
                 <li><strong>200 Mbps</strong> = 25 MB/s (Heavy usage, large downloads)</li>
                 <li><strong>500 Mbps</strong> = 62.5 MB/s (Professional/business use)</li>
             </ul>
-        </section>
+            </section>
 
-        <!-- Section: What Speed Do You Need? -->
-        <section>
-            <h2>What Speed Do You Actually Need?</h2>
+            <!-- Section: What Speed Do You Need? -->
+            <section id="speed-requirements" class="article-section">
+                <h3>What Speed Do You Actually Need?</h3>
             
-            <h3>Streaming Video</h3>
+            <h4>Streaming Video</h4>
             <ul>
                 <li><strong>Netflix HD (1080p):</strong> 5 Mbps</li>
-                <li><strong>Netflix 4K:</strong> 25 Mbps</li>
+                <li><strong>Netflix 4K (Ultra HD):</strong> 25 Mbps</li>
                 <li><strong>YouTube 1080p:</strong> 5 Mbps</li>
                 <li><strong>YouTube 4K:</strong> 20 Mbps</li>
+                <li><strong>Disney+ 4K:</strong> 25 Mbps</li>
+                <li><strong>Amazon Prime 4K:</strong> 15 Mbps</li>
             </ul>
             
-            <h3>Gaming</h3>
+            <h4>Gaming</h4>
             <ul>
-                <li><strong>Online Gaming:</strong> 3-6 Mbps (but latency matters more!)</li>
-                <li><strong>Game Downloads:</strong> 50+ Mbps recommended</li>
-                <li><strong>Cloud Gaming (Stadia, GeForce Now):</strong> 35+ Mbps</li>
+                <li><strong>Online Gaming (Fortnite, Apex, COD):</strong> 3-6 Mbps (but latency matters more!)</li>
+                <li><strong>Game Downloads (Steam, PlayStation, Xbox):</strong> 50+ Mbps recommended</li>
+                <li><strong>Cloud Gaming (Xbox Cloud, GeForce Now):</strong> 35+ Mbps</li>
+                <li><strong>Competitive Gaming:</strong> Low latency (&lt;30ms) more important than speed</li>
             </ul>
             
-            <h3>Video Calls</h3>
+            <h4>Video Calls & Remote Work</h4>
             <ul>
-                <li><strong>Zoom HD:</strong> 2.6 Mbps</li>
-                <li><strong>Google Meet HD:</strong> 3.2 Mbps</li>
-                <li><strong>Microsoft Teams:</strong> 4 Mbps</li>
+                <li><strong>Zoom HD Video:</strong> 2.6 Mbps up/down</li>
+                <li><strong>Google Meet HD:</strong> 3.2 Mbps up/down</li>
+                <li><strong>Microsoft Teams HD:</strong> 4 Mbps up/down</li>
+                <li><strong>Zoom/Teams with screen sharing:</strong> 5+ Mbps up/down</li>
+            </ul>
+            
+            <h4>General Usage</h4>
+            <ul>
+                <li><strong>Web Browsing:</strong> 3-5 Mbps</li>
+                <li><strong>Social Media:</strong> 3-5 Mbps</li>
+                <li><strong>Email:</strong> 1 Mbps</li>
+                <li><strong>Music Streaming (Spotify, Apple Music):</strong> 2 Mbps</li>
+                <li><strong>Cloud Backup/Sync:</strong> 10+ Mbps upload recommended</li>
             </ul>
             
             <div class="info-box tip">
                 <strong>💡 Multiple Devices</strong>
                 <p>Multiply these numbers by the number of devices using your internet simultaneously. A family of 4 streaming HD video needs at least 20 Mbps (4 × 5 Mbps).</p>
             </div>
-        </section>
+            
+            <div class="info-box warning">
+                <strong>⚠️ Upload Speed Matters Too!</strong>
+                <p>Video calls, live streaming, and uploading files require good <strong>upload speed</strong>. Most ISPs provide asymmetric connections (e.g., 100 Mbps down / 10 Mbps up). If you frequently upload content or video call, ensure your upload speed meets your needs.</p>
+            </div>
+            </section>
 
-        <!-- Section: Glossary -->
-        <section>
-            <h2>Glossary of Terms</h2>
+            <!-- Section: How Internet Routing Works -->
+            <section id="routing" class="article-section">
+                <h3>How Internet Routing Works</h3>
+            <p>Understanding how data travels across the internet helps explain why international speeds differ from local speeds.</p>
+            
+            <h4>The Journey of Your Data Packet</h4>
+            <ol>
+                <li><strong>Your Device</strong> → Sends data to your router/modem</li>
+                <li><strong>Home Network</strong> → Router forwards to your ISP</li>
+                <li><strong>Local ISP Network</strong> → Routes within your city/country</li>
+                <li><strong>Internet Exchange Point (IXP)</strong> → Major junction where ISPs connect</li>
+                <li><strong>Undersea Cables</strong> → For international traffic, data crosses oceans via fiber optic cables</li>
+                <li><strong>Transit Networks</strong> → Specialized carriers transport data across continents</li>
+                <li><strong>Destination ISP</strong> → Receives and routes to target network</li>
+                <li><strong>Target Server</strong> → Finally reaches the website/service you're accessing</li>
+            </ol>
+            
+            <div class="info-box">
+                <strong>🌊 Undersea Cable Facts</strong>
+                <p>Over 400 undersea cables carry 99% of international internet traffic. These cables are only about as thick as a garden hose but carry terabits of data per second. Popular cables connecting continents include <strong>MAREA</strong> (US-Spain), <strong>2Africa</strong> (circling Africa), and <strong>SEA-ME-WE 5</strong> (Southeast Asia to Europe).</p>
+            </div>
+            </section>
+
+            <!-- Section: Undersea Cables -->
+            <section id="undersea-cables" class="article-section">
+                <h3>Undersea Cables: The Backbone of the Internet</h3>
+                <p>Over 99% of international internet traffic travels through undersea cables. These fiber optic cables connect continents and enable global communication.</p>
+                
+                <blockquote class="article-quote">
+                    <p><strong>Interesting Fact:</strong> There are over 500 active undersea cables totaling more than 1.3 million kilometers. A single cable can carry terabits of data per second, serving millions of users simultaneously.</p>
+                </blockquote>
+                
+                <p>Most undersea cables connecting Africa to Europe pass through the Mediterranean or around the Cape of Good Hope, routing through major hubs like Amsterdam, London, and Marseille.</p>
+            </section>
+
+            <!-- Section: Factors Affecting Your Speed -->
+            <section id="factors-affecting" class="article-section">
+                <h3>Factors That Affect Your Internet Speed</h3>
+            
+            <h4>1. Physical Distance</h4>
+            <p>Data travels at roughly 200,000 km/s through fiber optic cables (⅔ the speed of light). The farther data must travel, the higher the latency and potential for speed reduction.</p>
+            
+            <h4>2. Network Congestion</h4>
+            <p>Like traffic on a highway, internet "traffic" can get congested during peak hours (evenings, weekends). International routes are especially prone to congestion.</p>
+            
+            <h4>3. Peering Agreements</h4>
+            <p>Your ISP must have agreements with other networks to exchange traffic. Poor peering means your data takes longer, indirect routes.</p>
+            
+            <h4>4. Quality of Service (QoS)</h4>
+            <p>Some ISPs prioritize certain types of traffic (e.g., streaming over torrents) or throttle speeds after usage caps.</p>
+            
+            <h4>5. Your Equipment</h4>
+            <p>Old routers, damaged cables, WiFi interference, and outdated devices can bottleneck your connection before it even reaches the ISP.</p>
+            
+            <h4>6. Server Capacity</h4>
+            <p>The server you're connecting to must be able to handle your speed. An overloaded server won't send data at your connection's full capacity.</p>
+            
+            <h4>7. Protocol Overhead</h4>
+            <p>Internet protocols (TCP/IP, HTTP, TLS encryption) add overhead to data transmission. This reduces usable speed by roughly 5-15%.</p>
+            
+            <div class="info-box tip">
+                <strong>💡 WiFi vs Ethernet</strong>
+                <p>WiFi can reduce your speed by 30-50% compared to wired Ethernet due to interference, distance from router, and shared bandwidth. For accurate speed tests, use a wired connection when possible.</p>
+            </div>
+            </section>
+
+            <!-- Section: Latency Explained -->
+            <section id="latency" class="article-section">
+                <h3>Understanding Latency (Ping)</h3>
+            <p>Latency is often more important than speed for real-time applications like gaming and video calls.</p>
+            
+            <h4>What Causes Latency?</h4>
+            <ul>
+                <li><strong>Physical Distance:</strong> Light/electrical signals take time to travel</li>
+                <li><strong>Number of Hops:</strong> Each router your data passes through adds delay</li>
+                <li><strong>Processing Time:</strong> Routers and servers take time to process packets</li>
+                <li><strong>Network Congestion:</strong> Queued packets must wait their turn</li>
+            </ul>
+            
+            <h4>Latency Guidelines</h4>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Excellent (&lt;20ms)</h4>
+                    <p>Competitive gaming, real-time trading, professional applications</p>
+                </div>
+                <div class="comparison-card">
+                    <h4>Good (20-50ms)</h4>
+                    <p>Online gaming, video calls, general usage</p>
+                </div>
+                <div class="comparison-card">
+                    <h4>Acceptable (50-100ms)</h4>
+                    <p>Casual gaming, video streaming, web browsing</p>
+                </div>
+                <div class="comparison-card">
+                    <h4>Poor (&gt;100ms)</h4>
+                    <p>Noticeable lag in games and calls, slow responsiveness</p>
+                </div>
+            </div>
+            </section>
+
+            <!-- Section: Jitter and Packet Loss -->
+            <section id="jitter-packet-loss" class="article-section">
+                <h3>Jitter and Packet Loss</h3>
+            
+            <h4>What is Jitter?</h4>
+            <p><strong>Jitter</strong> is the variation in latency over time. Consistent 50ms latency is better than fluctuating between 20-80ms.</p>
+            
+            <div class="info-box warning">
+                <strong>Effects of High Jitter:</strong>
+                <ul>
+                    <li>Choppy video calls with audio/video desync</li>
+                    <li>Inconsistent gaming performance (rubber-banding)</li>
+                    <li>Buffering during live streams</li>
+                </ul>
+                <p><strong>Acceptable Jitter:</strong> &lt;15ms. <strong>Problematic:</strong> &gt;30ms</p>
+            </div>
+            
+            <h4>What is Packet Loss?</h4>
+            <p><strong>Packet Loss</strong> occurs when data packets fail to reach their destination and must be resent.</p>
+            
+            <div class="info-box warning">
+                <strong>Effects of Packet Loss:</strong>
+                <ul>
+                    <li>Pixelated video during streams/calls</li>
+                    <li>Game characters warping/teleporting</li>
+                    <li>Slow file downloads despite good speed</li>
+                    <li>Websites failing to load completely</li>
+                </ul>
+                <p><strong>Acceptable Packet Loss:</strong> &lt;1%. <strong>Problematic:</strong> &gt;2%</p>
+            </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Glossary -->
+            <section id="glossary" class="content-section">
+                <div class="section-inner">
+                    <h2>Complete Internet Terminology Glossary</h2>
+            <p class="glossary-intro">A comprehensive guide to internet and networking terminology you'll encounter when testing and understanding your connection.</p>
+            
             <div class="glossary-grid">
                 <div class="glossary-item">
-                    <dt>Latency (Ping)</dt>
-                    <dd>The time it takes for data to travel from your device to the server and back, measured in milliseconds (ms). Lower is better. Good for gaming: &lt;50ms. Acceptable: &lt;100ms.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>Download Speed</dt>
-                    <dd>How fast data comes from the internet to your device. This affects streaming, downloading files, and loading web pages. Measured in Mbps.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>Upload Speed</dt>
-                    <dd>How fast data goes from your device to the internet. Important for video calls, uploading files, and live streaming. Usually slower than download speed.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>Jitter</dt>
-                    <dd>Variation in latency over time. High jitter causes choppy video calls and inconsistent gaming performance. Good: &lt;10ms. Acceptable: &lt;30ms.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>ISP (Internet Service Provider)</dt>
-                    <dd>The company that provides your internet connection (e.g., Comcast, BT, Vodafone). They control your local network speed.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>CDN (Content Delivery Network)</dt>
-                    <dd>A network of servers around the world that host copies of content. Services like Netflix and YouTube use CDNs to deliver content faster.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>Throughput</dt>
-                    <dd>The actual amount of data successfully transferred over time. Often lower than advertised speeds due to network conditions.</dd>
-                </div>
-                
-                <div class="glossary-item">
-                    <dt>Packet Loss</dt>
-                    <dd>When data packets fail to reach their destination and must be resent. Causes buffering, lag, and poor call quality. Good: &lt;1%. Problematic: &gt;2%.</dd>
+                    <dt>2.4GHz vs 5GHz</dt>
+                    <dd>WiFi frequency bands. 2.4GHz: Longer range, better wall penetration, more interference, slower speeds (up to 600 Mbps). 5GHz: Shorter range, less interference, faster speeds (up to 1300+ Mbps). Use 5GHz when close to router.</dd>
                 </div>
                 
                 <div class="glossary-item">
                     <dt>Bandwidth</dt>
-                    <dd>The maximum capacity of your internet connection. Like a pipe: wider bandwidth allows more data to flow simultaneously.</dd>
+                    <dd>The maximum capacity of your internet connection, like the width of a pipe. Wider bandwidth allows more data to flow simultaneously. Measured in Mbps or Gbps. Important: bandwidth is capacity, not speed.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Bufferbloat</dt>
+                    <dd>When network devices buffer (queue) too much data, causing high latency spikes. Makes your connection feel sluggish even with good speed. Common with older routers or during heavy uploads/downloads.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>CDN (Content Delivery Network)</dt>
+                    <dd>A distributed network of servers worldwide that cache and deliver content from locations close to users. Companies like Cloudflare, Akamai, and Fastly run massive CDNs. Makes websites load faster globally.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>DNS (Domain Name System)</dt>
+                    <dd>The internet's "phone book" that translates domain names (google.com) into IP addresses (142.250.80.46). Slow DNS can make websites appear slow to load. Popular DNS providers: Google (8.8.8.8), Cloudflare (1.1.1.1).</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Download Speed</dt>
+                    <dd>How fast data travels from the internet to your device. Affects streaming, file downloads, web browsing, and loading images. Measured in Mbps. Typically higher than upload speed on consumer connections.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Fiber Optic</dt>
+                    <dd>High-speed internet technology using light through glass or plastic fibers. Offers symmetrical speeds (equal upload/download), low latency, and is less affected by distance than copper cables. The gold standard for internet connectivity.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Gigabit (Gb)</dt>
+                    <dd>1,000 megabits. Often refers to gigabit internet (1 Gbps = 1000 Mbps), though actual speeds may be lower. Don't confuse with Gigabyte (GB) - there are 8 gigabits in 1 gigabyte.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Hop</dt>
+                    <dd>Each router or network device your data passes through on its journey. More hops = higher latency. Use "traceroute" (Windows: tracert) to see the path your data takes and identify where slowdowns occur.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>ISP (Internet Service Provider)</dt>
+                    <dd>The company providing your internet connection (e.g., Comcast, Verizon, BT, Vodafone, Safaricom). They control your local network infrastructure, speeds, and often impose data caps or throttling policies.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>IXP (Internet Exchange Point)</dt>
+                    <dd>Physical infrastructure where multiple ISPs and networks connect to exchange traffic. Major IXPs like AMS-IX (Amsterdam), DE-CIX (Frankfurt), and LINX (London) handle massive amounts of global internet traffic.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Jitter</dt>
+                    <dd>Variation in latency over time. Consistent 50ms ping is better than ping fluctuating between 20-80ms. High jitter causes choppy video calls, voice desync, and unpredictable gaming performance. Good: &lt;15ms, Problematic: &gt;30ms.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Latency (Ping)</dt>
+                    <dd>Time for data to travel from your device to a server and back, measured in milliseconds (ms). Critical for gaming, video calls, and real-time applications. Lower is better. Excellent: &lt;20ms, Good: 20-50ms, Acceptable: 50-100ms, Poor: &gt;100ms.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Mbps (Megabits per second)</dt>
+                    <dd>Standard unit for measuring internet speed. 1 Mbps = 1,000,000 bits per second. Note: There are 8 bits in 1 byte, so 100 Mbps = 12.5 MB/s actual download speed in applications.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>MB/s (Megabytes per second)</dt>
+                    <dd>Unit for measuring data transfer in applications like Steam, browsers, or file managers. To convert Mbps to MB/s, divide by 8. Example: 80 Mbps connection downloads at 10 MB/s.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Packet</dt>
+                    <dd>Small unit of data transmitted over networks. Your data is split into packets, sent separately, and reassembled at destination. Each packet contains addressing information and error-checking data.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Packet Loss</dt>
+                    <dd>Percentage of data packets that fail to reach their destination. Causes lag, buffering, pixelated video, and must be retransmitted. Good: &lt;0.5%, Acceptable: &lt;1%, Problematic: &gt;2%. Often caused by congestion, poor WiFi, or faulty equipment.</dd>
                 </div>
                 
                 <div class="glossary-item">
                     <dt>Peering</dt>
-                    <dd>Agreement between ISPs to exchange traffic directly. Better peering = faster international speeds. Poor peering = slower connections.</dd>
+                    <dd>Direct interconnection between ISPs to exchange traffic without intermediaries. Good peering agreements mean faster speeds and lower latency. Poor peering forces traffic through expensive, slower transit networks.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>QoS (Quality of Service)</dt>
+                    <dd>Network management technique that prioritizes certain types of traffic. ISPs may prioritize streaming over downloads, or business traffic over residential. Can improve performance for time-sensitive applications but may throttle others.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Router</dt>
+                    <dd>Device that directs internet traffic between your devices and the internet. Quality, age, and settings significantly impact your internet performance. Modern routers support WiFi 6, QoS, and multiple frequency bands.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Throughput</dt>
+                    <dd>Actual amount of data successfully transferred over time. Always lower than theoretical maximum due to protocol overhead, network conditions, and interference. Real-world throughput is what matters for daily use.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Throttling</dt>
+                    <dd>When your ISP intentionally slows your connection, often after reaching data caps, during peak hours, or for specific applications (torrents, streaming). Some ISPs throttle based on content type or destination.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>Upload Speed</dt>
+                    <dd>How fast data travels from your device to the internet. Critical for video calls, live streaming, cloud backup, and uploading files. Usually much slower than download on consumer connections (asymmetric). Fiber offers symmetric speeds.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>VPN (Virtual Private Network)</dt>
+                    <dd>Service that routes your internet traffic through encrypted servers, hiding your identity and location. Typically reduces speed by 10-50% due to encryption overhead and longer routing paths. Can bypass throttling or geo-blocks.</dd>
+                </div>
+                
+                <div class="glossary-item">
+                    <dt>WiFi 5 vs WiFi 6</dt>
+                    <dd>WiFi 5 (802.11ac): Max 3.5 Gbps, 5GHz band. WiFi 6 (802.11ax): Max 9.6 Gbps, both 2.4GHz and 5GHz, better performance with many devices, lower latency. WiFi 6E adds 6GHz band for even better performance.</dd>
                 </div>
             </div>
-        </section>
+                </div>
+            </section>
+        </div>
 
         <!-- CTA Section -->
         <div class="cta-section">
             <h2>Ready to Test Your Real Internet Speed?</h2>
             <p>See what your actual international connection speed is, not just what your ISP promises.</p>
             <a href="/" class="cta-button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
-                </svg>
+                <i data-lucide="zap"></i>
                 Test Your Speed Now
             </a>
         </div>
@@ -735,21 +647,10 @@
         <p>&copy; 2025 Speed Test. <a href="/">Home</a> • <a href="/learn.html">Learn</a></p>
     </footer>
 
-    <script>
-        // ======================================== THEME MANAGEMENT
-        
-        const themeToggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
-        
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        html.setAttribute('data-theme', savedTheme);
-        
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
-    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Shared Script -->
+    <script src="/main.js" type="text/javascript"></script>
 </body>
 </html>

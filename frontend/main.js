@@ -120,32 +120,53 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     console.log('[App] Initializing SpeedCheck...');
     
-    // Query all DOM elements once
-    queryDOMElements();
-    
-    // Load saved configuration
-    loadConfiguration();
-    
-    // Setup theme
+    // Always setup theme first (works on all pages)
     initializeTheme();
     
-    // Setup event listeners
-    initializeEventListeners();
+    // Initialize Lucide icons after theme is set
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
     
-    // Build gauge
-    buildMainGauge();
+    // Initialize theme toggle
+    initializeThemeToggle();
     
-    // Load history
-    loadHistory();
+    // Initialize tab navigation (for learn page)
+    initializeTabNavigation();
     
-    // Fetch server info
-    await fetchServerInfo();
+    // Check if this is the speed test page
+    const isSpeedTestPage = document.getElementById('gaugeCircle') !== null;
     
-    // Setup accessibility
-    initializeAccessibility();
-    
-    console.log('[App] Initialization complete');
-    announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
+    if (isSpeedTestPage) {
+        // Speed test page specific initialization
+        console.log('[App] Speed test page detected');
+        
+        // Query all DOM elements once
+        queryDOMElements();
+        
+        // Load saved configuration
+        loadConfiguration();
+        
+        // Setup event listeners
+        initializeEventListeners();
+        
+        // Build gauge
+        buildMainGauge();
+        
+        // Load history
+        loadHistory();
+        
+        // Fetch server info
+        await fetchServerInfo();
+        
+        // Setup accessibility
+        initializeAccessibility();
+        
+        console.log('[App] Speed test initialization complete');
+        announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
+    } else {
+        console.log('[App] Non-speed-test page detected');
+    }
 }
 
 function queryDOMElements() {
@@ -206,19 +227,154 @@ function initializeTheme() {
     updateThemeIcon(savedTheme);
 }
 
+function initializeThemeToggle() {
+    // Find theme toggle button (works on all pages)
+    const themeToggle = document.getElementById('themeToggle');
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+        console.log('[Theme] Theme toggle initialized');
+    }
+}
+
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     updateThemeIcon(newTheme);
-    announceToScreenReader(`Theme changed to ${newTheme} mode`);
+    
+    // Try to announce if function exists
+    if (typeof announceToScreenReader === 'function') {
+        announceToScreenReader(`Theme changed to ${newTheme} mode`);
+    }
 }
 
 function updateThemeIcon(theme) {
-    const icon = document.querySelector('.theme-icon');
-    icon?.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-    if (icon) lucide.createIcons();
+    // Update icon for homepage settings toggle (in settings panel)
+    const settingsIcon = document.querySelector('.theme-toggle-inline .theme-icon');
+    if (settingsIcon) {
+        settingsIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    // Update icon for learn page toggle (in nav)
+    const learnToggle = document.querySelector('.page-learn .theme-toggle-inline .theme-icon');
+    if (learnToggle) {
+        learnToggle.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    // Update icon for 404 page toggle
+    const errorToggle = document.querySelector('.page-404 .theme-toggle');
+    if (errorToggle) {
+        const toggleIcon = errorToggle.querySelector('i[data-lucide]');
+        if (toggleIcon) {
+            toggleIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+}
+
+// ========================================
+// SIDEBAR NAVIGATION (Learn Page)
+// ========================================
+
+function initializeTabNavigation() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
+    const contentSections = document.querySelectorAll('.content-section');
+    
+    if (!sidebar || !sidebarToggle) {
+        return; // Not on learn page
+    }
+    
+    console.log('[Sidebar] Initializing sidebar navigation');
+    
+    // Toggle sidebar
+    function toggleSidebar() {
+        const isActive = sidebar.classList.contains('active');
+        if (isActive) {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        } else {
+            sidebar.classList.add('active');
+            sidebarOverlay.classList.add('active');
+        }
+    }
+    
+    // Close sidebar
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
+    
+    // Switch section
+    function switchSection(sectionId) {
+        // Remove active from all links and sections
+        sidebarLinks.forEach(link => link.classList.remove('active'));
+        contentSections.forEach(section => section.classList.remove('active'));
+        
+        // Activate target section
+        const targetSection = document.getElementById(sectionId);
+        const targetLink = document.querySelector(`.sidebar-link[data-section="${sectionId}"]`);
+        
+        if (targetSection) {
+            targetSection.classList.add('active');
+            if (targetLink) {
+                targetLink.classList.add('active');
+            }
+            
+            // Update URL hash
+            history.replaceState(null, null, `#${sectionId}`);
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            console.log(`[Sidebar] Switched to ${sectionId}`);
+        }
+    }
+    
+    // Event listeners
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const sectionId = link.getAttribute('data-section');
+            if (sectionId) {
+                switchSection(sectionId);
+                closeSidebar();
+            }
+        });
+    });
+    
+    // Handle URL hash on load
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(hash)) {
+        switchSection(hash);
+    } else {
+        // Default to first section
+        switchSection('speed-testing');
+    }
+    
+    // Handle hash changes
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.replace('#', '');
+        if (hash && document.getElementById(hash)) {
+            switchSection(hash);
+        }
+    });
+    
+    // Close sidebar on ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            closeSidebar();
+        }
+    });
 }
 
 // ========================================
