@@ -33,7 +33,7 @@ const CONFIG = {
     chunkSize: 512,      // KB for download chunks
     uploadSize: 10,      // MB per upload thread
     downloadSize: 50,    // MB per download thread
-    // Backend (supports environment variable override for dev/production flexibility)
+    // Backend
     apiBase: typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'https://speed-test-backend.up.railway.app',
     // UI
     animationDuration: 350
