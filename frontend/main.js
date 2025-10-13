@@ -117,8 +117,42 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
+// ========================================
+// SERVICE WORKER REGISTRATION
+// ========================================
+
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) {
+        console.log('[PWA] Service Worker not supported');
+        return;
+    }
+    
+    navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+            console.log('[PWA] Service Worker registered:', registration.scope);
+            
+            // Check for updates periodically
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('[PWA] Service Worker update found');
+                
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('[PWA] New version available. Refresh to update.');
+                    }
+                });
+            });
+        })
+        .catch((error) => {
+            console.error('[PWA] Service Worker registration failed:', error);
+        });
+}
+
 async function initializeApp() {
     console.log('[App] Initializing SpeedCheck...');
+    
+    // Register service worker for PWA support
+    registerServiceWorker();
     
     // Always setup theme first (works on all pages)
     initializeTheme();
