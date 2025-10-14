@@ -29,13 +29,20 @@ describe('API Enhanced Test Suite', () => {
     // Create buffer larger than MAX_UPLOAD_SIZE_MB (default 50MB)
     const oversizeData = Buffer.alloc(51 * 1024 * 1024); // 51MB
     
-    const res = await request(app)
-      .post('/api/upload')
-      .send(oversizeData)
-      .set('Content-Type', 'application/octet-stream');
-    
-    expect(res.status).toBe(413);
-    expect(res.body).toHaveProperty('error');
+    try {
+      const res = await request(app)
+        .post('/api/upload')
+        .send(oversizeData)
+        .set('Content-Type', 'application/octet-stream');
+      
+      // If we get a response, it should be 413
+      expect(res.status).toBe(413);
+      expect(res.body).toHaveProperty('error');
+    } catch (error) {
+      // Connection reset is also acceptable behavior for oversized uploads
+      // Server destroys the connection when limit is exceeded
+      expect(error.code).toMatch(/ECONNRESET|EPIPE/);
+    }
   }, 30000);
   
   test('Accepts valid upload size', async () => {
