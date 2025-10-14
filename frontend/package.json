@@ -5,6 +5,10 @@
   "scripts": {
     "start": "node server.js"
   },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {
     "express": "^5.1.0"
   }
