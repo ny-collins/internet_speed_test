@@ -8,9 +8,17 @@
     "dev": "nodemon server.js",
     "test": "jest"
   },
-  "keywords": ["speed-test", "internet", "bandwidth"],
+  "keywords": [
+    "speed-test",
+    "internet",
+    "bandwidth"
+  ],
   "author": "Collins Mwangi",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
     "compression": "^1.8.1",
     "cors": "^2.8.5",
@@ -18,16 +26,21 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.4.0",
     "helmet": "^7.1.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "pino": "^10.0.0",
+    "pino-http": "^11.0.0",
+    "prom-client": "^15.1.3"
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "supertest": "^7.1.1",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.1"
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
     "verbose": false
   }
 }
