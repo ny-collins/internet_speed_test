@@ -23,7 +23,8 @@ const CONFIG = {
         }
     },
     stability: {
-        sampleCount: 5,
+        sampleCount: 5,          // Minimum samples required before checking stability
+        checkWindow: 10,         // Analyze last 10 samples for more reliable detection
         varianceThreshold: 0.05
     },
     // Performance
@@ -63,6 +64,11 @@ const STATE = {
         lastCheck: 0,
         blockWarnings: 0,
         maxBlockTime: 0
+    },
+    // PWA update management
+    pwa: {
+        updateAvailable: false,
+        newWorker: null
     }
 };
 
@@ -134,9 +140,6 @@ function registerServiceWorker() {
         return;
     }
     
-    let updateAvailable = false;
-    let newWorker = null;
-    
     navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
             console.log('[PWA] Service Worker registered:', registration.scope);
@@ -151,13 +154,13 @@ function registerServiceWorker() {
             
             // Listen for updates
             registration.addEventListener('updatefound', () => {
-                newWorker = registration.installing;
+                STATE.pwa.newWorker = registration.installing;
                 console.log('[PWA] Service Worker update found');
                 
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                STATE.pwa.newWorker.addEventListener('statechange', () => {
+                    if (STATE.pwa.newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                         console.log('[PWA] New version available. Showing update prompt.');
-                        updateAvailable = true;
+                        STATE.pwa.updateAvailable = true;
                         showUpdatePrompt();
                     }
                 });
@@ -165,7 +168,7 @@ function registerServiceWorker() {
             
             // Listen for controlling service worker change
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (updateAvailable) {
+                if (STATE.pwa.updateAvailable) {
                     console.log('[PWA] New Service Worker activated. Reloading page...');
                     window.location.reload();
                 }
@@ -256,8 +259,8 @@ function showUpdatePrompt() {
     document.getElementById('update-btn').addEventListener('click', () => {
         banner.remove();
         // Tell the waiting service worker to skip waiting and activate
-        if (newWorker) {
-            newWorker.postMessage({ type: 'SKIP_WAITING' });
+        if (STATE.pwa.newWorker) {
+            STATE.pwa.newWorker.postMessage({ type: 'SKIP_WAITING' });
         }
     });
     
@@ -1586,16 +1589,21 @@ function sendChunkXHR(threadId, chunk, abortSignal) {
 function isSpeedStable(samples) {
     if (samples.length < CONFIG.stability.sampleCount) return false;
     
-    const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
-    const variance = samples.reduce((sum, speed) => {
+    // Use longer window for more reliable stability detection
+    // Analyze up to last 10 samples instead of just 5
+    const checkWindow = Math.min(samples.length, CONFIG.stability.checkWindow);
+    const recentSamples = samples.slice(-checkWindow);
+    
+    const avg = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
+    const variance = recentSamples.reduce((sum, speed) => {
         const diff = (speed - avg) / avg;
         return sum + (diff * diff);
-    }, 0) / samples.length;
+    }, 0) / recentSamples.length;
     
     const isStable = variance < CONFIG.stability.varianceThreshold;
     
     if (isStable) {
-        console.log(`[Stability] Detected: variance=${variance.toFixed(4)}, threshold=${CONFIG.stability.varianceThreshold}`);
+        console.log(`[Stability] Detected: variance=${variance.toFixed(4)}, threshold=${CONFIG.stability.varianceThreshold}, window=${checkWindow} samples`);
     }
     
     return isStable;
