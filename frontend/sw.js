@@ -31,12 +31,24 @@ self.addEventListener('install', (event) => {
             })
             .then(() => {
                 console.log('[Service Worker] Installation complete');
-                return self.skipWaiting();
+                // Don't skip waiting automatically - wait for user confirmation
+                // return self.skipWaiting();
             })
             .catch((error) => {
                 console.error('[Service Worker] Installation failed:', error);
             })
     );
+});
+
+// ========================================
+// MESSAGE EVENT (for update control)
+// ========================================
+
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        console.log('[Service Worker] Received SKIP_WAITING message');
+        self.skipWaiting();
+    }
 });
 
 // ========================================

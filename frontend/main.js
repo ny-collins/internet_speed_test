@@ -134,25 +134,137 @@ function registerServiceWorker() {
         return;
     }
     
+    let updateAvailable = false;
+    let newWorker = null;
+    
     navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
             console.log('[PWA] Service Worker registered:', registration.scope);
             
-            // Check for updates periodically
+            // Check for updates on page load
+            registration.update();
+            
+            // Check for updates periodically (every 60 seconds)
+            setInterval(() => {
+                registration.update();
+            }, 60000);
+            
+            // Listen for updates
             registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
+                newWorker = registration.installing;
                 console.log('[PWA] Service Worker update found');
                 
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('[PWA] New version available. Refresh to update.');
+                        console.log('[PWA] New version available. Showing update prompt.');
+                        updateAvailable = true;
+                        showUpdatePrompt();
                     }
                 });
+            });
+            
+            // Listen for controlling service worker change
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (updateAvailable) {
+                    console.log('[PWA] New Service Worker activated. Reloading page...');
+                    window.location.reload();
+                }
             });
         })
         .catch((error) => {
             console.error('[PWA] Service Worker registration failed:', error);
         });
+}
+
+function showUpdatePrompt() {
+    // Create update notification banner
+    const banner = document.createElement('div');
+    banner.id = 'update-banner';
+    banner.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: 90%;
+            animation: slideDown 0.3s ease-out;
+        ">
+            <span style="flex: 1; font-weight: 500;">
+                🎉 New version available! Update now for the latest features.
+            </span>
+            <button id="update-btn" style="
+                background: white;
+                color: #667eea;
+                border: none;
+                padding: 8px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: transform 0.2s;
+            ">
+                Update Now
+            </button>
+            <button id="dismiss-btn" style="
+                background: transparent;
+                color: white;
+                border: 2px solid white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: transform 0.2s;
+            ">
+                Later
+            </button>
+        </div>
+    `;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        #update-btn:hover {
+            transform: scale(1.05);
+        }
+        #dismiss-btn:hover {
+            transform: scale(1.05);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(banner);
+    
+    // Update button handler
+    document.getElementById('update-btn').addEventListener('click', () => {
+        banner.remove();
+        // Tell the waiting service worker to skip waiting and activate
+        if (newWorker) {
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+        }
+    });
+    
+    // Dismiss button handler
+    document.getElementById('dismiss-btn').addEventListener('click', () => {
+        banner.remove();
+    });
 }
 
 async function initializeApp() {
@@ -880,11 +992,7 @@ async function measureDownload() {
             // Sum bytes from all threads
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
             
-            // Calculate current speed
-            const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
-            updateGauge(currentSpeed, 'download');
-            
-            // Track speed samples for stability check
+            // Track speed samples for interval-based speed calculation
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
@@ -894,10 +1002,16 @@ async function measureDownload() {
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
                 
+                // Use recent average for display (last 3 samples, ~1.5 seconds)
+                // This provides more stable readings than instant speed
+                const recentSamples = speedSamples.slice(-3);
+                const displaySpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
+                updateGauge(displaySpeed, 'download');
+                
                 // Check for stability after minimum duration
                 if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
-                    const recentSamples = speedSamples.slice(-CONFIG.stability.sampleCount);
-                    if (isSpeedStable(recentSamples)) {
+                    const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
+                    if (isSpeedStable(stabilityCheck)) {
                         console.log('[Download] Speed stabilized, stopping early');
                         isRunning = false;
                         break;
@@ -1054,11 +1168,7 @@ async function measureUpload() {
             // Sum bytes from all threads
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
             
-            // Calculate current speed
-            const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
-            updateGauge(currentSpeed, 'upload');
-            
-            // Track speed samples
+            // Track speed samples for interval-based speed calculation
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
@@ -1068,10 +1178,16 @@ async function measureUpload() {
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
                 
+                // Use recent average for display (last 3 samples, ~1.5 seconds)
+                // This provides more stable readings than instant speed
+                const recentSamples = speedSamples.slice(-3);
+                const displaySpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
+                updateGauge(displaySpeed, 'upload');
+                
                 // Check stability
                 if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
-                    const recentSamples = speedSamples.slice(-CONFIG.stability.sampleCount);
-                    if (isSpeedStable(recentSamples)) {
+                    const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
+                    if (isSpeedStable(stabilityCheck)) {
                         console.log('[Upload] Speed stabilized, stopping early');
                         isRunning = false;
                         break;
