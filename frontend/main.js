@@ -629,8 +629,8 @@ async function startTest() {
         jitter: null
     };
     
-    // Start UI blocking detection
-    startUIMonitoring();
+    // Start performance monitoring
+    startPerformanceMonitoring();
     
     // Show gauge and hide start button
     showGauge();
@@ -666,8 +666,8 @@ async function startTest() {
         showStatus(`Test failed: ${error.message}`, 'error');
         announceToScreenReader(`Test failed: ${error.message}`);
     } finally {
-        // Stop UI monitoring and report any blocking
-        stopUIMonitoring();
+        // Stop performance monitoring
+        stopPerformanceMonitoring();
         
         STATE.testing = false;
         if (DOM.startTest) DOM.startTest.disabled = false;
@@ -718,8 +718,8 @@ function cancelTest() {
         STATE.rafId = null;
     }
     
-    // Stop UI monitoring
-    stopUIMonitoring();
+    // Stop performance monitoring
+    stopPerformanceMonitoring();
     
     showStatus('Test cancelled', 'info');
     announceToScreenReader('Test cancelled');
