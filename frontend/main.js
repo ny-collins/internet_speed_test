@@ -1010,8 +1010,9 @@ async function downloadThread(threadId, isRunning, byteCounter) {
 
 // Create a reusable chunk for fallback upload (avoids memory allocation)
 // This is defined here (top-level) to avoid TDZ issues when referenced in uploadWithFallback
+// Note: crypto.getRandomValues() has a 64KB (65536 bytes) limit
 const REUSABLE_UPLOAD_CHUNK = (() => {
-    const chunk = new Uint8Array(256 * 1024); // 256KB reusable chunk
+    const chunk = new Uint8Array(65536); // 64KB reusable chunk (crypto limit)
     crypto.getRandomValues(chunk);
     return chunk;
 })();
@@ -1158,16 +1159,80 @@ async function uploadThread(threadId, isRunning, byteCounter) {
         }
     };
     
-    // Use XHR-based upload with progress tracking
-    // Both paths use XHR for accurate network upload measurement
-    if (supportsStreamingUpload()) {
-        return uploadWithStreaming(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
-    } else {
-        return uploadWithFallback(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
-    }
+    // Use optimized upload with reusable chunk and XHR progress tracking
+    return uploadWithReusableChunk(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
 }
 
-// XHR-based upload with accurate progress tracking
+// Optimized upload using reusable chunk with XHR progress tracking
+async function uploadWithReusableChunk(threadId, totalSize, abortController, isRunning, byteCounter, cleanup) {
+    // Build blob from reusable chunk (fast, no crypto generation delay)
+    const chunkSize = REUSABLE_UPLOAD_CHUNK.length; // 64KB
+    const chunksNeeded = Math.ceil(totalSize / chunkSize);
+    const chunks = [];
+    
+    // Reuse the same chunk multiple times to build the blob quickly
+    for (let i = 0; i < chunksNeeded; i++) {
+        if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
+            console.log(`[Upload] Thread ${threadId} aborted during preparation`);
+            cleanup();
+            return byteCounter;
+        }
+        
+        const isLastChunk = (i === chunksNeeded - 1);
+        const remaining = totalSize - (i * chunkSize);
+        
+        if (isLastChunk && remaining < chunkSize) {
+            // Last chunk might be smaller
+            chunks.push(REUSABLE_UPLOAD_CHUNK.buffer.slice(0, remaining));
+        } else {
+            chunks.push(REUSABLE_UPLOAD_CHUNK.buffer);
+        }
+    }
+    
+    const blob = new Blob(chunks, { type: 'application/octet-stream' });
+    
+    // Use XHR for accurate upload progress tracking
+    return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        
+        // Track actual network upload progress
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                byteCounter.bytes = event.loaded;
+            }
+        };
+        
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                byteCounter.bytes = totalSize;
+                console.log(`[Upload] Thread ${threadId} completed: ${totalSize} bytes`);
+            } else {
+                console.error(`[Upload] Thread ${threadId} failed with status ${xhr.status}`);
+            }
+            cleanup();
+            resolve(byteCounter);
+        };
+        
+        xhr.onerror = () => {
+            console.error(`[Upload] Thread ${threadId} network error`);
+            cleanup();
+            resolve(byteCounter);
+        };
+        
+        abortController.signal.addEventListener('abort', () => {
+            try { xhr.abort(); } catch(e) {}
+            console.log(`[Upload] Thread ${threadId} aborted`);
+            cleanup();
+            resolve(byteCounter);
+        });
+        
+        xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        xhr.send(blob);
+    });
+}
+
+// XHR-based upload with accurate progress tracking (DEPRECATED - slow crypto generation)
 async function uploadWithStreaming(threadId, totalSize, abortController, isRunning, byteCounter, cleanup) {
     // Generate upload data as a blob
     // We need to use XHR with upload.onprogress for accurate network upload tracking
@@ -1176,8 +1241,10 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
     const chunks = [];
     let bytesGenerated = 0;
     
+    const genStartTime = performance.now();
+    
     try {
-        // Generate data in 64KB chunks (crypto limit) to avoid blocking
+        // Generate data in 64KB chunks (crypto limit) without blocking
         while (bytesGenerated < totalSize) {
             // Check if we should abort during generation
             if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
@@ -1198,6 +1265,9 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
                 await new Promise(r => setTimeout(r, 0));
             }
         }
+        
+        const genTime = ((performance.now() - genStartTime) / 1000).toFixed(2);
+        console.log(`[Upload] Thread ${threadId} generated ${totalSize} bytes in ${genTime}s`);
         
         const blob = new Blob(chunks, { type: 'application/octet-stream' });
         
