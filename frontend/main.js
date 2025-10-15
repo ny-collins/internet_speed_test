@@ -1067,16 +1067,22 @@ async function measureDownload() {
     // Run monitor concurrently
     await monitorLoop();
     
-    // Wait for all threads to complete
-    await Promise.all(threadPromises);
+    // Wait for all threads to complete and get their results
+    const threadResults = await Promise.all(threadPromises);
     
-    // CRITICAL: Recalculate totalBytes from byte counters after monitoring completes
+    // Debug: Log what each thread returned
+    console.log('[Download] Thread results:', threadResults.map((r, i) => `Thread ${i}: ${r.bytes} bytes at ${r.completionTime.toFixed(2)}ms`).join(', '));
+    
+    // CRITICAL: Recalculate totalBytes from thread results after monitoring completes
     // The monitor loop may have exited early, leaving totalBytes stale
-    totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+    totalBytes = threadResults.reduce((sum, result) => sum + result.bytes, 0);
     
-    // Use monitor end time for duration calculation, not the time after thread cleanup
-    // This gives accurate speed based on when we actually stopped monitoring
-    const duration = (monitorEndTime - startTime) / 1000;
+    // Find the latest completion time from all threads (like upload does)
+    const downloadEndTime = Math.max(...threadResults.map(r => r.completionTime || 0));
+    
+    // Use actual download completion time for duration calculation
+    // This matches upload behavior and gives accurate speed for full download
+    const duration = (downloadEndTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
     // Update gauge one final time with the accurately calculated speed
@@ -1097,6 +1103,7 @@ async function downloadThread(threadId, isRunning, byteCounter) {
     const abortController = new AbortController();
     const controllerIndex = STATE.abortControllers.push(abortController) - 1;
     let cleanupDone = false;
+    let completionTime = null; // Track when download completes
     
     const cleanup = () => {
         // Idempotent cleanup - safe to call multiple times
@@ -1129,14 +1136,18 @@ async function downloadThread(threadId, isRunning, byteCounter) {
         const reader = response.body.getReader();
         console.log(`[Download] Thread ${threadId} reader created, starting to read...`);
         
-        while (isRunning() && !abortController.signal.aborted) {
+        // Read until stream ends - don't check isRunning() here
+        // This matches upload behavior where XHR continues to completion
+        // The monitor loop controls UI updates, not data transfer
+        while (!abortController.signal.aborted) {
             const { done, value } = await reader.read();
             if (done) break;
             
             byteCounter.bytes += value.length;
         }
         
-        console.log(`[Download] Thread ${threadId} completed: ${byteCounter.bytes} bytes`);
+        completionTime = performance.now(); // Capture completion time
+        console.log(`[Download] Thread ${threadId} completed: ${byteCounter.bytes} bytes at ${completionTime.toFixed(2)}ms`);
         
         // Properly cancel the reader
         try {
@@ -1156,7 +1167,11 @@ async function downloadThread(threadId, isRunning, byteCounter) {
         cleanup();
     }
     
-    return byteCounter;
+    // Return both bytes and completion time (like upload does)
+    return {
+        bytes: byteCounter.bytes,
+        completionTime: completionTime || performance.now()
+    };
 }
 
 // ========================================
