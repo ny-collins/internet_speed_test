@@ -985,6 +985,9 @@ async function measureDownload() {
         return downloadThread(i, () => isRunning, counter);
     });
     
+    // Track when monitoring ends (for accurate duration calculation)
+    let monitorEndTime = startTime;
+    
     // Monitor loop - runs concurrently with threads
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
@@ -1028,6 +1031,7 @@ async function measureDownload() {
                         if (isSpeedStable(stabilityCheck)) {
                             console.log('[Download] Speed stabilized, stopping early');
                             isRunning = false;
+                            monitorEndTime = performance.now(); // Capture when we stop monitoring
                             break;
                         }
                     }
@@ -1043,6 +1047,7 @@ async function measureDownload() {
             if (elapsed >= maxDuration) {
                 console.log('[Download] Max duration reached');
                 isRunning = false;
+                monitorEndTime = performance.now(); // Capture when we stop monitoring
                 break;
             }
             
@@ -1069,7 +1074,9 @@ async function measureDownload() {
     // The monitor loop may have exited early, leaving totalBytes stale
     totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
     
-    const duration = (performance.now() - startTime) / 1000;
+    // Use monitor end time for duration calculation, not the time after thread cleanup
+    // This gives accurate speed based on when we actually stopped monitoring
+    const duration = (monitorEndTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
     // Update gauge one final time with the accurately calculated speed
@@ -1185,6 +1192,9 @@ async function measureUpload() {
     // Create byte counters that threads will update
     const byteCounters = [];
     
+    // Track when monitoring ends (for accurate duration calculation)
+    let monitorEndTime = startTime;
+    
     // Launch all upload threads
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
@@ -1235,6 +1245,7 @@ async function measureUpload() {
                         if (isSpeedStable(stabilityCheck)) {
                             console.log('[Upload] Speed stabilized, stopping early');
                             isRunning = false;
+                            monitorEndTime = performance.now(); // Capture when we stop monitoring
                             break;
                         }
                     }
@@ -1250,6 +1261,7 @@ async function measureUpload() {
             if (elapsed >= maxDuration) {
                 console.log('[Upload] Max duration reached');
                 isRunning = false;
+                monitorEndTime = performance.now(); // Capture when we stop monitoring
                 break;
             }
             
@@ -1270,6 +1282,9 @@ async function measureUpload() {
     
     // Wait for all thread promises to resolve, but capture end time from last transmission
     const threadResults = await Promise.all(threadPromises);
+    
+    // Debug: Log what each thread returned
+    console.log('[Upload] Thread results:', threadResults.map((r, i) => `Thread ${i}: ${r.bytes} bytes at ${r.transmissionEndTime}ms`).join(', '));
     
     // CRITICAL: Recalculate totalBytes from thread results after monitoring completes
     // The monitor loop may have exited early, leaving totalBytes stale
