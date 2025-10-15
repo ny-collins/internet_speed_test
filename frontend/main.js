@@ -1012,21 +1012,28 @@ async function measureDownload() {
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
-                const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                 
-                speedSamples.push(intervalSpeed);
+                // Only add sample if we had progress in this interval
+                // This prevents adding zero-speed samples during connection issues
+                if (intervalBytes > 0) {
+                    const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
+                    speedSamples.push(intervalSpeed);
+                    
+                    // Check for stability after minimum duration
+                    if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
+                        const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
+                        if (isSpeedStable(stabilityCheck)) {
+                            console.log('[Download] Speed stabilized, stopping early');
+                            isRunning = false;
+                            break;
+                        }
+                    }
+                } else {
+                    console.log(`[Download] No progress in last ${intervalDuration}s`);
+                }
+                
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
-                
-                // Check for stability after minimum duration
-                if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
-                    const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
-                    if (isSpeedStable(stabilityCheck)) {
-                        console.log('[Download] Speed stabilized, stopping early');
-                        isRunning = false;
-                        break;
-                    }
-                }
             }
             
             // Stop at max duration
@@ -1198,21 +1205,28 @@ async function measureUpload() {
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
-                const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                 
-                speedSamples.push(intervalSpeed);
+                // Only add sample if we had progress in this interval
+                // This prevents adding zero-speed samples when upload is finishing
+                if (intervalBytes > 0) {
+                    const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
+                    speedSamples.push(intervalSpeed);
+                    
+                    // Check stability
+                    if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
+                        const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
+                        if (isSpeedStable(stabilityCheck)) {
+                            console.log('[Upload] Speed stabilized, stopping early');
+                            isRunning = false;
+                            break;
+                        }
+                    }
+                } else {
+                    console.log(`[Upload] No progress in last ${intervalDuration}s - likely finishing up`);
+                }
+                
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
-                
-                // Check stability
-                if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
-                    const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
-                    if (isSpeedStable(stabilityCheck)) {
-                        console.log('[Upload] Speed stabilized, stopping early');
-                        isRunning = false;
-                        break;
-                    }
-                }
             }
             
             // Max duration check
@@ -1330,12 +1344,32 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
     // Use XHR for accurate upload progress tracking
     return new Promise((resolve) => {
         const xhr = new XMLHttpRequest();
+        let lastProgressTime = performance.now();
+        let lastProgressBytes = 0;
         
         // Track actual network upload progress
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 byteCounter.bytes = event.loaded;
+                lastProgressTime = performance.now();
+                lastProgressBytes = event.loaded;
+                
+                // Log progress for debugging
+                const percent = ((event.loaded / event.total) * 100).toFixed(1);
+                if (event.loaded === event.total || lastProgressBytes % (1024 * 1024) < (event.loaded % (1024 * 1024))) {
+                    console.log(`[Upload] Thread ${threadId} progress: ${percent}% (${event.loaded}/${event.total})`);
+                }
             }
+        };
+        
+        xhr.upload.onloadstart = () => {
+            console.log(`[Upload] Thread ${threadId} started uploading ${totalSize} bytes`);
+        };
+        
+        xhr.upload.onloadend = () => {
+            // Upload transmission complete (before server response)
+            byteCounter.bytes = totalSize;
+            console.log(`[Upload] Thread ${threadId} transmission complete`);
         };
         
         xhr.onload = () => {
