@@ -96,13 +96,13 @@ if (config.metrics.enabled) {
 let inflightCount = 0;
 
 function trackInflight(req, res, next) {
-  if (ENABLE_METRICS) {
+  if (config.metrics.enabled) {
     app.locals.metrics.requestsInflight.inc();
   }
   inflightCount++;
 
   const cleanup = () => {
-    if (ENABLE_METRICS) {
+    if (config.metrics.enabled) {
       app.locals.metrics.requestsInflight.dec();
     }
     inflightCount--;
@@ -150,7 +150,7 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = (Date.now() - start) / 1000;
     
-    if (ENABLE_METRICS) {
+    if (config.metrics.enabled) {
       const path = req.route?.path || req.path;
       app.locals.metrics.requestsTotal.inc({
         method: req.method,
@@ -208,7 +208,7 @@ app.use((req, res, next) => {
 // METRICS ENDPOINT
 // ========================================
 
-if (ENABLE_METRICS) {
+if (config.metrics.enabled) {
   app.get('/metrics', async (req, res) => {
     try {
       res.set('Content-Type', register.contentType);
@@ -275,7 +275,7 @@ app.get('/api/download', circuitBreaker, (req, res) => {
     if (clientDisconnected || sent >= sizeInBytes) {
       if (sent >= sizeInBytes) {
         // Track successful download bytes
-        if (ENABLE_METRICS) {
+        if (config.metrics.enabled) {
           app.locals.metrics.downloadBytesTotal.inc(sizeInBytes);
         }
         res.end();
@@ -335,7 +335,7 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
     const speedMbps = (receivedBytes * 8) / (duration * 1000000);
     
     // Track successful upload bytes
-    if (ENABLE_METRICS) {
+    if (config.metrics.enabled) {
       app.locals.metrics.uploadBytesTotal.inc(receivedBytes);
     }
     
