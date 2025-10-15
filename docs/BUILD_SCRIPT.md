@@ -42,35 +42,52 @@ npm run build:version
    }
    ```
 
-2. **Run build script:**
+2. **Commit and deploy:**
    ```bash
-   npm run build:version
-   ```
-
-3. **Verify changes:**
-   - Check `sw.js` for updated `CACHE_NAME`
-   - Check `index.html` for versioned assets
-   - Check `learn.html` for versioned assets
-
-4. **Commit and deploy:**
-   ```bash
-   git add -A
+   git add frontend/package.json
    git commit -m "Bump version to 1.06.0"
    git push
    ```
 
+3. **Railway automatically:**
+   - Runs `npm run build` (executes build-version.js)
+   - Syncs version across sw.js, index.html, learn.html
+   - Runs `npm start` (starts server.js)
+
+**That's it!** The build script runs automatically during deployment.
+
 ## CI/CD Integration
 
-For automated deployments (Railway, Vercel, etc.), add to your build command:
+### Railway (Automatic)
+
+Railway uses `railway.json` configuration:
 
 ```json
 {
-  "scripts": {
-    "build": "npm run build:version && npm run start",
-    "build:version": "node build-version.js"
+  "build": {
+    "buildCommand": "npm run build"
+  },
+  "deploy": {
+    "startCommand": "npm start"
   }
 }
 ```
+
+**Build Phase** (`npm run build`):
+- Executes `build-version.js`
+- Syncs versions across all files
+- Happens once during deployment
+
+**Start Phase** (`npm start`):
+- Only starts `server.js`
+- Clean separation of concerns
+- No version sync overhead at runtime
+
+### Other Platforms
+
+For Vercel, Netlify, etc., configure:
+- **Build Command**: `npm run build`
+- **Start Command**: `npm start`
 
 ## Benefits
 
