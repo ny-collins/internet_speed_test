@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -8,25 +7,17 @@ const crypto = require('crypto');
 const pino = require('pino');
 const pinoHttp = require('pino-http');
 const client = require('prom-client');
+const config = require('./config');
 
 const app = express();
-const PORT = parseInt(process.env.PORT, 10) || 3000;
-const MAX_DOWNLOAD_SIZE_MB = parseInt(process.env.MAX_DOWNLOAD_SIZE_MB || '50', 10);
-const MAX_UPLOAD_SIZE_MB = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10);
-const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
-const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '120', 10);
-const ENABLE_RATE_LIMIT = (process.env.ENABLE_RATE_LIMIT || 'true').toLowerCase() === 'true';
-const ENABLE_METRICS = (process.env.ENABLE_METRICS || 'true').toLowerCase() === 'true';
-const MAX_INFLIGHT_REQUESTS = parseInt(process.env.MAX_INFLIGHT_REQUESTS || '100', 10);
-const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // ========================================
 // LOGGING
 // ========================================
 
 const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV === 'development' ? {
+  level: config.logLevel,
+  transport: config.nodeEnv === 'development' ? {
     target: 'pino-pretty',
     options: { colorize: true }
   } : undefined
@@ -53,7 +44,7 @@ const httpLogger = pinoHttp({
 
 const register = new client.Registry();
 
-if (ENABLE_METRICS) {
+if (config.metrics.enabled) {
   client.collectDefaultMetrics({ register });
 
   const requestsTotal = new client.Counter({
@@ -123,8 +114,8 @@ function trackInflight(req, res, next) {
 }
 
 function circuitBreaker(req, res, next) {
-  if (inflightCount >= MAX_INFLIGHT_REQUESTS) {
-    logger.warn({ inflightCount, maxAllowed: MAX_INFLIGHT_REQUESTS }, 'Circuit breaker triggered');
+  if (inflightCount >= config.maxInflightRequests) {
+    logger.warn({ inflightCount, maxAllowed: config.maxInflightRequests }, 'Circuit breaker triggered');
     return res.status(503).json({
       error: 'Service temporarily overloaded',
       retryAfter: 30
@@ -176,7 +167,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const allowedOrigins = CORS_ORIGIN === '*' ? '*' : new Set(CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean));
+const allowedOrigins = config.corsOrigin === '*' ? '*' : new Set(config.corsOrigin.split(',').map(o => o.trim()).filter(Boolean));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // same-origin / curl
@@ -194,10 +185,10 @@ app.use(compression({
   }
 }));
 
-if (ENABLE_RATE_LIMIT) {
+if (config.rateLimit.enabled) {
   const standardLimiter = rateLimit({
-    windowMs: RATE_LIMIT_WINDOW_MS,
-    max: RATE_LIMIT_MAX,
+    windowMs: config.rateLimit.windowMs,
+    max: config.rateLimit.max,
     standardHeaders: true,
     legacyHeaders: false
   });
@@ -243,9 +234,20 @@ app.get('/api/ping', (req, res) => {
 });
 
 app.get('/api/download', circuitBreaker, (req, res) => {
+  // Input validation
+  const sizeParam = req.query.size;
+  if (sizeParam !== undefined && (isNaN(parseInt(sizeParam, 10)) || parseInt(sizeParam, 10) < 0)) {
+    return res.status(400).json({ error: 'Invalid size parameter. Must be a positive number.' });
+  }
+  
+  const chunkParam = req.query.chunk;
+  if (chunkParam !== undefined && (isNaN(parseInt(chunkParam, 10)) || parseInt(chunkParam, 10) < 0)) {
+    return res.status(400).json({ error: 'Invalid chunk parameter. Must be a positive number.' });
+  }
+  
   let sizeInMB = parseInt(req.query.size, 10) || 5;
   if (sizeInMB < 1) sizeInMB = 1;
-  if (sizeInMB > MAX_DOWNLOAD_SIZE_MB) sizeInMB = MAX_DOWNLOAD_SIZE_MB; // clamp
+  if (sizeInMB > config.maxDownloadSizeMB) sizeInMB = config.maxDownloadSizeMB; // clamp
   const sizeInBytes = sizeInMB * 1024 * 1024;
   // Optional chunk size (KB) parameter for performance tuning
   let chunkKB = parseInt(req.query.chunk, 10);
@@ -303,7 +305,7 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 app.post('/api/upload', circuitBreaker, (req, res) => {
   const startTime = Date.now();
   let receivedBytes = 0;
-  const byteLimit = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+  const byteLimit = config.maxUploadSizeMB * 1024 * 1024;
   let aborted = false;
   let clientDisconnected = false;
 
@@ -356,8 +358,15 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
 
 app.post('/api/ping-batch', (req, res) => {
   let { count = 10 } = req.body || {};
-  count = parseInt(count, 10);
-  if (isNaN(count) || count < 1) count = 1;
+  const countNum = parseInt(count, 10);
+  
+  // Input validation
+  if (isNaN(countNum) || countNum < 0) {
+    return res.status(400).json({ error: 'Invalid count parameter. Must be a positive number.' });
+  }
+  
+  count = countNum;
+  if (count < 1) count = 1;
   if (count > 100) count = 100; // clamp to prevent abuse
   const measurements = [];
   for (let i = 0; i < count; i++) {
@@ -369,11 +378,11 @@ app.post('/api/ping-batch', (req, res) => {
 app.get('/api/info', (req, res) => {
   res.json({
     name: 'SpeedCheck Speed Test Server',
-    location: process.env.SERVER_LOCATION || 'EU WEST (Amsterdam, Netherlands)',
-    maxDownloadSize: MAX_DOWNLOAD_SIZE_MB,
-    maxUploadSize: MAX_UPLOAD_SIZE_MB,
+    location: config.serverLocation,
+    maxDownloadSize: config.maxDownloadSizeMB,
+    maxUploadSize: config.maxUploadSizeMB,
     version: '1.05.1',
-    rateLimit: ENABLE_RATE_LIMIT ? { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX } : null
+    rateLimit: config.rateLimit.enabled ? { windowMs: config.rateLimit.windowMs, max: config.rateLimit.max } : null
   });
 });
 
@@ -415,12 +424,12 @@ app.use((req, res) => {
 
 let server;
 if (require.main === module) {
-  server = app.listen(PORT, () => {
-    console.log(`Speed test server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`Server location: ${process.env.SERVER_LOCATION || 'Unknown'}`);
-    console.log(`CORS Origin(s): ${CORS_ORIGIN}`);
-    console.log(`Max download size: ${MAX_DOWNLOAD_SIZE_MB}MB`);
+  server = app.listen(config.port, () => {
+    console.log(`Speed test server running on port ${config.port}`);
+    console.log(`Environment: ${config.nodeEnv}`);
+    console.log(`Server location: ${config.serverLocation}`);
+    console.log(`CORS Origin(s): ${config.corsOrigin}`);
+    console.log(`Max download size: ${config.maxDownloadSizeMB}MB`);
   });
 }
 

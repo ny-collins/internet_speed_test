@@ -5,6 +5,7 @@
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
 [![Version](https://img.shields.io/badge/version-1.05.1-blue)](#)
+[![Changelog](https://img.shields.io/badge/changelog-docs-informational)](docs/CHANGELOG.md)
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
@@ -300,15 +301,17 @@ npm install
 **Backend (Terminal 1):**
 ```bash
 cd backend
-npm run dev  # Starts on http://localhost:3000
+npm run dev  # Starts the API server on http://localhost:3000
 ```
 
 **Frontend (Terminal 2):**
 ```bash
 cd frontend
-npm start  # Starts on http://localhost:8080
+npm start  # Starts the frontend development server on http://localhost:8080
 # Access at http://localhost:8080
 ```
+
+**Important:** The frontend is designed to connect to the backend API. **You must have both servers running** to perform a speed test. The frontend makes API calls to the backend for download/upload tests and ping measurements.
 
 ### ⚠️ Important Note on Local Testing
 
