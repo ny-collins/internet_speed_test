@@ -203,7 +203,15 @@ if (ENABLE_RATE_LIMIT) {
   });
   app.use(['/api/ping', '/api/ping-batch', '/api/info', '/api/test'], standardLimiter);
 }
-app.use(express.json());
+
+// Parse JSON for API endpoints that need it (but skip /api/upload for streaming)
+app.use((req, res, next) => {
+  if (req.path === '/api/upload') {
+    // Skip body parsing for upload endpoint to allow streaming
+    return next();
+  }
+  express.json()(req, res, next);
+});
 
 // ========================================
 // METRICS ENDPOINT
@@ -364,7 +372,7 @@ app.get('/api/info', (req, res) => {
     maxDownloadSize: MAX_DOWNLOAD_SIZE_MB,
     maxUploadSize: MAX_UPLOAD_SIZE_MB,
     supportedTests: ['ping', 'download', 'upload', 'jitter'],
-    version: '1.04.0',
+    version: '1.04.1',
     rateLimit: ENABLE_RATE_LIMIT ? { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX } : null
   });
 });

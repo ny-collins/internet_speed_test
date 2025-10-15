@@ -1194,9 +1194,11 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
             method: 'POST',
             body: stream,
             headers: {
-                'Content-Type': 'application/octet-stream'
+                'Content-Type': 'application/octet-stream',
+                'Content-Length': totalSize.toString()
             },
-            signal: abortController.signal
+            signal: abortController.signal,
+            duplex: 'half' // Required for streaming request bodies in some browsers
         });
         
         if (response.ok) {

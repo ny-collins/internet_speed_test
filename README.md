@@ -4,7 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.04-blue)](#)
+[![Version](https://img.shields.io/badge/version-1.04.1-blue)](#)
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
@@ -376,7 +376,7 @@ Contributions are welcome! Areas for improvement:
 
 ## 📋 Version History
 
-### v1.04 (Current)
+### v1.04.1 (Current)
 - 🎨 Added PWA support with multi-format icons (SVG + PNG fallbacks)
 - <img src="frontend/favicon.svg" alt="⚡" width="16" height="16" style="vertical-align: middle;"> Optimized Express routing (removed redundant explicit routes)
 - 🔍 Fixed sitemap.xml (removed 404.html for better SEO)
