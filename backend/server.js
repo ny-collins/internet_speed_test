@@ -372,7 +372,7 @@ app.get('/api/info', (req, res) => {
     maxDownloadSize: MAX_DOWNLOAD_SIZE_MB,
     maxUploadSize: MAX_UPLOAD_SIZE_MB,
     supportedTests: ['ping', 'download', 'upload', 'jitter'],
-    version: '1.04.1',
+    version: '1.05.0',
     rateLimit: ENABLE_RATE_LIMIT ? { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX } : null
   });
 });

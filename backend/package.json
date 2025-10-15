@@ -1,7 +1,7 @@
 {
   "name": "internet_speed_test_backend",
-  "version": "1.04.1",
-  "description": "Backend server for internet speed testing",
+  "version": "1.05.0",
+  "description": "Backend server for internet speed testing with production observability",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
