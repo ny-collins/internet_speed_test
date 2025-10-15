@@ -1172,12 +1172,12 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
     // Generate upload data as a blob
     // We need to use XHR with upload.onprogress for accurate network upload tracking
     // Generating the data upfront is necessary because fetch() doesn't provide upload progress
-    const chunkSize = 256 * 1024; // 256KB chunks for generation
+    const MAX_CRYPTO_BYTES = 65536; // 64KB - browser crypto.getRandomValues() limit
     const chunks = [];
     let bytesGenerated = 0;
     
     try {
-        // Generate data in chunks to avoid blocking
+        // Generate data in 64KB chunks (crypto limit) to avoid blocking
         while (bytesGenerated < totalSize) {
             // Check if we should abort during generation
             if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
@@ -1187,14 +1187,16 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
             }
             
             const remainingBytes = totalSize - bytesGenerated;
-            const currentChunkSize = Math.min(chunkSize, remainingBytes);
+            const currentChunkSize = Math.min(MAX_CRYPTO_BYTES, remainingBytes);
             const chunk = new Uint8Array(currentChunkSize);
             crypto.getRandomValues(chunk);
             chunks.push(chunk);
             bytesGenerated += currentChunkSize;
             
-            // Yield to UI thread every chunk to prevent blocking
-            await new Promise(r => setTimeout(r, 0));
+            // Yield to UI thread every 256KB to prevent blocking
+            if (bytesGenerated % (MAX_CRYPTO_BYTES * 4) === 0) {
+                await new Promise(r => setTimeout(r, 0));
+            }
         }
         
         const blob = new Blob(chunks, { type: 'application/octet-stream' });
