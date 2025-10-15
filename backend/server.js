@@ -368,11 +368,11 @@ app.post('/api/ping-batch', (req, res) => {
 
 app.get('/api/info', (req, res) => {
   res.json({
-    serverLocation: process.env.SERVER_LOCATION || 'Unknown',
+    name: 'SpeedCheck Speed Test Server',
+    location: 'EU WEST (Amsterdam, Netherlands)',
     maxDownloadSize: MAX_DOWNLOAD_SIZE_MB,
     maxUploadSize: MAX_UPLOAD_SIZE_MB,
-    supportedTests: ['ping', 'download', 'upload', 'jitter'],
-    version: '1.05.0',
+    version: '1.05.1',
     rateLimit: ENABLE_RATE_LIMIT ? { windowMs: RATE_LIMIT_WINDOW_MS, max: RATE_LIMIT_MAX } : null
   });
 });

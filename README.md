@@ -4,7 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.05.0-blue)](#)
+[![Version](https://img.shields.io/badge/version-1.05.1-blue)](#)
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
@@ -398,7 +398,33 @@ Contributions are welcome! Areas for improvement:
 
 ## 📋 Version History
 
-### v1.05.0 (Current)
+### v1.05.1 (Current)
+**🔧 Critical Bug Fixes & Code Quality**
+
+**Critical PWA Fixes:**
+- 🔄 **PWA Update Mechanism** - Fixed Update Now button (moved state to global STATE.pwa object)
+- 📴 **Offline Caching** - Fixed silent cache failure (updated ASSETS_TO_CACHE with versioned assets)
+- 📈 **Upload Speed Drop** - Enhanced XHR lifecycle tracking (prevents 7 Mbps → 1.3 Mbps drop)
+- 📊 **Real-Time Display** - Speed gauge now updates every 100ms (fixed em dash bug)
+
+**Quality Improvements:**
+- 🎯 **Stability Detection** - Analyze 10-sample window (more reliable, less sensitive to outliers)
+- 🎨 **Service Worker UX** - Beautiful gradient update banner with user control
+- 🤖 **Version Automation** - build-version.js script eliminates manual sync errors
+- 🏗️ **Deployment Architecture** - Proper build/deploy separation with railway.json
+
+**Code Cleanup:**
+- 🧹 Removed ~185 lines of deprecated upload code
+- 📝 Removed unused result-schema.json
+- 🔧 Added .npmrc for cleaner deployment logs
+- 📚 Reorganized documentation structure
+
+**Documentation:**
+- 📖 Created comprehensive docs/README.md index
+- 📋 Updated CHANGELOG.md with v1.05.1 details
+- 🔍 Added CODE_REVIEW_RESPONSE.md and CODE_REVIEW_CLARIFICATION.md
+
+### v1.05.0
 **🚀 Major Upload & Backend Improvements**
 
 **Backend Enhancements:**
