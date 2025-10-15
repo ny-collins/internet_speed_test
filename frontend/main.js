@@ -1049,6 +1049,13 @@ async function measureDownload() {
             // Update progress (25-60% range)
             const progressPercent = 25 + (elapsed / maxDuration) * 35;
             setProgress(Math.min(progressPercent, 60));
+            
+            // Update visual border progress on download matrix card
+            const downloadCard = document.querySelector('.matrix-card[data-metric="download"]');
+            if (downloadCard) {
+                const progress = Math.min((elapsed / maxDuration) * 100, 100);
+                downloadCard.style.setProperty('--progress', progress.toFixed(2));
+            }
         }
     };
     
@@ -1161,6 +1168,7 @@ async function measureUpload() {
     const startTime = performance.now();
     let totalBytes = 0;
     let isRunning = true;
+    let transmissionEndTime = null; // Track when data transmission actually ends
     
     // Speed tracking
     const speedSamples = [];
@@ -1241,13 +1249,26 @@ async function measureUpload() {
             // Update progress (60-95% range)
             const progressPercent = 60 + (elapsed / maxDuration) * 35;
             setProgress(Math.min(progressPercent, 95));
+            
+            // Update visual border progress on upload matrix card
+            const uploadCard = document.querySelector('.matrix-card[data-metric="upload"]');
+            if (uploadCard) {
+                const progress = Math.min((elapsed / maxDuration) * 100, 100);
+                uploadCard.style.setProperty('--progress', progress.toFixed(2));
+            }
         }
     };
     
     await monitorLoop();
-    await Promise.all(threadPromises);
     
-    const duration = (performance.now() - startTime) / 1000;
+    // Wait for all thread promises to resolve, but capture end time from last transmission
+    const threadResults = await Promise.all(threadPromises);
+    
+    // Find the latest transmission end time from all threads
+    transmissionEndTime = Math.max(...threadResults.map(r => r.transmissionEndTime || 0));
+    
+    // Use transmission end time for duration calculation (excludes server response wait)
+    const duration = (transmissionEndTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
     console.log(`[Upload] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
@@ -1312,6 +1333,7 @@ async function uploadThread(threadId, isRunning, byteCounter) {
     };
     
     // Use optimized upload with reusable chunk and XHR progress tracking
+    // Returns object with byteCounter and transmissionEndTime
     return uploadWithReusableChunk(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
 }
 
@@ -1348,6 +1370,7 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
         const xhr = new XMLHttpRequest();
         let lastProgressTime = performance.now();
         let lastProgressBytes = 0;
+        let transmissionEndTime = null; // Capture when data transmission ends
         
         // Track actual network upload progress
         xhr.upload.onprogress = (event) => {
@@ -1370,32 +1393,44 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
         
         xhr.upload.onloadend = () => {
             // Upload transmission complete (before server response)
+            // This is the critical timestamp - when data transmission actually ended
+            transmissionEndTime = performance.now();
             byteCounter.bytes = totalSize;
-            console.log(`[Upload] Thread ${threadId} transmission complete`);
+            console.log(`[Upload] Thread ${threadId} transmission complete at ${transmissionEndTime.toFixed(2)}ms`);
         };
         
         xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 byteCounter.bytes = totalSize;
-                console.log(`[Upload] Thread ${threadId} completed: ${totalSize} bytes`);
+                const serverResponseTime = performance.now() - (transmissionEndTime || performance.now());
+                console.log(`[Upload] Thread ${threadId} server response received after ${serverResponseTime.toFixed(2)}ms`);
             } else {
                 console.error(`[Upload] Thread ${threadId} failed with status ${xhr.status}`);
             }
             cleanup();
-            resolve(byteCounter);
+            resolve({ 
+                bytes: byteCounter.bytes, 
+                transmissionEndTime: transmissionEndTime || performance.now() 
+            });
         };
         
         xhr.onerror = () => {
             console.error(`[Upload] Thread ${threadId} network error`);
             cleanup();
-            resolve(byteCounter);
+            resolve({ 
+                bytes: byteCounter.bytes, 
+                transmissionEndTime: transmissionEndTime || performance.now() 
+            });
         };
         
         abortController.signal.addEventListener('abort', () => {
             try { xhr.abort(); } catch(e) {}
             console.log(`[Upload] Thread ${threadId} aborted`);
             cleanup();
-            resolve(byteCounter);
+            resolve({ 
+                bytes: byteCounter.bytes, 
+                transmissionEndTime: transmissionEndTime || performance.now() 
+            });
         });
         
         xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
@@ -1545,19 +1580,23 @@ function updatePhaseUI(phase, status) {
             metricCard.setAttribute('data-status', 'measuring');
             
             // Set animation duration based on phase
+            // Note: Download and upload progress is updated directly in their monitor loops
+            // for accurate synchronization with actual test progress
             let duration;
             if (phase === 'latency') {
                 duration = 3; // Latency is quick (3 pings)
             } else if (phase === 'download') {
-                duration = CONFIG.duration.download.default;
+                // Progress updated in measureDownload() monitor loop
+                duration = null;
             } else if (phase === 'upload') {
-                duration = CONFIG.duration.upload.default;
+                // Progress updated in measureUpload() monitor loop
+                duration = null;
             } else if (phase === 'jitter') {
                 duration = 0.8; // Jitter calculation is quick
             }
             
             if (duration) {
-                // Start animating the border progress
+                // Start animating the border progress (latency and jitter only)
                 animateBorderProgress(metricCard, duration * 1000); // Convert to ms
             }
         } else if (status === 'complete') {
