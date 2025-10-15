@@ -1107,33 +1107,12 @@ function supportsStreamingUpload() {
            'body' in Request.prototype;
 }
 
-// Fallback: Generate data in smaller batches with UI yields
-async function generateUploadDataAsync(totalSize, onProgress) {
-    const chunkSize = 65536; // 64KB
-    const batchSize = chunkSize * 16; // Generate 1MB at a time
-    const data = new Uint8Array(totalSize);
-    
-    for (let i = 0; i < totalSize; i += batchSize) {
-        const currentBatchSize = Math.min(batchSize, totalSize - i);
-        
-        // Generate this batch in chunks
-        for (let j = 0; j < currentBatchSize; j += chunkSize) {
-            const currentChunkSize = Math.min(chunkSize, currentBatchSize - j);
-            const chunk = new Uint8Array(currentChunkSize);
-            crypto.getRandomValues(chunk);
-            data.set(chunk, i + j);
-        }
-        
-        // Yield to UI thread after each batch
-        await new Promise(resolve => setTimeout(resolve, 0));
-        
-        if (onProgress) {
-            onProgress(i + currentBatchSize);
-        }
-    }
-    
-    return data;
-}
+// Create a reusable chunk for fallback upload (avoids memory allocation)
+const REUSABLE_UPLOAD_CHUNK = (() => {
+    const chunk = new Uint8Array(256 * 1024); // 256KB reusable chunk
+    crypto.getRandomValues(chunk);
+    return chunk;
+})();
 
 async function uploadThread(threadId, isRunning, byteCounter) {
     const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
@@ -1237,77 +1216,92 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
     return byteCounter;
 }
 
-// Fallback upload for older browsers (async generation with UI yields)
+// Fallback upload for older browsers (reuse chunk and stream to XHR)
 async function uploadWithFallback(threadId, totalSize, abortController, isRunning, byteCounter, cleanup) {
+    // For older browsers without ReadableStream, we'll send the reusable chunk repeatedly
+    // This approach sends multiple small POST requests to measure throughput
+    // Not ideal but acceptable fallback for legacy browsers
+    
+    const CHUNK_SIZE = REUSABLE_UPLOAD_CHUNK.length; // 256KB
+    let bytesSent = 0;
+    
     try {
-        // Generate data asynchronously with UI yields
-        const data = await generateUploadDataAsync(totalSize, (progress) => {
-            // Check if we should abort during generation
+        while (bytesSent < totalSize) {
+            // Check if we should abort
             if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
-                throw new Error('Aborted during data generation');
+                console.log(`[Upload] Thread ${threadId} aborted at ${bytesSent} bytes`);
+                break;
+            }
+            
+            const remaining = totalSize - bytesSent;
+            const chunkToSend = remaining < CHUNK_SIZE ? 
+                REUSABLE_UPLOAD_CHUNK.buffer.slice(0, remaining) : 
+                REUSABLE_UPLOAD_CHUNK.buffer;
+            
+            // Send this chunk
+            const sent = await sendChunkXHR(
+                threadId,
+                chunkToSend,
+                abortController.signal
+            );
+            
+            bytesSent += sent;
+            byteCounter.bytes = bytesSent;
+            
+            // Yield to UI thread every chunk
+            await new Promise(r => setTimeout(r, 0));
+        }
+        
+        return byteCounter;
+    } catch (err) {
+        if (err.name === 'AbortError' || err.message === 'aborted') {
+            console.log(`[Upload] Thread ${threadId} aborted`);
+        } else {
+            console.error(`[Upload] Thread ${threadId} error:`, err);
+        }
+        return byteCounter;
+    } finally {
+        cleanup();
+    }
+}
+
+// Helper: Send a single chunk via XHR (for fallback)
+function sendChunkXHR(threadId, chunk, abortSignal) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        let done = false;
+        
+        const finish = (success, value) => {
+            if (done) return;
+            done = true;
+            if (success) resolve(value);
+            else reject(value);
+        };
+        
+        xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    finish(true, chunk.byteLength);
+                } else {
+                    finish(false, new Error(`Upload chunk failed: ${xhr.status}`));
+                }
+            }
+        };
+        
+        xhr.onerror = () => finish(false, new Error('XHR network error'));
+        
+        abortSignal.addEventListener('abort', () => {
+            if (!done) {
+                try { xhr.abort(); } catch(e) {}
+                finish(false, new Error('aborted'));
             }
         });
         
-        // Check once more before uploading
-        if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
-            console.log(`[Upload] Thread ${threadId} aborted before send`);
-            return byteCounter;
-        }
-        
-        // Use XHR with abort support and progress tracking
-        return new Promise((resolve) => {
-            const xhr = new XMLHttpRequest();
-            let resolved = false;
-            
-            const resolveOnce = () => {
-                if (!resolved) {
-                    resolved = true;
-                    cleanup();
-                    resolve(byteCounter);
-                }
-            };
-            
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    byteCounter.bytes = e.loaded;
-                }
-            });
-            
-            xhr.addEventListener('load', () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    byteCounter.bytes = totalSize;
-                } else {
-                    console.error(`[Upload] Thread ${threadId} failed: ${xhr.status}`);
-                }
-                resolveOnce();
-            });
-            
-            xhr.addEventListener('error', () => {
-                console.error(`[Upload] Thread ${threadId} network error`);
-                resolveOnce();
-            });
-            
-            xhr.addEventListener('abort', () => {
-                console.log(`[Upload] Thread ${threadId} aborted`);
-                resolveOnce();
-            });
-            
-            // Listen for abort signal
-            abortController.signal.addEventListener('abort', () => {
-                if (!resolved) {
-                    xhr.abort();
-                }
-            });
-            
-            xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
-            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-            xhr.send(data.buffer);
-        });
-    } catch (err) {
-        console.error(`[Upload] Thread ${threadId} generation error:`, err);
-        cleanup();
-        return byteCounter;
-    }
+        xhr.send(chunk);
+    });
 }
 
 // ========================================
