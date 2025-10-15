@@ -3,7 +3,7 @@
   "version": "1.05.0",
   "description": "Frontend static file server with PWA support",
   "scripts": {
-    "start": "node server.js",
+    "start": "node build-version.js && node server.js",
     "build:version": "node build-version.js",
     "prebuild": "npm run build:version"
   },
