@@ -4,8 +4,7 @@
   "description": "Frontend static file server with PWA support",
   "scripts": {
     "start": "node server.js",
-    "build": "node build-version.js",
-    "build:version": "node build-version.js"
+    "build": "node build-version.js"
   },
   "engines": {
     "node": ">=22.0.0",

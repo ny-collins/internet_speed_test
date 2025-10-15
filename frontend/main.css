@@ -2363,3 +2363,47 @@ body.page-404 {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================
+   PERFORMANCE WARNING
+   ======================================== */
+
+.performance-warning {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 152, 0, 0.95);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: slideInRight 0.3s ease;
+}
+
+.performance-warning.hiding {
+    animation: slideOutRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}

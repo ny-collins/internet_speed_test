@@ -1962,26 +1962,13 @@ function showPerformanceWarning(blockTime) {
     // Create a subtle warning notification
     const warning = document.createElement('div');
     warning.className = 'performance-warning';
-    warning.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 152, 0, 0.95);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        z-index: 9999;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        animation: slideInRight 0.3s ease;
-    `;
     warning.textContent = `Performance impact detected (${Math.round(blockTime)}ms delay)`;
     
     document.body.appendChild(warning);
     
     // Remove after 3 seconds
     setTimeout(() => {
-        warning.style.animation = 'slideOutRight 0.3s ease';
+        warning.classList.add('hiding');
         setTimeout(() => warning.remove(), 300);
     }, 3000);
 }
