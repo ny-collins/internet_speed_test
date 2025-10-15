@@ -140,7 +140,7 @@ function registerServiceWorker() {
         return;
     }
     
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
         .then((registration) => {
             console.log('[PWA] Service Worker registered:', registration.scope);
             
@@ -1142,8 +1142,7 @@ async function downloadThread(threadId, isRunning, byteCounter) {
 // UPLOAD MEASUREMENT
 // ========================================
 
-// Create a reusable chunk for fallback upload (avoids memory allocation)
-// This is defined here (top-level) to avoid TDZ issues when referenced in uploadWithFallback
+// Create a reusable chunk for upload (avoids memory allocation per request)
 // Note: crypto.getRandomValues() has a 64KB (65536 bytes) limit
 const REUSABLE_UPLOAD_CHUNK = (() => {
     const chunk = new Uint8Array(65536); // 64KB reusable chunk (crypto limit)
