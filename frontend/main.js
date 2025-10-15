@@ -1158,7 +1158,8 @@ async function uploadThread(threadId, isRunning, byteCounter) {
         }
     };
     
-    // Use streaming upload if supported, otherwise fallback to async generation
+    // Use XHR-based upload with progress tracking
+    // Both paths use XHR for accurate network upload measurement
     if (supportsStreamingUpload()) {
         return uploadWithStreaming(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
     } else {
@@ -1166,92 +1167,82 @@ async function uploadThread(threadId, isRunning, byteCounter) {
     }
 }
 
-// Modern streaming upload (no memory allocation, non-blocking)
+// XHR-based upload with accurate progress tracking
 async function uploadWithStreaming(threadId, totalSize, abortController, isRunning, byteCounter, cleanup) {
-    const chunkSize = 65536; // 64KB chunks
-    let aborted = false;
-    
-    const stream = new ReadableStream({
-        async start(controller) {
-            let bytesSent = 0;
-            
-            try {
-                while (bytesSent < totalSize && !aborted) {
-                    // Check if we should abort
-                    if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
-                        aborted = true;
-                        controller.close();
-                        break;
-                    }
-                    
-                    const remainingBytes = totalSize - bytesSent;
-                    const currentChunkSize = Math.min(chunkSize, remainingBytes);
-                    const chunk = new Uint8Array(currentChunkSize);
-                    
-                    // Generate random data
-                    crypto.getRandomValues(chunk);
-                    
-                    // Enqueue the chunk
-                    controller.enqueue(chunk);
-                    bytesSent += currentChunkSize;
-                    
-                    // Yield to UI thread every 256KB to prevent blocking
-                    if (bytesSent % (chunkSize * 4) === 0) {
-                        await new Promise(r => setTimeout(r, 0));
-                    }
-                }
-                
-                controller.close();
-            } catch (err) {
-                console.error(`[Upload] Thread ${threadId} stream error:`, err);
-                controller.error(err);
-            }
-        },
-        
-        cancel(reason) {
-            aborted = true;
-            console.log(`[Upload] Thread ${threadId} stream cancelled:`, reason);
-        }
-    });
+    // Generate upload data as a blob
+    // We need to use XHR with upload.onprogress for accurate network upload tracking
+    // Generating the data upfront is necessary because fetch() doesn't provide upload progress
+    const chunkSize = 256 * 1024; // 256KB chunks for generation
+    const chunks = [];
+    let bytesGenerated = 0;
     
     try {
-        const fetchOptions = {
-            method: 'POST',
-            body: stream,
-            headers: {
-                'Content-Type': 'application/octet-stream'
-            },
-            signal: abortController.signal
-        };
-        
-        // Add duplex option for browsers that support it (required for streaming)
-        try {
-            fetchOptions.duplex = 'half';
-        } catch (e) {
-            // Older browsers may not support duplex option
+        // Generate data in chunks to avoid blocking
+        while (bytesGenerated < totalSize) {
+            // Check if we should abort during generation
+            if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
+                console.log(`[Upload] Thread ${threadId} aborted during generation`);
+                cleanup();
+                return byteCounter;
+            }
+            
+            const remainingBytes = totalSize - bytesGenerated;
+            const currentChunkSize = Math.min(chunkSize, remainingBytes);
+            const chunk = new Uint8Array(currentChunkSize);
+            crypto.getRandomValues(chunk);
+            chunks.push(chunk);
+            bytesGenerated += currentChunkSize;
+            
+            // Yield to UI thread every chunk to prevent blocking
+            await new Promise(r => setTimeout(r, 0));
         }
         
-        const response = await fetch(`${CONFIG.apiBase}/api/upload?t=${Date.now()}`, fetchOptions);
+        const blob = new Blob(chunks, { type: 'application/octet-stream' });
         
-        if (response.ok) {
-            byteCounter.bytes = totalSize;
-            console.log(`[Upload] Thread ${threadId} completed: ${totalSize} bytes`);
-        } else {
-            const errorText = await response.text().catch(() => 'Unable to read error');
-            console.error(`[Upload] Thread ${threadId} failed with status ${response.status}: ${errorText}`);
-        }
+        // Use XHR for accurate upload progress tracking
+        return new Promise((resolve) => {
+            const xhr = new XMLHttpRequest();
+            
+            // Track actual network upload progress
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    byteCounter.bytes = event.loaded;
+                }
+            };
+            
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    byteCounter.bytes = totalSize;
+                    console.log(`[Upload] Thread ${threadId} completed: ${totalSize} bytes`);
+                } else {
+                    console.error(`[Upload] Thread ${threadId} failed with status ${xhr.status}`);
+                }
+                cleanup();
+                resolve(byteCounter);
+            };
+            
+            xhr.onerror = () => {
+                console.error(`[Upload] Thread ${threadId} network error`);
+                cleanup();
+                resolve(byteCounter);
+            };
+            
+            abortController.signal.addEventListener('abort', () => {
+                try { xhr.abort(); } catch(e) {}
+                console.log(`[Upload] Thread ${threadId} aborted`);
+                cleanup();
+                resolve(byteCounter);
+            });
+            
+            xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+            xhr.send(blob);
+        });
     } catch (err) {
-        if (err.name === 'AbortError') {
-            console.log(`[Upload] Thread ${threadId} aborted`);
-        } else {
-            console.error(`[Upload] Thread ${threadId} error:`, err);
-            console.error(`[Upload] Error details - name: ${err.name}, message: ${err.message}`);
-        }
-    } finally {
+        console.error(`[Upload] Thread ${threadId} generation error:`, err);
         cleanup();
+        return byteCounter;
     }
-    
-    return byteCounter;
 }
 
 // Fallback upload for older browsers (reuse chunk and stream to XHR)
