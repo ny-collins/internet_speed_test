@@ -5,6 +5,92 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.05.1] - 2025-10-15
+
+### 🔧 Maintenance Release: Critical Bug Fixes & Code Quality
+
+This release addresses critical PWA bugs discovered through code review and improves deployment architecture.
+
+### Fixed
+
+**Critical PWA Bugs:**
+- PWA update mechanism - Moved `newWorker` and `updateAvailable` to global STATE.pwa object
+  - Update Now button now correctly sends SKIP_WAITING message
+  - Fixes broken PWA update functionality
+- Offline caching - Updated ASSETS_TO_CACHE with versioned file names
+  - Changed `/main.js` to `/main.js?v=1.05.0`
+  - Changed `/main.css` to `/main.css?v=1.05.0`
+  - Fixes silent pre-caching failure and broken offline mode
+- Upload speed drop issue - Enhanced XHR upload progress tracking
+  - Added `xhr.upload.onloadend` to mark transmission complete
+  - Skip zero-progress intervals in speed sample collection
+  - Prevents screen freeze and speed drop from 7 Mbps to 1.3 Mbps
+- Real-time display bug - Speed gauge now updates every 100ms during test
+  - Shows instantaneous speed early, rolling average once stable
+  - Fixes em dash (—) appearing until test completes
+
+### Improved
+
+**Stability Detection:**
+- Analyze longer window (up to 10 samples instead of 5)
+- More reliable detection, less sensitive to single bad intervals
+- Enhanced logging shows analysis window size
+
+**Service Worker Update UX:**
+- Beautiful gradient update banner with slide-down animation
+- "Update Now" and "Later" buttons for user control
+- Periodic update checks every 60 seconds
+- Automatic page reload after update activation
+
+### Added
+
+**Version Management Automation:**
+- Created `build-version.js` script for automatic version synchronization
+- Reads version from `package.json` (single source of truth)
+- Updates `sw.js` (CACHE_NAME + versioned assets)
+- Updates `index.html` and `learn.html` (CSS + JS version queries)
+- Railway automatically runs script during build phase
+- Eliminates manual sync errors and forgotten updates
+
+**Deployment Architecture:**
+- Added `railway.json` for proper build/deploy separation
+- Build phase: `npm run build` (version sync)
+- Start phase: `npm start` (server only)
+- Follows platform best practices
+
+**npm Configuration:**
+- Added `.npmrc` files to frontend and backend
+- Suppresses npm warnings in deployment logs
+- Cleaner Railway deployment output
+
+### Removed
+
+**Code Cleanup (~185 lines):**
+- Deleted `uploadWithStreaming()` - deprecated due to slow crypto generation
+- Deleted `uploadWithFallback()` - deprecated for better cross-browser support
+- Deleted `sendChunkXHR()` - helper only used by fallback
+- Removed unused `result-schema.json` documentation file
+
+**Package.json Cleanup:**
+- Separated build and start scripts
+- Start script now only runs server (clean separation of concerns)
+- Build script handles version synchronization
+
+### Documentation
+
+- `docs/CODE_REVIEW_RESPONSE.md` - Detailed fixes for critical bugs
+- `docs/CODE_REVIEW_CLARIFICATION.md` - Project structure clarifications
+- `docs/BUILD_SCRIPT.md` - Version management automation guide
+- Updated workflow documentation for new architecture
+
+### Performance
+
+- Reduced `main.js` file size by ~1.8KB (gzipped) due to code cleanup
+- Faster initial page load
+- More efficient Railway deployments
+
+---
+
 ## [1.05.0] - 2025-10-15
 
 ### 🚀 Major Release: Production Observability & Upload Optimization
