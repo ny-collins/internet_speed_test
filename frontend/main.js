@@ -1068,6 +1068,9 @@ async function measureDownload() {
     const duration = (performance.now() - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
+    // Update gauge one final time with the accurately calculated speed
+    updateGauge(speedMbps, 'download');
+    
     console.log(`[Download] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
     announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
     
@@ -1270,6 +1273,10 @@ async function measureUpload() {
     // Use transmission end time for duration calculation (excludes server response wait)
     const duration = (transmissionEndTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
+    
+    // CRITICAL: Update gauge one final time with the accurately calculated speed
+    // This prevents the "freeze" appearance where gauge shows old value
+    updateGauge(speedMbps, 'upload');
     
     console.log(`[Upload] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
     announceToScreenReader(`Upload speed: ${speedMbps.toFixed(1)} megabits per second`);
