@@ -1065,6 +1065,10 @@ async function measureDownload() {
     // Wait for all threads to complete
     await Promise.all(threadPromises);
     
+    // CRITICAL: Recalculate totalBytes from byte counters after monitoring completes
+    // The monitor loop may have exited early, leaving totalBytes stale
+    totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+    
     const duration = (performance.now() - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
@@ -1266,6 +1270,10 @@ async function measureUpload() {
     
     // Wait for all thread promises to resolve, but capture end time from last transmission
     const threadResults = await Promise.all(threadPromises);
+    
+    // CRITICAL: Recalculate totalBytes from thread results after monitoring completes
+    // The monitor loop may have exited early, leaving totalBytes stale
+    totalBytes = threadResults.reduce((sum, result) => sum + result.bytes, 0);
     
     // Find the latest transmission end time from all threads
     transmissionEndTime = Math.max(...threadResults.map(r => r.transmissionEndTime || 0));
