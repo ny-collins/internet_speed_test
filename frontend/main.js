@@ -992,7 +992,23 @@ async function measureDownload() {
             // Sum bytes from all threads
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
             
-            // Track speed samples for interval-based speed calculation
+            // Always calculate and display current speed for real-time updates
+            if (elapsed > 0 && totalBytes > 0) {
+                // Calculate instantaneous speed based on current progress
+                const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
+                
+                // If we have speed samples, use rolling average for smoother display
+                if (speedSamples.length >= 3) {
+                    const recentSamples = speedSamples.slice(-3);
+                    const avgSpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
+                    updateGauge(avgSpeed, 'download');
+                } else {
+                    // Early in test, just show current speed
+                    updateGauge(currentSpeed, 'download');
+                }
+            }
+            
+            // Collect speed samples every 500ms for stability calculation
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
@@ -1001,12 +1017,6 @@ async function measureDownload() {
                 speedSamples.push(intervalSpeed);
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
-                
-                // Use recent average for display (last 3 samples, ~1.5 seconds)
-                // This provides more stable readings than instant speed
-                const recentSamples = speedSamples.slice(-3);
-                const displaySpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
-                updateGauge(displaySpeed, 'download');
                 
                 // Check for stability after minimum duration
                 if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
@@ -1168,7 +1178,23 @@ async function measureUpload() {
             // Sum bytes from all threads
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
             
-            // Track speed samples for interval-based speed calculation
+            // Always calculate and display current speed for real-time updates
+            if (elapsed > 0 && totalBytes > 0) {
+                // Calculate instantaneous speed based on current progress
+                const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
+                
+                // If we have speed samples, use rolling average for smoother display
+                if (speedSamples.length >= 3) {
+                    const recentSamples = speedSamples.slice(-3);
+                    const avgSpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
+                    updateGauge(avgSpeed, 'upload');
+                } else {
+                    // Early in test, just show current speed
+                    updateGauge(currentSpeed, 'upload');
+                }
+            }
+            
+            // Collect speed samples every 500ms for stability calculation
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
@@ -1177,12 +1203,6 @@ async function measureUpload() {
                 speedSamples.push(intervalSpeed);
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
-                
-                // Use recent average for display (last 3 samples, ~1.5 seconds)
-                // This provides more stable readings than instant speed
-                const recentSamples = speedSamples.slice(-3);
-                const displaySpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
-                updateGauge(displaySpeed, 'upload');
                 
                 // Check stability
                 if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
