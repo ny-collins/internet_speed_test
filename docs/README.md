@@ -10,7 +10,8 @@ docs/
 ├── CHANGELOG.md                    - Version history and release notes
 ├── BUILD_SCRIPT.md                 - Version management automation guide
 ├── CODE_REVIEW_RESPONSE.md         - v1.05.1 critical bug fixes
-└── CODE_REVIEW_CLARIFICATION.md    - Project structure clarifications
+├── CODE_REVIEW_CLARIFICATION.md    - Project structure clarifications
+└── ARCHITECTURE_IMPROVEMENTS.md    - Future improvements & testing roadmap
 ```
 
 ---
@@ -143,6 +144,47 @@ git push  # Railway auto-syncs everything
 
 ---
 
+### [ARCHITECTURE_IMPROVEMENTS.md](./ARCHITECTURE_IMPROVEMENTS.md)
+**Purpose**: Future improvements roadmap and testing strategy
+
+**What's Inside:**
+- Completed improvements (input validation, configuration management)
+- Deferred architectural improvements with rationale
+- Comprehensive testing strategy
+- Priority recommendations and timeline
+- Success metrics
+
+**Key Topics:**
+1. **Frontend Refactoring** - Breaking down monolithic functions
+   - Single Responsibility Principle compliance
+   - Testability improvements
+   
+2. **State Management** - Store pattern implementation
+   - Encapsulation and change tracking
+   - Reactive updates
+   
+3. **Testing Strategy** - Comprehensive test coverage plan
+   - Backend edge case tests
+   - Frontend unit tests
+   - E2E testing with Playwright/Cypress
+   - CI/CD pipeline
+   
+4. **DOM Centralization** - Separating logic from presentation
+   - Centralized render function
+   - Pure business logic
+
+**When to Read:**
+- Planning future development work
+- Understanding deferred improvements
+- Before starting refactoring work
+- Setting up testing infrastructure
+
+**Key Insight**: Testing must come before refactoring to ensure safe transformation
+
+**File Size**: 400+ lines of detailed roadmap
+
+---
+
 ## 🔍 Finding What You Need
 
 ### By Topic
@@ -153,6 +195,7 @@ git push  # Railway auto-syncs everything
 | **Version Management** | [BUILD_SCRIPT.md](./BUILD_SCRIPT.md) |
 | **PWA Bugs & Fixes** | [CODE_REVIEW_RESPONSE.md](./CODE_REVIEW_RESPONSE.md) |
 | **Project Structure** | [CODE_REVIEW_CLARIFICATION.md](./CODE_REVIEW_CLARIFICATION.md) |
+| **Future Roadmap** | [ARCHITECTURE_IMPROVEMENTS.md](./ARCHITECTURE_IMPROVEMENTS.md) |
 | **Features & Usage** | [../README.md](../README.md) |
 
 ### By Role
@@ -162,6 +205,7 @@ git push  # Railway auto-syncs everything
 | **End User** | [../README.md](../README.md) |
 | **Developer (New)** | [CHANGELOG.md](./CHANGELOG.md) → [BUILD_SCRIPT.md](./BUILD_SCRIPT.md) |
 | **Maintainer** | [BUILD_SCRIPT.md](./BUILD_SCRIPT.md) → [CODE_REVIEW_RESPONSE.md](./CODE_REVIEW_RESPONSE.md) |
+| **Architect/Reviewer** | [ARCHITECTURE_IMPROVEMENTS.md](./ARCHITECTURE_IMPROVEMENTS.md) |
 | **Code Reviewer** | [CODE_REVIEW_RESPONSE.md](./CODE_REVIEW_RESPONSE.md) → [CODE_REVIEW_CLARIFICATION.md](./CODE_REVIEW_CLARIFICATION.md) |
 | **DevOps** | [BUILD_SCRIPT.md](./BUILD_SCRIPT.md) |
 
@@ -185,7 +229,8 @@ git push  # Railway auto-syncs everything
 | BUILD_SCRIPT.md | 4.3 KB | 154 | Automation guide |
 | CODE_REVIEW_RESPONSE.md | 17.2 KB | 452 | Bug fixes |
 | CODE_REVIEW_CLARIFICATION.md | 9.8 KB | 239 | Architecture |
-| **Total** | **38.8 KB** | **1,085** | Technical docs |
+| ARCHITECTURE_IMPROVEMENTS.md | 29.0 KB | 420 | Future roadmap |
+| **Total** | **67.8 KB** | **1,505** | Technical docs |
 
 ---
 
