@@ -1110,9 +1110,34 @@ async function measureUpload() {
 
 // Helper: Check if streaming upload is supported
 function supportsStreamingUpload() {
-    return typeof ReadableStream !== 'undefined' && 
-           typeof Request !== 'undefined' && 
-           'body' in Request.prototype;
+    try {
+        // Check if ReadableStream is available
+        if (typeof ReadableStream === 'undefined') {
+            console.log('[Upload] ReadableStream not supported, using fallback');
+            return false;
+        }
+        
+        // Check if fetch can accept ReadableStream as body
+        // Some browsers have ReadableStream but don't support it in fetch body
+        const testStream = new ReadableStream({
+            start(controller) {
+                controller.close();
+            }
+        });
+        
+        // Try to create a Request with a stream body
+        try {
+            new Request('https://example.com', { method: 'POST', body: testStream, duplex: 'half' });
+            console.log('[Upload] Using streaming upload (ReadableStream)');
+            return true;
+        } catch (e) {
+            console.log('[Upload] ReadableStream not supported in fetch, using fallback');
+            return false;
+        }
+    } catch (e) {
+        console.log('[Upload] Error checking stream support, using fallback:', e.message);
+        return false;
+    }
 }
 
 async function uploadThread(threadId, isRunning, byteCounter) {
@@ -1190,27 +1215,37 @@ async function uploadWithStreaming(threadId, totalSize, abortController, isRunni
     });
     
     try {
-        const response = await fetch(`${CONFIG.apiBase}/api/upload?t=${Date.now()}`, {
+        const fetchOptions = {
             method: 'POST',
             body: stream,
             headers: {
-                'Content-Type': 'application/octet-stream',
-                'Content-Length': totalSize.toString()
+                'Content-Type': 'application/octet-stream'
             },
-            signal: abortController.signal,
-            duplex: 'half' // Required for streaming request bodies in some browsers
-        });
+            signal: abortController.signal
+        };
+        
+        // Add duplex option for browsers that support it (required for streaming)
+        try {
+            fetchOptions.duplex = 'half';
+        } catch (e) {
+            // Older browsers may not support duplex option
+        }
+        
+        const response = await fetch(`${CONFIG.apiBase}/api/upload?t=${Date.now()}`, fetchOptions);
         
         if (response.ok) {
             byteCounter.bytes = totalSize;
+            console.log(`[Upload] Thread ${threadId} completed: ${totalSize} bytes`);
         } else {
-            console.error(`[Upload] Thread ${threadId} failed: ${response.status}`);
+            const errorText = await response.text().catch(() => 'Unable to read error');
+            console.error(`[Upload] Thread ${threadId} failed with status ${response.status}: ${errorText}`);
         }
     } catch (err) {
         if (err.name === 'AbortError') {
             console.log(`[Upload] Thread ${threadId} aborted`);
         } else {
             console.error(`[Upload] Thread ${threadId} error:`, err);
+            console.error(`[Upload] Error details - name: ${err.name}, message: ${err.message}`);
         }
     } finally {
         cleanup();
@@ -1289,12 +1324,16 @@ function sendChunkXHR(threadId, chunk, abortSignal) {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     finish(true, chunk.byteLength);
                 } else {
-                    finish(false, new Error(`Upload chunk failed: ${xhr.status}`));
+                    console.error(`[Upload] Thread ${threadId} XHR failed: ${xhr.status} ${xhr.statusText}`);
+                    finish(false, new Error(`Upload chunk failed: ${xhr.status} ${xhr.statusText}`));
                 }
             }
         };
         
-        xhr.onerror = () => finish(false, new Error('XHR network error'));
+        xhr.onerror = () => {
+            console.error(`[Upload] Thread ${threadId} XHR network error`);
+            finish(false, new Error('XHR network error'));
+        };
         
         abortSignal.addEventListener('abort', () => {
             if (!done) {
