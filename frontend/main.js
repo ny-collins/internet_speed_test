@@ -1008,6 +1008,14 @@ async function downloadThread(threadId, isRunning, byteCounter) {
 // UPLOAD MEASUREMENT
 // ========================================
 
+// Create a reusable chunk for fallback upload (avoids memory allocation)
+// This is defined here (top-level) to avoid TDZ issues when referenced in uploadWithFallback
+const REUSABLE_UPLOAD_CHUNK = (() => {
+    const chunk = new Uint8Array(256 * 1024); // 256KB reusable chunk
+    crypto.getRandomValues(chunk);
+    return chunk;
+})();
+
 async function measureUpload() {
     const threadCount = CONFIG.threads.upload;
     const maxDuration = CONFIG.duration.upload.max * 1000;
@@ -1106,13 +1114,6 @@ function supportsStreamingUpload() {
            typeof Request !== 'undefined' && 
            'body' in Request.prototype;
 }
-
-// Create a reusable chunk for fallback upload (avoids memory allocation)
-const REUSABLE_UPLOAD_CHUNK = (() => {
-    const chunk = new Uint8Array(256 * 1024); // 256KB reusable chunk
-    crypto.getRandomValues(chunk);
-    return chunk;
-})();
 
 async function uploadThread(threadId, isRunning, byteCounter) {
     const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
