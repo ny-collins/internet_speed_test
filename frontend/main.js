@@ -56,7 +56,14 @@ const STATE = {
     abortControllers: [],
     serverInfo: null,
     history: [],
-    rafId: null
+    rafId: null,
+    // Performance monitoring
+    performance: {
+        monitoring: false,
+        lastCheck: 0,
+        blockWarnings: 0,
+        maxBlockTime: 0
+    }
 };
 
 // Centralized DOM element references
@@ -622,6 +629,9 @@ async function startTest() {
         jitter: null
     };
     
+    // Start UI blocking detection
+    startUIMonitoring();
+    
     // Show gauge and hide start button
     showGauge();
     
@@ -656,6 +666,9 @@ async function startTest() {
         showStatus(`Test failed: ${error.message}`, 'error');
         announceToScreenReader(`Test failed: ${error.message}`);
     } finally {
+        // Stop UI monitoring and report any blocking
+        stopUIMonitoring();
+        
         STATE.testing = false;
         if (DOM.startTest) DOM.startTest.disabled = false;
         if (DOM.cancelTest) {
@@ -705,6 +718,9 @@ function cancelTest() {
         STATE.rafId = null;
     }
     
+    // Stop UI monitoring
+    stopUIMonitoring();
+    
     showStatus('Test cancelled', 'info');
     announceToScreenReader('Test cancelled');
     resetAllPhases();
@@ -738,13 +754,25 @@ async function measureLatency() {
     const sampleCount = 10;
     const samples = [];
     const abortController = new AbortController();
-    STATE.abortControllers.push(abortController);
+    const controllerIndex = STATE.abortControllers.push(abortController) - 1;
+    let cleanupDone = false;
+    
+    const cleanup = () => {
+        // Idempotent cleanup - safe to call multiple times
+        if (cleanupDone) return;
+        cleanupDone = true;
+        
+        // Remove this controller from the array to prevent memory leaks
+        if (controllerIndex !== -1 && STATE.abortControllers[controllerIndex] === abortController) {
+            STATE.abortControllers.splice(controllerIndex, 1);
+        }
+    };
     
     announceToScreenReader('Measuring latency');
     
     try {
         for (let i = 0; i < sampleCount; i++) {
-            if (STATE.cancelling) break;
+            if (STATE.cancelling || abortController.signal.aborted) break;
             
             const start = performance.now();
             await fetch(`${CONFIG.apiBase}/api/ping?t=${Date.now()}`, {
@@ -795,6 +823,8 @@ async function measureLatency() {
             return null;
         }
         throw error;
+    } finally {
+        cleanup();
     }
 }
 
@@ -910,7 +940,19 @@ async function measureDownload() {
 
 async function downloadThread(threadId, isRunning, byteCounter) {
     const abortController = new AbortController();
-    STATE.abortControllers.push(abortController);
+    const controllerIndex = STATE.abortControllers.push(abortController) - 1;
+    let cleanupDone = false;
+    
+    const cleanup = () => {
+        // Idempotent cleanup - safe to call multiple times
+        if (cleanupDone) return;
+        cleanupDone = true;
+        
+        // Remove this controller from the array to prevent memory leaks
+        if (controllerIndex !== -1 && STATE.abortControllers[controllerIndex] === abortController) {
+            STATE.abortControllers.splice(controllerIndex, 1);
+        }
+    };
     
     try {
         const url = `${CONFIG.apiBase}/api/download?size=${CONFIG.downloadSize}&chunk=${CONFIG.chunkSize}&t=${Date.now()}`;
@@ -932,7 +974,7 @@ async function downloadThread(threadId, isRunning, byteCounter) {
         const reader = response.body.getReader();
         console.log(`[Download] Thread ${threadId} reader created, starting to read...`);
         
-        while (isRunning()) {
+        while (isRunning() && !abortController.signal.aborted) {
             const { done, value } = await reader.read();
             if (done) break;
             
@@ -940,15 +982,23 @@ async function downloadThread(threadId, isRunning, byteCounter) {
         }
         
         console.log(`[Download] Thread ${threadId} completed: ${byteCounter.bytes} bytes`);
-        reader.cancel();
+        
+        // Properly cancel the reader
+        try {
+            await reader.cancel();
+        } catch (e) {
+            // Ignore cancel errors
+        }
         
     } catch (error) {
         if (error.name === 'AbortError') {
             console.log(`[Download] Thread ${threadId} aborted`);
         } else {
             console.error(`[Download] Thread ${threadId} error:`, error);
-            throw error; // Re-throw to help debug
+            // Don't re-throw, just log - let test continue with other threads
         }
+    } finally {
+        cleanup();
     }
     
     return byteCounter;
@@ -1050,66 +1100,214 @@ async function measureUpload() {
     };
 }
 
+// Helper: Check if streaming upload is supported
+function supportsStreamingUpload() {
+    return typeof ReadableStream !== 'undefined' && 
+           typeof Request !== 'undefined' && 
+           'body' in Request.prototype;
+}
+
+// Fallback: Generate data in smaller batches with UI yields
+async function generateUploadDataAsync(totalSize, onProgress) {
+    const chunkSize = 65536; // 64KB
+    const batchSize = chunkSize * 16; // Generate 1MB at a time
+    const data = new Uint8Array(totalSize);
+    
+    for (let i = 0; i < totalSize; i += batchSize) {
+        const currentBatchSize = Math.min(batchSize, totalSize - i);
+        
+        // Generate this batch in chunks
+        for (let j = 0; j < currentBatchSize; j += chunkSize) {
+            const currentChunkSize = Math.min(chunkSize, currentBatchSize - j);
+            const chunk = new Uint8Array(currentChunkSize);
+            crypto.getRandomValues(chunk);
+            data.set(chunk, i + j);
+        }
+        
+        // Yield to UI thread after each batch
+        await new Promise(resolve => setTimeout(resolve, 0));
+        
+        if (onProgress) {
+            onProgress(i + currentBatchSize);
+        }
+    }
+    
+    return data;
+}
+
 async function uploadThread(threadId, isRunning, byteCounter) {
     const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
     
-    // Generate random data in chunks (crypto.getRandomValues has 65KB limit)
-    const maxChunkSize = 65536; // 64KB max for crypto
-    const data = new Uint8Array(totalSize);
-    for (let i = 0; i < totalSize; i += maxChunkSize) {
-        const chunkSize = Math.min(maxChunkSize, totalSize - i);
-        const chunk = new Uint8Array(chunkSize);
-        crypto.getRandomValues(chunk);
-        data.set(chunk, i);
+    const abortController = new AbortController();
+    const controllerIndex = STATE.abortControllers.push(abortController) - 1;
+    let cleanupDone = false;
+    
+    const cleanup = () => {
+        // Idempotent cleanup - safe to call multiple times
+        if (cleanupDone) return;
+        cleanupDone = true;
+        
+        // Remove this controller from the array to prevent memory leaks
+        if (controllerIndex !== -1 && STATE.abortControllers[controllerIndex] === abortController) {
+            STATE.abortControllers.splice(controllerIndex, 1);
+        }
+    };
+    
+    // Use streaming upload if supported, otherwise fallback to async generation
+    if (supportsStreamingUpload()) {
+        return uploadWithStreaming(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
+    } else {
+        return uploadWithFallback(threadId, totalSize, abortController, isRunning, byteCounter, cleanup);
+    }
+}
+
+// Modern streaming upload (no memory allocation, non-blocking)
+async function uploadWithStreaming(threadId, totalSize, abortController, isRunning, byteCounter, cleanup) {
+    const chunkSize = 65536; // 64KB chunks
+    let aborted = false;
+    
+    const stream = new ReadableStream({
+        async start(controller) {
+            let bytesSent = 0;
+            
+            try {
+                while (bytesSent < totalSize && !aborted) {
+                    // Check if we should abort
+                    if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
+                        aborted = true;
+                        controller.close();
+                        break;
+                    }
+                    
+                    const remainingBytes = totalSize - bytesSent;
+                    const currentChunkSize = Math.min(chunkSize, remainingBytes);
+                    const chunk = new Uint8Array(currentChunkSize);
+                    
+                    // Generate random data
+                    crypto.getRandomValues(chunk);
+                    
+                    // Enqueue the chunk
+                    controller.enqueue(chunk);
+                    bytesSent += currentChunkSize;
+                    
+                    // Yield to UI thread every 256KB to prevent blocking
+                    if (bytesSent % (chunkSize * 4) === 0) {
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+                
+                controller.close();
+            } catch (err) {
+                console.error(`[Upload] Thread ${threadId} stream error:`, err);
+                controller.error(err);
+            }
+        },
+        
+        cancel(reason) {
+            aborted = true;
+            console.log(`[Upload] Thread ${threadId} stream cancelled:`, reason);
+        }
+    });
+    
+    try {
+        const response = await fetch(`${CONFIG.apiBase}/api/upload?t=${Date.now()}`, {
+            method: 'POST',
+            body: stream,
+            headers: {
+                'Content-Type': 'application/octet-stream'
+            },
+            signal: abortController.signal
+        });
+        
+        if (response.ok) {
+            byteCounter.bytes = totalSize;
+        } else {
+            console.error(`[Upload] Thread ${threadId} failed: ${response.status}`);
+        }
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            console.log(`[Upload] Thread ${threadId} aborted`);
+        } else {
+            console.error(`[Upload] Thread ${threadId} error:`, err);
+        }
+    } finally {
+        cleanup();
     }
     
-    const abortController = new AbortController();
-    STATE.abortControllers.push(abortController);
-    
-    return new Promise((resolve) => {
-        const xhr = new XMLHttpRequest();
-        
-        xhr.upload.addEventListener('progress', (e) => {
-            if (e.lengthComputable) {
-                byteCounter.bytes = e.loaded;
+    return byteCounter;
+}
+
+// Fallback upload for older browsers (async generation with UI yields)
+async function uploadWithFallback(threadId, totalSize, abortController, isRunning, byteCounter, cleanup) {
+    try {
+        // Generate data asynchronously with UI yields
+        const data = await generateUploadDataAsync(totalSize, (progress) => {
+            // Check if we should abort during generation
+            if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
+                throw new Error('Aborted during data generation');
             }
         });
         
-        xhr.addEventListener('load', () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(byteCounter);
-            } else {
-                console.error(`[Upload] Thread ${threadId} failed: ${xhr.status}`);
-                resolve(byteCounter);
-            }
+        // Check once more before uploading
+        if (!isRunning() || STATE.cancelling || abortController.signal.aborted) {
+            console.log(`[Upload] Thread ${threadId} aborted before send`);
+            return byteCounter;
+        }
+        
+        // Use XHR with abort support and progress tracking
+        return new Promise((resolve) => {
+            const xhr = new XMLHttpRequest();
+            let resolved = false;
+            
+            const resolveOnce = () => {
+                if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    resolve(byteCounter);
+                }
+            };
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    byteCounter.bytes = e.loaded;
+                }
+            });
+            
+            xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    byteCounter.bytes = totalSize;
+                } else {
+                    console.error(`[Upload] Thread ${threadId} failed: ${xhr.status}`);
+                }
+                resolveOnce();
+            });
+            
+            xhr.addEventListener('error', () => {
+                console.error(`[Upload] Thread ${threadId} network error`);
+                resolveOnce();
+            });
+            
+            xhr.addEventListener('abort', () => {
+                console.log(`[Upload] Thread ${threadId} aborted`);
+                resolveOnce();
+            });
+            
+            // Listen for abort signal
+            abortController.signal.addEventListener('abort', () => {
+                if (!resolved) {
+                    xhr.abort();
+                }
+            });
+            
+            xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+            xhr.send(data.buffer);
         });
-        
-        xhr.addEventListener('error', () => {
-            console.error(`[Upload] Thread ${threadId} network error`);
-            resolve(byteCounter);
-        });
-        
-        xhr.addEventListener('abort', () => {
-            console.log(`[Upload] Thread ${threadId} aborted`);
-            resolve(byteCounter);
-        });
-        
-        // Listen for abort signal
-        abortController.signal.addEventListener('abort', () => {
-            xhr.abort();
-        });
-        
-        // Check if we should still be running periodically
-        const checkInterval = setInterval(() => {
-            if (!isRunning() || STATE.cancelling) {
-                clearInterval(checkInterval);
-                xhr.abort();
-            }
-        }, 100);
-        
-        xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
-        xhr.send(data.buffer);
-    });
+    } catch (err) {
+        console.error(`[Upload] Thread ${threadId} generation error:`, err);
+        cleanup();
+        return byteCounter;
+    }
 }
 
 // ========================================
@@ -1590,6 +1788,103 @@ function formatBytes(bytes) {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// ========================================
+// PERFORMANCE MONITORING
+// ========================================
+
+/**
+ * Start monitoring UI thread responsiveness
+ * Detects if main thread is blocked for too long
+ */
+function startPerformanceMonitoring() {
+    if (STATE.performance.monitoring) return;
+    
+    STATE.performance.monitoring = true;
+    STATE.performance.lastCheck = performance.now();
+    STATE.performance.blockWarnings = 0;
+    STATE.performance.maxBlockTime = 0;
+    
+    const checkInterval = 250; // Check every 250ms
+    const warningThreshold = 500; // Warn if blocked for >500ms
+    
+    function checkUIThread() {
+        if (!STATE.performance.monitoring) return;
+        
+        const now = performance.now();
+        const elapsed = now - STATE.performance.lastCheck;
+        
+        // If more time elapsed than expected, UI thread was blocked
+        const expectedElapsed = checkInterval;
+        const blockTime = elapsed - expectedElapsed;
+        
+        if (blockTime > warningThreshold) {
+            STATE.performance.blockWarnings++;
+            STATE.performance.maxBlockTime = Math.max(STATE.performance.maxBlockTime, blockTime);
+            
+            console.warn(`[Performance] UI thread blocked for ${blockTime.toFixed(0)}ms`);
+            
+            // Show warning to user if blocking is severe
+            if (blockTime > 1000 && STATE.performance.blockWarnings <= 3) {
+                showPerformanceWarning(blockTime);
+            }
+        }
+        
+        STATE.performance.lastCheck = now;
+        
+        if (STATE.performance.monitoring) {
+            setTimeout(checkUIThread, checkInterval);
+        }
+    }
+    
+    setTimeout(checkUIThread, checkInterval);
+    console.log('[Performance] Monitoring started');
+}
+
+/**
+ * Stop monitoring UI thread
+ */
+function stopPerformanceMonitoring() {
+    STATE.performance.monitoring = false;
+    
+    if (STATE.performance.blockWarnings > 0) {
+        console.log(`[Performance] Monitoring stopped. Warnings: ${STATE.performance.blockWarnings}, Max block time: ${STATE.performance.maxBlockTime.toFixed(0)}ms`);
+    }
+}
+
+/**
+ * Show performance warning to user
+ */
+function showPerformanceWarning(blockTime) {
+    // Only show warning if test is running
+    if (!STATE.testing) return;
+    
+    // Create a subtle warning notification
+    const warning = document.createElement('div');
+    warning.className = 'performance-warning';
+    warning.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 152, 0, 0.95);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease;
+    `;
+    warning.textContent = `Performance impact detected (${Math.round(blockTime)}ms delay)`;
+    
+    document.body.appendChild(warning);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        warning.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => warning.remove(), 300);
+    }, 3000);
 }
 
 if (typeof lucide !== 'undefined') {
