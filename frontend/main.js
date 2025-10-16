@@ -707,7 +707,7 @@ async function fetchServerInfo() {
         
         // Update UI
         if (DOM.serverLocation) {
-            DOM.serverLocation.textContent = STATE.serverInfo.serverLocation || 'Unknown';
+            DOM.serverLocation.textContent = STATE.serverInfo.location || 'Unknown';
         }
         if (DOM.serverLimits && STATE.serverInfo.maxDownloadSize) {
             DOM.serverLimits.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;

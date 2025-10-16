@@ -1,6 +1,6 @@
 {
   "name": "speedcheck-frontend",
-  "version": "1.05.1",
+  "version": "1.60.0",
   "description": "Frontend static file server with PWA support",
   "scripts": {
     "start": "node server.js",
