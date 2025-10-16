@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.60.0] - 2025-10-16
 
-### 🚀 Major Release: Fixed-Duration Testing & Measurement Accuracy
+### 🚀 Major Release: Fixed-Duration Testing & Complete Application Refinement
 
-This release completely overhauls the speed measurement logic to provide fast, accurate, and consistent test results.
+This major release represents a fundamental architectural shift to fixed-duration testing, eliminating the UI "freeze" issue and providing fast, accurate, and consistent test results. It also includes all critical bug fixes, quality improvements, and code cleanup developed during the refinement process.
 
 ### Changed
 
@@ -19,64 +19,33 @@ This release completely overhauls the speed measurement logic to provide fast, a
 - **Total test time**: ~25 seconds (vs. ~120 seconds before)
 - Tests stop at max duration and measure bytes transferred during that period
 - Provides consistent, predictable test duration every time
+- CONFIG defaults updated to 10 seconds for both download and upload
 
 **UI/UX Improvements:**
 - Eliminated "freeze" appearance during upload/download
 - Smooth gauge updates throughout entire test
 - No value flashing between measurements
 - Settings panel default updated to 10 seconds
+- Beautiful gradient update banner with slide-down animation
+- "Update Now" and "Later" buttons for user control
 
 ### Fixed
 
-**Measurement Accuracy:**
+**Critical Measurement Issues:**
 - Fixed upload speed calculations (transmissionEndTime vs. response time)
 - Fixed download speed calculations (actual completion time)
 - Removed race conditions in monitor loop
 - Fixed duplicate gauge updates causing value conflicts
 - Server location banner now shows correct location (was "Unknown")
-
-### Removed
-
-- Thread completion tracking complexity (~60 lines)
-- Post-loop gauge updates (monitor loop is now sole source of truth)
-- "Finishing phase" logic (no longer needed with fixed duration)
-
-### Technical Details
-
-**Why Fixed Duration?**
-Speed is measured by observing data transfer over a specific time period. By controlling the measurement window (10 seconds), we get:
-- More consistent results across different connection speeds
-- Faster tests without waiting for full file transfers
-- Simpler, more maintainable code
-- Accurate representation of current network speed
-
-See `docs/TECHNICAL_NOTES.md` for detailed technical rationale.
-
----
-
-## [1.05.1] - 2025-10-15
-
-### 🔧 Maintenance Release: Critical Bug Fixes & Code Quality
-
-This release addresses critical PWA bugs discovered through code review and improves deployment architecture.
-
-### Fixed
+- Upload speed drop issue (prevents 7 Mbps → 1.3 Mbps drop)
+- Real-time display bug - Speed gauge now updates every 100ms during test
 
 **Critical PWA Bugs:**
 - PWA update mechanism - Moved `newWorker` and `updateAvailable` to global STATE.pwa object
   - Update Now button now correctly sends SKIP_WAITING message
   - Fixes broken PWA update functionality
 - Offline caching - Updated ASSETS_TO_CACHE with versioned file names
-  - Changed `/main.js` to `/main.js?v=1.05.0`
-  - Changed `/main.css` to `/main.css?v=1.05.0`
   - Fixes silent pre-caching failure and broken offline mode
-- Upload speed drop issue - Enhanced XHR upload progress tracking
-  - Added `xhr.upload.onloadend` to mark transmission complete
-  - Skip zero-progress intervals in speed sample collection
-  - Prevents screen freeze and speed drop from 7 Mbps to 1.3 Mbps
-- Real-time display bug - Speed gauge now updates every 100ms during test
-  - Shows instantaneous speed early, rolling average once stable
-  - Fixes em dash (—) appearing until test completes
 
 ### Improved
 
@@ -85,11 +54,10 @@ This release addresses critical PWA bugs discovered through code review and impr
 - More reliable detection, less sensitive to single bad intervals
 - Enhanced logging shows analysis window size
 
-**Service Worker Update UX:**
-- Beautiful gradient update banner with slide-down animation
-- "Update Now" and "Later" buttons for user control
+**Service Worker:**
 - Periodic update checks every 60 seconds
 - Automatic page reload after update activation
+- Better user experience with controlled updates
 
 ### Added
 
@@ -114,11 +82,15 @@ This release addresses critical PWA bugs discovered through code review and impr
 
 ### Removed
 
-**Code Cleanup (~185 lines):**
-- Deleted `uploadWithStreaming()` - deprecated due to slow crypto generation
-- Deleted `uploadWithFallback()` - deprecated for better cross-browser support
-- Deleted `sendChunkXHR()` - helper only used by fallback
+**Code Cleanup (~273 lines total):**
+- Thread completion tracking complexity (~88 lines)
+- Post-loop gauge updates (monitor loop is now sole source of truth)
+- "Finishing phase" logic (no longer needed with fixed duration)
+- Deleted `uploadWithStreaming()` - deprecated due to slow crypto generation (~95 lines)
+- Deleted `uploadWithFallback()` - deprecated for better cross-browser support (~75 lines)
+- Deleted `sendChunkXHR()` - helper only used by fallback (~15 lines)
 - Removed unused `result-schema.json` documentation file
+- Removed 5 obsolete documentation files
 
 **Package.json Cleanup:**
 - Separated build and start scripts
@@ -127,16 +99,39 @@ This release addresses critical PWA bugs discovered through code review and impr
 
 ### Documentation
 
-- `docs/CODE_REVIEW_RESPONSE.md` - Detailed fixes for critical bugs
-- `docs/CODE_REVIEW_CLARIFICATION.md` - Project structure clarifications
-- `docs/BUILD_SCRIPT.md` - Version management automation guide
-- Updated workflow documentation for new architecture
+**New Comprehensive Documentation:**
+- `docs/TECHNICAL_NOTES.md` - Design decisions, discrepancies, and rationale (293 lines)
+- `docs/FUNCTIONALITY.md` - Complete system architecture and internal workings (576 lines)
+- Updated `docs/CHANGELOG.md` - Full version history with detailed release notes (296 lines)
+
+**Documentation Structure:**
+- Consolidated from 7 files to 3 focused, comprehensive documents
+- Removed obsolete review response and clarification files
+- Main README.md updated with badges linking to all documentation
+
+### Technical Details
+
+**Why Fixed Duration?**
+Speed is measured by observing data transfer over a specific time period. By controlling the measurement window (10 seconds), we get:
+- More consistent results across different connection speeds
+- Faster tests without waiting for full file transfers
+- Simpler, more maintainable code
+- Accurate representation of current network speed
+
+**Philosophy:**
+> "Speed is measured by taking a small chunk of time and seeing how many packets are transferred."
+
+This release embodies this principle, moving from "test-to-completion" to "fixed-duration" testing.
+
+See `docs/TECHNICAL_NOTES.md` for detailed technical rationale and `docs/FUNCTIONALITY.md` for complete system architecture.
 
 ### Performance
 
-- Reduced `main.js` file size by ~1.8KB (gzipped) due to code cleanup
+- Total test time reduced by 80% (~120s → ~25s)
+- Reduced `main.js` file size by ~2.5KB (gzipped) due to code cleanup
 - Faster initial page load
 - More efficient Railway deployments
+- Cleaner, more maintainable codebase
 
 ---
 
