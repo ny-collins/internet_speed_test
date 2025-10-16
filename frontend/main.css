@@ -716,9 +716,9 @@ body {
         var(--color-primary) calc(var(--progress) * 1%),
         transparent calc(var(--progress) * 1%)
     );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
     -webkit-mask-composite: xor;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
     mask-composite: exclude;
     padding: 3px;
     pointer-events: none;
@@ -1185,6 +1185,11 @@ body {
         grid-template-columns: repeat(2, 1fr);
         max-width: 600px;
         margin: 0 auto;
+    }
+    
+    .page-home .controls {
+        margin-top: var(--spacing-2xl);
+        margin-bottom: var(--spacing-xl);
     }
     
     .page-home .why-amsterdam-banner {

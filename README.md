@@ -137,19 +137,30 @@ internet_speed_test/
 │   ├── index.html           # Main speed test interface
 │   ├── learn.html           # Educational content page
 │   ├── 404.html             # Custom error page
-│   ├── main.js              # Speed test logic & UI management
+│   ├── main.js              # Speed test logic & UI management (2,039 lines)
 │   ├── main.css             # Complete styling with theme support
+│   ├── sw.js                # Service Worker for PWA & offline caching
 │   ├── server.js            # Express static server with 404 handling
-│   ├── package.json         # Frontend dependencies
+│   ├── package.json         # Frontend dependencies & version (v1.60.0)
+│   ├── build-version.js     # Version synchronization automation script
+│   ├── .npmrc               # npm configuration for cleaner logs
 │   ├── site.webmanifest     # PWA manifest for Add to Home Screen
 │   ├── favicon.svg          # Scalable site icon (Lucide zap)
 │   ├── favicon-192x192.png  # PWA icon (Android/Chrome)
 │   ├── favicon-512x512.png  # PWA icon (high-res devices)
 │   ├── sitemap.xml          # SEO sitemap
 │   └── robots.txt           # Search engine directives
-└── backend/                 # API server
-    ├── server.js            # Express server with API endpoints
-    └── package.json         # Backend dependencies & scripts
+├── backend/                 # API server
+│   ├── server.js            # Express server with API endpoints
+│   ├── package.json         # Backend dependencies & version (v1.60.0)
+│   ├── .npmrc               # npm configuration
+│   └── config/
+│       └── index.js         # Centralized configuration management
+├── docs/                    # Comprehensive documentation
+│   ├── CHANGELOG.md         # Version history (296 lines)
+│   ├── TECHNICAL_NOTES.md   # Design decisions & rationale (293 lines)
+│   └── FUNCTIONALITY.md     # System architecture & internal workings (576 lines)
+└── railway.json             # Railway deployment configuration
 ```
 
 ### Frontend Stack
