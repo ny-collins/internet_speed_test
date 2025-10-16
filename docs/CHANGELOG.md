@@ -5,6 +5,37 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.61.0] - 2025-10-16
+
+### Fixed
+
+**Critical Bug Fixes:**
+- **Division-by-zero guards**: Added guards in speed calculations to prevent `Infinity` results
+  - Validates duration and totalBytes before calculation
+  - Throws error with clear message if data is invalid
+- **Unhandled promise rejections**: Added `.catch()` handlers to all thread promises
+  - Download and upload threads now handle errors gracefully
+  - Failed threads return partial data instead of crashing
+- **XSS prevention**: Sanitized history display using DOM manipulation
+  - Replaced `innerHTML` with `createElement` and `textContent`
+  - Prevents potential HTML injection from corrupted localStorage
+- **Rate limiting**: Added 10-second cooldown between tests
+  - Prevents spam-clicking the start button
+  - Shows countdown message for remaining seconds
+- **Memory optimization**: Service Worker update checks now pause when tab is inactive
+  - Uses Page Visibility API to stop/start interval
+  - Reduces memory pressure on inactive tabs
+  - Checks immediately when tab becomes visible again
+
+### Improved
+
+**Code Quality:**
+- Better error handling throughout application
+- Improved security posture with XSS prevention
+- More efficient resource usage with visibility-aware SW updates
+
+---
+
 ## [1.60.1] - 2025-10-16
 
 ### Fixed

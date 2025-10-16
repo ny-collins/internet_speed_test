@@ -48,6 +48,7 @@ const STATE = {
     gaugeElement: null,
     gaugeChart: null,
     lastMaxScale: 100,
+    lastTestTime: 0, // Track last test timestamp for rate limiting
     testResults: {
         download: null,
         upload: null,
@@ -148,9 +149,37 @@ function registerServiceWorker() {
             registration.update();
             
             // Check for updates periodically (every 60 seconds)
-            setInterval(() => {
-                registration.update();
-            }, 60000);
+            // Use Page Visibility API to pause when tab is inactive
+            let updateInterval;
+            
+            const startUpdateChecks = () => {
+                if (updateInterval) return; // Already running
+                updateInterval = setInterval(() => {
+                    registration.update();
+                }, 60000);
+            };
+            
+            const stopUpdateChecks = () => {
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                    updateInterval = null;
+                }
+            };
+            
+            // Start checking immediately
+            startUpdateChecks();
+            
+            // Pause/resume based on page visibility
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    console.log('[PWA] Page hidden, pausing update checks');
+                    stopUpdateChecks();
+                } else {
+                    console.log('[PWA] Page visible, resuming update checks');
+                    registration.update(); // Check immediately on return
+                    startUpdateChecks();
+                }
+            });
             
             // Listen for updates
             registration.addEventListener('updatefound', () => {
@@ -731,6 +760,20 @@ async function fetchServerInfo() {
 async function startTest() {
     if (STATE.testing) return;
     
+    // Rate limiting: Prevent spam-clicking (10 second cooldown)
+    const now = Date.now();
+    const timeSinceLastTest = now - STATE.lastTestTime;
+    const cooldownMs = 10000; // 10 seconds
+    
+    if (STATE.lastTestTime > 0 && timeSinceLastTest < cooldownMs) {
+        const remainingSeconds = Math.ceil((cooldownMs - timeSinceLastTest) / 1000);
+        showStatus(`Please wait ${remainingSeconds} seconds between tests`, 'warning');
+        announceToScreenReader(`Please wait ${remainingSeconds} seconds before starting another test`);
+        return;
+    }
+    
+    STATE.lastTestTime = now;
+    
     console.log('[Test] Starting comprehensive speed test...');
     STATE.testing = true;
     STATE.cancelling = false;
@@ -982,7 +1025,11 @@ async function measureDownload() {
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
         byteCounters.push(counter);
-        return downloadThread(i, () => isRunning, counter);
+        return downloadThread(i, () => isRunning, counter)
+            .catch(err => {
+                console.error(`[Download] Thread ${i} failed:`, err);
+                return { bytes: counter.bytes, completionTime: performance.now() };
+            });
     });
     
     // Monitor loop - runs for fixed duration (10 seconds max)
@@ -1072,6 +1119,13 @@ async function measureDownload() {
     // Use the final totalBytes value from the monitor loop (accurate for the test duration)
     const endTime = performance.now();
     const duration = (endTime - startTime) / 1000;
+    
+    // Guard against division by zero or invalid data
+    if (duration === 0 || totalBytes === 0) {
+        console.warn('[Download] Invalid test data (duration or bytes is 0), skipping result');
+        throw new Error('Invalid download test data');
+    }
+    
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
     console.log(`[Download] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
@@ -1201,7 +1255,11 @@ async function measureUpload() {
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
         byteCounters.push(counter);
-        return uploadThread(i, () => isRunning, counter);
+        return uploadThread(i, () => isRunning, counter)
+            .catch(err => {
+                console.error(`[Upload] Thread ${i} failed:`, err);
+                return { bytes: counter.bytes, transmissionEndTime: performance.now() };
+            });
     });
     
     // Monitor loop - runs for fixed duration (10 seconds max)
@@ -1291,6 +1349,13 @@ async function measureUpload() {
     // Use the final totalBytes value from the monitor loop (accurate for the test duration)
     const endTime = performance.now();
     const duration = (endTime - startTime) / 1000;
+    
+    // Guard against division by zero or invalid data
+    if (duration === 0 || totalBytes === 0) {
+        console.warn('[Upload] Invalid test data (duration or bytes is 0), skipping result');
+        throw new Error('Invalid upload test data');
+    }
+    
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
     console.log(`[Upload] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
@@ -1860,25 +1925,51 @@ function updateHistoryUI() {
     if (!DOM.historyList) return;
     
     if (STATE.history.length === 0) {
-        DOM.historyList.innerHTML = '<div style="text-align:center;color:var(--color-text-tertiary);padding:2rem;">No test history yet</div>';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.textAlign = 'center';
+        emptyDiv.style.color = 'var(--color-text-tertiary)';
+        emptyDiv.style.padding = '2rem';
+        emptyDiv.textContent = 'No test history yet';
+        DOM.historyList.innerHTML = '';
+        DOM.historyList.appendChild(emptyDiv);
         return;
     }
     
-    DOM.historyList.innerHTML = STATE.history.slice(0, 10).map(result => {
+    // Clear existing content
+    DOM.historyList.innerHTML = '';
+    
+    // Build history items using DOM manipulation (prevents XSS)
+    STATE.history.slice(0, 10).forEach(result => {
         const date = new Date(result.timestamp);
         const timeStr = date.toLocaleString();
         
-        return `
-            <div class="history-item">
-                <div class="history-item-data">
-                    <span>⬇ ${result.download.toFixed(1)} Mbps</span>
-                    <span>⬆ ${result.upload.toFixed(1)} Mbps</span>
-                    <span>🏓 ${result.latency.toFixed(0)} ms</span>
-                </div>
-                <div class="history-item-time">${timeStr}</div>
-            </div>
-        `;
-    }).join('');
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        
+        const dataDiv = document.createElement('div');
+        dataDiv.className = 'history-item-data';
+        
+        const downloadSpan = document.createElement('span');
+        downloadSpan.textContent = `⬇ ${result.download.toFixed(1)} Mbps`;
+        
+        const uploadSpan = document.createElement('span');
+        uploadSpan.textContent = `⬆ ${result.upload.toFixed(1)} Mbps`;
+        
+        const latencySpan = document.createElement('span');
+        latencySpan.textContent = `🏓 ${result.latency.toFixed(0)} ms`;
+        
+        dataDiv.appendChild(downloadSpan);
+        dataDiv.appendChild(uploadSpan);
+        dataDiv.appendChild(latencySpan);
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'history-item-time';
+        timeDiv.textContent = timeStr;
+        
+        item.appendChild(dataDiv);
+        item.appendChild(timeDiv);
+        DOM.historyList.appendChild(item);
+    });
 }
 
 function clearHistory() {
