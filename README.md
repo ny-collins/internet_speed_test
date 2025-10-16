@@ -4,7 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.60.0-blue)](#)
+[![Version](https://img.shields.io/badge/version-1.62.0-blue)](#)
 [![Changelog](https://img.shields.io/badge/docs-changelog-informational)](docs/CHANGELOG.md)
 [![Technical Notes](https://img.shields.io/badge/docs-technical_notes-informational)](docs/TECHNICAL_NOTES.md)
 [![Functionality](https://img.shields.io/badge/docs-functionality-informational)](docs/FUNCTIONALITY.md)
@@ -137,11 +137,11 @@ internet_speed_test/
 │   ├── index.html           # Main speed test interface
 │   ├── learn.html           # Educational content page
 │   ├── 404.html             # Custom error page
-│   ├── main.js              # Speed test logic & UI management (2,039 lines)
+│   ├── main.js              # Speed test logic & UI management (2,124 lines)
 │   ├── main.css             # Complete styling with theme support
 │   ├── sw.js                # Service Worker for PWA & offline caching
 │   ├── server.js            # Express static server with 404 handling
-│   ├── package.json         # Frontend dependencies & version (v1.60.0)
+│   ├── package.json         # Frontend dependencies & version (v1.62.0)
 │   ├── build-version.js     # Version synchronization automation script
 │   ├── .npmrc               # npm configuration for cleaner logs
 │   ├── site.webmanifest     # PWA manifest for Add to Home Screen
@@ -152,7 +152,7 @@ internet_speed_test/
 │   └── robots.txt           # Search engine directives
 ├── backend/                 # API server
 │   ├── server.js            # Express server with API endpoints
-│   ├── package.json         # Backend dependencies & version (v1.60.0)
+│   ├── package.json         # Backend dependencies & version (v1.62.0)
 │   ├── .npmrc               # npm configuration
 │   └── config/
 │       └── index.js         # Centralized configuration management
@@ -414,7 +414,36 @@ Contributions are welcome! Areas for improvement:
 
 ## 📋 Version History
 
-### v1.60.0 (Current)
+### v1.62.0 (Current)
+**🚀 Code Quality & Performance Improvements**
+
+**Medium-Priority Fixes:**
+- ✅ **State Cleanup Consistency** - Added STATE.cancelling reset to finally block
+- 🐛 **Stability Calculation Fix** - Monitor loops now pass all samples (analyzes correct 10-sample window)
+- ⚡ **DOM Update Optimization** - Only update textContent if value changed (prevents unnecessary repaints)
+- 🎨 **CSS GPU Acceleration** - Added will-change and translateZ(0) for smoother gauge animations
+- 🧹 **Magic Numbers Extracted** - Created GAUGE_SCALES constant array for better maintainability
+- 🗑️ **Dead Code Removal** - Removed supportsStreamingUpload() (31 lines) and STATE.gaugeChart
+
+**Impact:** Better performance, cleaner code, more reliable stability detection
+
+---
+
+### v1.61.0
+**🔒 Critical Security & Stability Fixes**
+
+**Critical Bug Fixes:**
+- 🛡️ **Division-by-Zero Guards** - Prevent Infinity in speed calculations
+- 🔄 **Unhandled Promise Rejections** - Added .catch() handlers to all thread promises
+- 🔐 **XSS Prevention** - Replaced innerHTML with DOM manipulation in history display
+- ⏱️ **Client-Side Rate Limiting** - 10-second cooldown between tests (prevents spam-clicking)
+- 🧠 **Service Worker Memory Optimization** - Use Page Visibility API to pause updates when tab inactive
+
+**Impact:** Production-hardened security, better error handling, reduced memory pressure
+
+---
+
+### v1.60.0
 **⚡ Fixed-Duration Testing & Major Simplification**
 
 **Core Testing Overhaul:**
@@ -517,7 +546,7 @@ Transitioned from "test-to-completion" (run until threads finish) to "fixed-dura
 
 Comprehensive technical documentation is available in the `docs/` folder:
 
-- **[CHANGELOG.md](docs/CHANGELOG.md)** - Complete version history and release notes (v1.00 to v1.60.0)
+- **[CHANGELOG.md](docs/CHANGELOG.md)** - Complete version history and release notes (v1.00 to v1.62.0)
 - **[TECHNICAL_NOTES.md](docs/TECHNICAL_NOTES.md)** - Design decisions, methodology, known discrepancies, and rationale
 - **[FUNCTIONALITY.md](docs/FUNCTIONALITY.md)** - System architecture, test flow, and how everything works internally
 

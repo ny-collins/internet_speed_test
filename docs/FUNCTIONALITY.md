@@ -310,7 +310,7 @@ Speed = (10,485,760 × 8) / 10 / 1,000,000
   "location": "EU WEST (Amsterdam, Netherlands)",
   "maxDownloadSize": 50,
   "maxUploadSize": 50,
-  "version": "1.60.0",
+  "version": "1.62.0",
   "rateLimit": {
     "windowMs": 60000,
     "max": 100
