@@ -697,6 +697,7 @@ body {
     min-height: 110px;
     position: relative; /* For progress border positioning */
     overflow: visible; /* Allow glow to show */
+    isolation: isolate; /* Create new stacking context */
 }
 
 .page-home .matrix-card[data-status="complete"]::after {
@@ -727,7 +728,7 @@ body {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s;
-    z-index: -1; /* Ensure it stays behind card content and doesn't block interactions */
+    z-index: 0; /* Place it above background but below content */
 }
 
 .page-home .matrix-card[data-status="measuring"]::before {
@@ -744,6 +745,8 @@ body {
     align-items: center;
     justify-content: center;
     color: white;
+    position: relative;
+    z-index: 1; /* Above progress border */
 }
 
 .page-home .matrix-icon i {
@@ -758,6 +761,8 @@ body {
     gap: var(--spacing-xs);
     min-width: 0;
     overflow: hidden;
+    position: relative;
+    z-index: 1; /* Above progress border */
 }
 
 .page-home .matrix-label {
