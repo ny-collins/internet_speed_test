@@ -727,6 +727,7 @@ body {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s;
+    z-index: -1; /* Ensure it stays behind card content and doesn't block interactions */
 }
 
 .page-home .matrix-card[data-status="measuring"]::before {
