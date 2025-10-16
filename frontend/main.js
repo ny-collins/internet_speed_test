@@ -13,13 +13,13 @@ const CONFIG = {
     duration: {
         download: {
             min: 3.5,
-            max: 8,
-            default: 8
+            max: 10,
+            default: 10
         },
         upload: {
             min: 3,
-            max: 6,
-            default: 6
+            max: 10,
+            default: 10
         }
     },
     stability: {
