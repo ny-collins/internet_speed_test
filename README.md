@@ -531,7 +531,79 @@ These documents provide deep insights into:
 
 ---
 
-## �📄 License
+## 🚀 Future Plans
+
+The following enhancements are planned for future releases:
+
+### **Phase 1: Comprehensive Testing Strategy** (High Priority)
+
+**Backend Testing:**
+- Edge case tests for rate limiter (429 responses)
+- Circuit breaker tests (503 service unavailable)
+- Invalid input validation tests
+- Boundary value testing for all API parameters
+- Target: 80%+ code coverage
+
+**Frontend Testing:**
+- Unit tests for pure functions (calculateJitter, formatSpeed, etc.)
+- Component tests for UI interactions
+- Mock DOM testing
+- Configuration management tests
+
+**End-to-End Testing:**
+- Complete speed test flow automation
+- Settings panel interaction tests
+- Theme toggle and PWA functionality tests
+- Cross-browser compatibility tests
+- Offline mode testing
+
+**Tools:**
+- Jest for unit/integration tests
+- Playwright or Cypress for E2E tests
+- Testing infrastructure setup
+
+### **Phase 2: CI/CD Automation** (High Priority)
+
+**GitHub Actions Workflow:**
+- Automated testing on every push to main
+- Lint and format checking
+- Backend test suite execution
+- Frontend test suite execution
+- E2E smoke tests
+- Automatic deployment to Railway (only if all tests pass)
+- Build status badges for README
+
+**Benefits:**
+- Catch regressions early
+- Confidence to refactor safely
+- Professional development workflow
+- Deployment safety guarantees
+
+### **Phase 3: Long-term Architectural Refinements** (Lower Priority)
+
+**Code Quality:**
+- Refactor monolithic test functions (measureDownload, measureUpload)
+- Extract helper functions (monitorProgress, checkStability, calculateFinalSpeed)
+- Improve single responsibility principle compliance
+- Better testability through modular design
+
+**State Management:**
+- Migrate from global STATE object to store pattern
+- Implement getters and setters for state changes
+- Better encapsulation and change tracking
+- More predictable state mutations
+
+**Note:** These refinements are deferred until comprehensive testing is in place to ensure safe transformation.
+
+### **Timeline**
+
+- ✅ **v1.60.0** (Current) - Fixed-duration testing, bug fixes, documentation
+- 🔄 **v1.70.0** (Next) - Testing infrastructure + CI/CD pipeline
+- 📋 **v2.00.0** (Future) - Architectural refinements + enhanced features
+
+---
+
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
