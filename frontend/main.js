@@ -987,10 +987,11 @@ async function measureDownload() {
     
     // Track when monitoring ends (for accurate duration calculation)
     let monitorEndTime = startTime;
+    let inFinishingPhase = false;
     
-    // Monitor loop - runs concurrently with threads
+    // Monitor loop - runs concurrently with threads, continues until all complete
     const monitorLoop = async () => {
-        while (isRunning && !STATE.cancelling) {
+        while (!STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
             
             const elapsed = performance.now() - startTime;
@@ -1043,11 +1044,22 @@ async function measureDownload() {
                 lastBytes = totalBytes;
             }
             
-            // Stop at max duration
-            if (elapsed >= maxDuration) {
-                console.log('[Download] Max duration reached');
-                isRunning = false;
+            // Check if main measurement window is over
+            if (!inFinishingPhase && elapsed >= maxDuration) {
+                console.log('[Download] Max duration reached, entering finishing phase...');
+                isRunning = false; // Stop threads from starting new reads
+                inFinishingPhase = true;
                 monitorEndTime = performance.now(); // Capture when we stop monitoring
+            }
+            
+            // Check if all threads have completed
+            const allThreadsComplete = await Promise.race([
+                Promise.all(threadPromises).then(() => true),
+                Promise.resolve(false)
+            ]);
+            
+            if (inFinishingPhase && allThreadsComplete) {
+                console.log('[Download] All threads completed, exiting monitor loop');
                 break;
             }
             
@@ -1209,6 +1221,7 @@ async function measureUpload() {
     
     // Track when monitoring ends (for accurate duration calculation)
     let monitorEndTime = startTime;
+    let inFinishingPhase = false;
     
     // Launch all upload threads
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
@@ -1217,9 +1230,9 @@ async function measureUpload() {
         return uploadThread(i, () => isRunning, counter);
     });
     
-    // Monitor loop
+    // Monitor loop - continues until all threads complete
     const monitorLoop = async () => {
-        while (isRunning && !STATE.cancelling) {
+        while (!STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
             
             const elapsed = performance.now() - startTime;
@@ -1272,11 +1285,22 @@ async function measureUpload() {
                 lastBytes = totalBytes;
             }
             
-            // Max duration check
-            if (elapsed >= maxDuration) {
-                console.log('[Upload] Max duration reached');
-                isRunning = false;
+            // Check if main measurement window is over
+            if (!inFinishingPhase && elapsed >= maxDuration) {
+                console.log('[Upload] Max duration reached, entering finishing phase...');
+                isRunning = false; // Stop new uploads from starting
+                inFinishingPhase = true;
                 monitorEndTime = performance.now(); // Capture when we stop monitoring
+            }
+            
+            // Check if all threads have completed
+            const allThreadsComplete = await Promise.race([
+                Promise.all(threadPromises).then(() => true),
+                Promise.resolve(false)
+            ]);
+            
+            if (inFinishingPhase && allThreadsComplete) {
+                console.log('[Upload] All threads completed, exiting monitor loop');
                 break;
             }
             
