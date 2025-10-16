@@ -582,10 +582,10 @@ function resetSettings() {
     // Reset to defaults
     CONFIG.threads.download = 4;
     CONFIG.threads.upload = 4;
-    CONFIG.duration.download.max = 8;
-    CONFIG.duration.download.default = 8;
-    CONFIG.duration.upload.max = 6;
-    CONFIG.duration.upload.default = 6;
+    CONFIG.duration.download.max = 10;
+    CONFIG.duration.download.default = 10;
+    CONFIG.duration.upload.max = 10;
+    CONFIG.duration.upload.default = 10;
     
     // Update UI
     if (DOM.downloadThreads) DOM.downloadThreads.value = CONFIG.threads.download;
@@ -978,9 +978,6 @@ async function measureDownload() {
     // Create byte counters that threads will update
     const byteCounters = [];
     
-    // Track thread completion
-    let threadsCompleted = false;
-    
     // Launch all download threads (non-blocking)
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
@@ -988,19 +985,9 @@ async function measureDownload() {
         return downloadThread(i, () => isRunning, counter);
     });
     
-    // Set flag when all threads complete (async, but monitor loop will check it)
-    (async () => {
-        await Promise.all(threadPromises);
-        threadsCompleted = true;
-    })();
-    
-    // Track when monitoring ends (for accurate duration calculation)
-    let monitorEndTime = startTime;
-    let inFinishingPhase = false;
-    
-    // Monitor loop - runs concurrently with threads, continues until all complete
+    // Monitor loop - runs for fixed duration (10 seconds max)
     const monitorLoop = async () => {
-        while (!STATE.cancelling) {
+        while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
             
             const elapsed = performance.now() - startTime;
@@ -1053,17 +1040,10 @@ async function measureDownload() {
                 lastBytes = totalBytes;
             }
             
-            // Check if main measurement window is over
-            if (!inFinishingPhase && elapsed >= maxDuration) {
-                console.log('[Download] Max duration reached, entering finishing phase...');
-                isRunning = false; // Stop threads from starting new reads
-                inFinishingPhase = true;
-                monitorEndTime = performance.now(); // Capture when we stop monitoring
-            }
-            
-            // Exit monitor loop when all threads complete
-            if (threadsCompleted) {
-                console.log('[Download] All threads completed, exiting monitor loop');
+            // Stop at max duration (10 seconds)
+            if (elapsed >= maxDuration) {
+                console.log('[Download] Max duration reached, stopping test');
+                isRunning = false;
                 break;
             }
             
@@ -1080,29 +1060,19 @@ async function measureDownload() {
         }
     };
     
-    // Run monitor concurrently
+    // Run monitor for fixed duration
     await monitorLoop();
     
-    // Wait for all threads to complete and get their results
-    const threadResults = await Promise.all(threadPromises);
+    // Stop all threads immediately (they were still running)
+    STATE.abortControllers.forEach(controller => {
+        try { controller.abort(); } catch(e) {}
+    });
+    STATE.abortControllers = [];
     
-    // Debug: Log what each thread returned
-    console.log('[Download] Thread results:', threadResults.map((r, i) => `Thread ${i}: ${r.bytes} bytes at ${r.completionTime.toFixed(2)}ms`).join(', '));
-    
-    // CRITICAL: Recalculate totalBytes from thread results after monitoring completes
-    // The monitor loop may have exited early, leaving totalBytes stale
-    totalBytes = threadResults.reduce((sum, result) => sum + result.bytes, 0);
-    
-    // Find the latest completion time from all threads (like upload does)
-    const downloadEndTime = Math.max(...threadResults.map(r => r.completionTime || 0));
-    
-    // Use actual download completion time for duration calculation
-    // This matches upload behavior and gives accurate speed for full download
-    const duration = (downloadEndTime - startTime) / 1000;
+    // Use the final totalBytes value from the monitor loop (accurate for the test duration)
+    const endTime = performance.now();
+    const duration = (endTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
-    
-    // No need to update gauge here - monitor loop already showed the final speed
-    // The monitor continues until threads complete, so last gauge value is accurate
     
     console.log(`[Download] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
     announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
@@ -1227,9 +1197,6 @@ async function measureUpload() {
     let monitorEndTime = startTime;
     let inFinishingPhase = false;
     
-    // Track thread completion
-    let threadsCompleted = false;
-    
     // Launch all upload threads
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
@@ -1237,15 +1204,9 @@ async function measureUpload() {
         return uploadThread(i, () => isRunning, counter);
     });
     
-    // Set flag when all threads complete (async, but monitor loop will check it)
-    (async () => {
-        await Promise.all(threadPromises);
-        threadsCompleted = true;
-    })();
-    
-    // Monitor loop - continues until all threads complete
+    // Monitor loop - runs for fixed duration (10 seconds max)
     const monitorLoop = async () => {
-        while (!STATE.cancelling) {
+        while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
             
             const elapsed = performance.now() - startTime;
@@ -1298,17 +1259,10 @@ async function measureUpload() {
                 lastBytes = totalBytes;
             }
             
-            // Check if main measurement window is over
-            if (!inFinishingPhase && elapsed >= maxDuration) {
-                console.log('[Upload] Max duration reached, entering finishing phase...');
-                isRunning = false; // Stop new uploads from starting
-                inFinishingPhase = true;
-                monitorEndTime = performance.now(); // Capture when we stop monitoring
-            }
-            
-            // Exit monitor loop when all threads complete
-            if (threadsCompleted) {
-                console.log('[Upload] All threads completed, exiting monitor loop');
+            // Stop at max duration (10 seconds)
+            if (elapsed >= maxDuration) {
+                console.log('[Upload] Max duration reached, stopping test');
+                isRunning = false;
                 break;
             }
             
@@ -1325,27 +1279,19 @@ async function measureUpload() {
         }
     };
     
+    // Run monitor for fixed duration
     await monitorLoop();
     
-    // Wait for all thread promises to resolve, but capture end time from last transmission
-    const threadResults = await Promise.all(threadPromises);
+    // Stop all threads immediately (they were still running)
+    STATE.abortControllers.forEach(controller => {
+        try { controller.abort(); } catch(e) {}
+    });
+    STATE.abortControllers = [];
     
-    // Debug: Log what each thread returned
-    console.log('[Upload] Thread results:', threadResults.map((r, i) => `Thread ${i}: ${r.bytes} bytes at ${r.transmissionEndTime}ms`).join(', '));
-    
-    // CRITICAL: Recalculate totalBytes from thread results after monitoring completes
-    // The monitor loop may have exited early, leaving totalBytes stale
-    totalBytes = threadResults.reduce((sum, result) => sum + result.bytes, 0);
-    
-    // Find the latest transmission end time from all threads
-    transmissionEndTime = Math.max(...threadResults.map(r => r.transmissionEndTime || 0));
-    
-    // Use transmission end time for duration calculation (excludes server response wait)
-    const duration = (transmissionEndTime - startTime) / 1000;
+    // Use the final totalBytes value from the monitor loop (accurate for the test duration)
+    const endTime = performance.now();
+    const duration = (endTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
-    
-    // No need to update gauge here - monitor loop already showed the final speed
-    // The monitor continues until threads complete, so last gauge value is accurate
     
     console.log(`[Upload] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
     announceToScreenReader(`Upload speed: ${speedMbps.toFixed(1)} megabits per second`);
