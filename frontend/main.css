@@ -592,6 +592,9 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
+    /* GPU acceleration for smoother animations */
+    will-change: opacity, background;
+    transform: translateZ(0);
 }
 
 .page-home .gauge-inner {

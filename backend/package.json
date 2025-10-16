@@ -1,6 +1,6 @@
 {
   "name": "internet_speed_test_backend",
-  "version": "1.61.0",
+  "version": "1.62.0",
   "description": "Backend server for internet speed testing with production observability",
   "main": "server.js",
   "scripts": {

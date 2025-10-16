@@ -5,6 +5,40 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.62.0] - 2025-10-16
+
+### Fixed
+
+**Code Quality & Performance:**
+- **State cleanup consistency**: Added `STATE.cancelling = false` to finally block
+  - Ensures state is always reset even on exceptions
+  - Prevents stuck cancelling state
+- **Stability calculation bug**: Fixed inconsistent sample window usage
+  - Monitor loops now pass all samples to `isSpeedStable()`
+  - Function correctly analyzes last 10 samples (not just 5)
+  - Improves reliability of early termination detection
+
+### Improved
+
+**Performance Optimizations:**
+- **DOM update efficiency**: Only update `textContent` if value actually changed
+  - Applied to gauge value, gauge phase, and matrix cards
+  - Prevents unnecessary style recalculation and repaints
+- **CSS GPU acceleration**: Added `will-change` and `translateZ(0)` to `.gauge-progress`
+  - Enables hardware acceleration for smoother animations
+  - Reduces animation jank during gauge updates
+
+**Code Organization:**
+- **Magic numbers extracted**: Created `GAUGE_SCALES` constant array
+  - Replaced cascading if statements with loop
+  - Easier to modify scale breakpoints
+- **Dead code removal**: 
+  - Removed unused `supportsStreamingUpload()` function (31 lines)
+  - Removed unused `STATE.gaugeChart` property
+  - Cleaner codebase with less confusion
+
+---
+
 ## [1.61.0] - 2025-10-16
 
 ### Fixed

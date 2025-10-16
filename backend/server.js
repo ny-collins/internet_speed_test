@@ -381,7 +381,7 @@ app.get('/api/info', (req, res) => {
     location: config.serverLocation,
     maxDownloadSize: config.maxDownloadSizeMB,
     maxUploadSize: config.maxUploadSizeMB,
-    version: '1.61.0',
+    version: '1.62.0',
     rateLimit: config.rateLimit.enabled ? { windowMs: config.rateLimit.windowMs, max: config.rateLimit.max } : null
   });
 });

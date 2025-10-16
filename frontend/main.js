@@ -46,7 +46,6 @@ const STATE = {
     cancelling: false,
     currentPhase: null,
     gaugeElement: null,
-    gaugeChart: null,
     lastMaxScale: 100,
     lastTestTime: 0, // Track last test timestamp for rate limiting
     testResults: {
@@ -827,7 +826,10 @@ async function startTest() {
         // Stop performance monitoring
         stopPerformanceMonitoring();
         
+        // Always reset state flags
         STATE.testing = false;
+        STATE.cancelling = false;
+        
         if (DOM.startTest) DOM.startTest.disabled = false;
         if (DOM.cancelTest) {
             DOM.cancelTest.disabled = true;
@@ -1070,9 +1072,9 @@ async function measureDownload() {
                     speedSamples.push(intervalSpeed);
                     
                     // Check for stability after minimum duration
+                    // Pass all samples - isSpeedStable() will analyze the appropriate window
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
-                        const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
-                        if (isSpeedStable(stabilityCheck)) {
+                        if (isSpeedStable(speedSamples)) {
                             console.log('[Download] Speed stabilized, stopping early');
                             isRunning = false;
                             monitorEndTime = performance.now(); // Capture when we stop monitoring
@@ -1300,9 +1302,9 @@ async function measureUpload() {
                     speedSamples.push(intervalSpeed);
                     
                     // Check stability
+                    // Pass all samples - isSpeedStable() will analyze the appropriate window
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
-                        const stabilityCheck = speedSamples.slice(-CONFIG.stability.sampleCount);
-                        if (isSpeedStable(stabilityCheck)) {
+                        if (isSpeedStable(speedSamples)) {
                             console.log('[Upload] Speed stabilized, stopping early');
                             isRunning = false;
                             monitorEndTime = performance.now(); // Capture when we stop monitoring
@@ -1370,37 +1372,6 @@ async function measureUpload() {
 }
 
 // Helper: Check if streaming upload is supported
-function supportsStreamingUpload() {
-    try {
-        // Check if ReadableStream is available
-        if (typeof ReadableStream === 'undefined') {
-            console.log('[Upload] ReadableStream not supported, using fallback');
-            return false;
-        }
-        
-        // Check if fetch can accept ReadableStream as body
-        // Some browsers have ReadableStream but don't support it in fetch body
-        const testStream = new ReadableStream({
-            start(controller) {
-                controller.close();
-            }
-        });
-        
-        // Try to create a Request with a stream body
-        try {
-            new Request('https://example.com', { method: 'POST', body: testStream, duplex: 'half' });
-            console.log('[Upload] Using streaming upload (ReadableStream)');
-            return true;
-        } catch (e) {
-            console.log('[Upload] ReadableStream not supported in fetch, using fallback');
-            return false;
-        }
-    } catch (e) {
-        console.log('[Upload] Error checking stream support, using fallback:', e.message);
-        return false;
-    }
-}
-
 async function uploadThread(threadId, isRunning, byteCounter) {
     const totalSize = CONFIG.uploadSize * 1024 * 1024; // Convert MB to bytes
     
@@ -1602,10 +1573,19 @@ function updateGauge(speed, phase) {
     if (STATE.rafId) return;
     
     STATE.rafId = requestAnimationFrame(() => {
-        if (DOM.gaugeValue) DOM.gaugeValue.textContent = speed.toFixed(1);
+        const speedText = speed.toFixed(1);
+        
+        // Only update if value changed (prevents unnecessary repaints)
+        if (DOM.gaugeValue && DOM.gaugeValue.textContent !== speedText) {
+            DOM.gaugeValue.textContent = speedText;
+        }
+        
         if (DOM.gaugePhase) {
             const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
-            DOM.gaugePhase.textContent = `Testing ${phaseName}`;
+            const phaseText = `Testing ${phaseName}`;
+            if (DOM.gaugePhase.textContent !== phaseText) {
+                DOM.gaugePhase.textContent = phaseText;
+            }
         }
         
         updateMatrixCardLive(phase, speed);
@@ -1635,19 +1615,24 @@ function updateMatrixCardLive(phase, speed) {
     if (matrixCard) {
         const numberEl = matrixCard.querySelector('.matrix-number');
         if (numberEl) {
-            numberEl.textContent = speed.toFixed(1);
+            const speedText = speed.toFixed(1);
+            // Only update if value changed
+            if (numberEl.textContent !== speedText) {
+                numberEl.textContent = speedText;
+            }
         }
     }
 }
 
+// Gauge scale breakpoints for adaptive scaling
+const GAUGE_SCALES = [10, 25, 50, 100, 250, 500, 1000];
+
 function calculateMaxScale(currentSpeed) {
-    if (currentSpeed <= 10) return 10;
-    if (currentSpeed <= 25) return 25;
-    if (currentSpeed <= 50) return 50;
-    if (currentSpeed <= 100) return 100;
-    if (currentSpeed <= 250) return 250;
-    if (currentSpeed <= 500) return 500;
-    if (currentSpeed <= 1000) return 1000;
+    // Find the first scale that accommodates the current speed
+    for (const scale of GAUGE_SCALES) {
+        if (currentSpeed <= scale) return scale;
+    }
+    // For speeds above 1000, round up to nearest 100
     return Math.ceil(currentSpeed / 100) * 100;
 }
 
