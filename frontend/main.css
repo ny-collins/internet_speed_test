@@ -713,7 +713,7 @@ body {
 .page-home .matrix-card::before {
     content: '';
     position: absolute;
-    inset: -3px;
+    inset: 0; /* Keep border inside card boundaries */
     border-radius: var(--radius-xl);
     background: conic-gradient(
         from -90deg,
