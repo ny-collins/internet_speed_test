@@ -978,12 +978,21 @@ async function measureDownload() {
     // Create byte counters that threads will update
     const byteCounters = [];
     
+    // Track thread completion
+    let threadsCompleted = false;
+    
     // Launch all download threads (non-blocking)
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
         byteCounters.push(counter);
         return downloadThread(i, () => isRunning, counter);
     });
+    
+    // Set flag when all threads complete (async, but monitor loop will check it)
+    (async () => {
+        await Promise.all(threadPromises);
+        threadsCompleted = true;
+    })();
     
     // Track when monitoring ends (for accurate duration calculation)
     let monitorEndTime = startTime;
@@ -1052,13 +1061,8 @@ async function measureDownload() {
                 monitorEndTime = performance.now(); // Capture when we stop monitoring
             }
             
-            // Check if all threads have completed
-            const allThreadsComplete = await Promise.race([
-                Promise.all(threadPromises).then(() => true),
-                Promise.resolve(false)
-            ]);
-            
-            if (inFinishingPhase && allThreadsComplete) {
+            // Exit monitor loop when all threads complete
+            if (threadsCompleted) {
                 console.log('[Download] All threads completed, exiting monitor loop');
                 break;
             }
@@ -1097,8 +1101,8 @@ async function measureDownload() {
     const duration = (downloadEndTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
-    // Update gauge one final time with the accurately calculated speed
-    updateGauge(speedMbps, 'download');
+    // No need to update gauge here - monitor loop already showed the final speed
+    // The monitor continues until threads complete, so last gauge value is accurate
     
     console.log(`[Download] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
     announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
@@ -1223,12 +1227,21 @@ async function measureUpload() {
     let monitorEndTime = startTime;
     let inFinishingPhase = false;
     
+    // Track thread completion
+    let threadsCompleted = false;
+    
     // Launch all upload threads
     const threadPromises = Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
         byteCounters.push(counter);
         return uploadThread(i, () => isRunning, counter);
     });
+    
+    // Set flag when all threads complete (async, but monitor loop will check it)
+    (async () => {
+        await Promise.all(threadPromises);
+        threadsCompleted = true;
+    })();
     
     // Monitor loop - continues until all threads complete
     const monitorLoop = async () => {
@@ -1293,13 +1306,8 @@ async function measureUpload() {
                 monitorEndTime = performance.now(); // Capture when we stop monitoring
             }
             
-            // Check if all threads have completed
-            const allThreadsComplete = await Promise.race([
-                Promise.all(threadPromises).then(() => true),
-                Promise.resolve(false)
-            ]);
-            
-            if (inFinishingPhase && allThreadsComplete) {
+            // Exit monitor loop when all threads complete
+            if (threadsCompleted) {
                 console.log('[Upload] All threads completed, exiting monitor loop');
                 break;
             }
@@ -1336,9 +1344,8 @@ async function measureUpload() {
     const duration = (transmissionEndTime - startTime) / 1000;
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     
-    // CRITICAL: Update gauge one final time with the accurately calculated speed
-    // This prevents the "freeze" appearance where gauge shows old value
-    updateGauge(speedMbps, 'upload');
+    // No need to update gauge here - monitor loop already showed the final speed
+    // The monitor continues until threads complete, so last gauge value is accurate
     
     console.log(`[Upload] Completed: ${speedMbps.toFixed(2)} Mbps (${totalBytes} bytes in ${duration.toFixed(2)}s)`);
     announceToScreenReader(`Upload speed: ${speedMbps.toFixed(1)} megabits per second`);
