@@ -1393,6 +1393,7 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
         let lastProgressTime = performance.now();
         let lastProgressBytes = 0;
         let transmissionEndTime = null; // Capture when data transmission ends
+        let finished = false; // Prevent double-resolve from multiple event handlers
         
         // Track actual network upload progress
         xhr.upload.onprogress = (event) => {
@@ -1422,6 +1423,9 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
         };
         
         xhr.onload = () => {
+            if (finished) return; // Already resolved
+            finished = true;
+            
             if (xhr.status >= 200 && xhr.status < 300) {
                 byteCounter.bytes = totalSize;
                 const serverResponseTime = performance.now() - (transmissionEndTime || performance.now());
@@ -1437,6 +1441,9 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
         };
         
         xhr.onerror = () => {
+            if (finished) return; // Already resolved
+            finished = true;
+            
             console.error(`[Upload] Thread ${threadId} network error`);
             cleanup();
             resolve({ 
@@ -1446,6 +1453,9 @@ async function uploadWithReusableChunk(threadId, totalSize, abortController, isR
         };
         
         abortController.signal.addEventListener('abort', () => {
+            if (finished) return; // Already resolved
+            finished = true;
+            
             try { xhr.abort(); } catch(e) {}
             console.log(`[Upload] Thread ${threadId} aborted`);
             cleanup();

@@ -5,6 +5,19 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.60.1] - 2025-10-16
+
+### Fixed
+
+**Promise Handler Safety:**
+- Added `finished` guard to upload thread promise handlers
+- Prevents double-resolve when abort fires during onload/onerror
+- Pattern: `if (finished) return; finished = true;` before each resolve()
+- Ensures promise resolves exactly once in all race conditions
+- No functional change to behavior, improves resilience
+
+---
+
 ## [1.60.0] - 2025-10-16
 
 ### 🚀 Major Release: Fixed-Duration Testing & Complete Application Refinement
