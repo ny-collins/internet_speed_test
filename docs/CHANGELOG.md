@@ -5,6 +5,55 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.60.0] - 2025-10-16
+
+### 🚀 Major Release: Fixed-Duration Testing & Measurement Accuracy
+
+This release completely overhauls the speed measurement logic to provide fast, accurate, and consistent test results.
+
+### Changed
+
+**Test Methodology - Fixed Duration:**
+- **Download test**: Exactly 10 seconds (previously ~60 seconds)
+- **Upload test**: Exactly 10 seconds (previously ~60 seconds)
+- **Total test time**: ~25 seconds (vs. ~120 seconds before)
+- Tests stop at max duration and measure bytes transferred during that period
+- Provides consistent, predictable test duration every time
+
+**UI/UX Improvements:**
+- Eliminated "freeze" appearance during upload/download
+- Smooth gauge updates throughout entire test
+- No value flashing between measurements
+- Settings panel default updated to 10 seconds
+
+### Fixed
+
+**Measurement Accuracy:**
+- Fixed upload speed calculations (transmissionEndTime vs. response time)
+- Fixed download speed calculations (actual completion time)
+- Removed race conditions in monitor loop
+- Fixed duplicate gauge updates causing value conflicts
+- Server location banner now shows correct location (was "Unknown")
+
+### Removed
+
+- Thread completion tracking complexity (~60 lines)
+- Post-loop gauge updates (monitor loop is now sole source of truth)
+- "Finishing phase" logic (no longer needed with fixed duration)
+
+### Technical Details
+
+**Why Fixed Duration?**
+Speed is measured by observing data transfer over a specific time period. By controlling the measurement window (10 seconds), we get:
+- More consistent results across different connection speeds
+- Faster tests without waiting for full file transfers
+- Simpler, more maintainable code
+- Accurate representation of current network speed
+
+See `docs/TECHNICAL_NOTES.md` for detailed technical rationale.
+
+---
+
 ## [1.05.1] - 2025-10-15
 
 ### 🔧 Maintenance Release: Critical Bug Fixes & Code Quality

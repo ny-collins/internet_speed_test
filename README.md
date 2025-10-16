@@ -4,8 +4,10 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.05.1-blue)](#)
-[![Changelog](https://img.shields.io/badge/changelog-docs-informational)](docs/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.60.0-blue)](#)
+[![Changelog](https://img.shields.io/badge/docs-changelog-informational)](docs/CHANGELOG.md)
+[![Technical Notes](https://img.shields.io/badge/docs-technical_notes-informational)](docs/TECHNICAL_NOTES.md)
+[![Functionality](https://img.shields.io/badge/docs-functionality-informational)](docs/FUNCTIONALITY.md)
 
 **[🚀 Try it live](https://speed-test.up.railway.app/)** • **[📚 Learn More](https://speed-test.up.railway.app/learn)**
 
@@ -401,14 +403,23 @@ Contributions are welcome! Areas for improvement:
 
 ## 📋 Version History
 
-### v1.05.1 (Current)
-**🔧 Critical Bug Fixes & Code Quality**
+### v1.60.0 (Current)
+**⚡ Fixed-Duration Testing & Major Simplification**
 
-**Critical PWA Fixes:**
+**Core Testing Overhaul:**
+- ⏱️ **Fixed 10-Second Tests** - Download and upload tests now complete in exactly 10 seconds each
+- 🎯 **Instant Results** - Total test time reduced from ~120s to ~25s (5x faster)
+- 🚫 **No More Freezes** - Eliminated UI freezing during speed tests
+- 📊 **Accurate Measurements** - Speed calculated from actual bytes transferred in fixed time window
+- 🧹 **Code Simplification** - Removed ~88 lines of complex thread completion tracking
+
+**Critical Bug Fixes:**
 - 🔄 **PWA Update Mechanism** - Fixed Update Now button (moved state to global STATE.pwa object)
 - 📴 **Offline Caching** - Fixed silent cache failure (updated ASSETS_TO_CACHE with versioned assets)
 - 📈 **Upload Speed Drop** - Enhanced XHR lifecycle tracking (prevents 7 Mbps → 1.3 Mbps drop)
 - 📊 **Real-Time Display** - Speed gauge now updates every 100ms (fixed em dash bug)
+- 🌍 **Server Location Banner** - Now correctly displays "EU WEST (Amsterdam, Netherlands)"
+- ⚙️ **Settings Panel** - Default duration now shows 10 seconds (matches actual behavior)
 
 **Quality Improvements:**
 - 🎯 **Stability Detection** - Analyze 10-sample window (more reliable, less sensitive to outliers)
@@ -417,15 +428,20 @@ Contributions are welcome! Areas for improvement:
 - 🏗️ **Deployment Architecture** - Proper build/deploy separation with railway.json
 
 **Code Cleanup:**
-- 🧹 Removed ~185 lines of deprecated upload code
+- 🧹 Removed ~273 lines of deprecated and complex code
 - 📝 Removed unused result-schema.json
 - 🔧 Added .npmrc for cleaner deployment logs
 - 📚 Reorganized documentation structure
 
 **Documentation:**
-- 📖 Created comprehensive docs/README.md index
-- 📋 Updated CHANGELOG.md with v1.05.1 details
-- 🔍 Added CODE_REVIEW_RESPONSE.md and CODE_REVIEW_CLARIFICATION.md
+- 📚 **TECHNICAL_NOTES.md** - Comprehensive design decisions, discrepancies, and rationale
+- 🏗️ **FUNCTIONALITY.md** - Complete system architecture and internal workings
+- 📝 **Updated CHANGELOG** - Full version history with detailed release notes
+
+**Philosophy Change:**
+Transitioned from "test-to-completion" (run until threads finish) to "fixed-duration" (measure speed in exact time window). This aligns with the principle: *"Speed is measured by taking a small chunk of time and seeing how many packets are transferred."*
+
+---
 
 ### v1.05.0
 **🚀 Major Upload & Backend Improvements**
@@ -486,7 +502,25 @@ Contributions are welcome! Areas for improvement:
 
 ---
 
-## 📄 License
+## � Documentation
+
+Comprehensive technical documentation is available in the `docs/` folder:
+
+- **[CHANGELOG.md](docs/CHANGELOG.md)** - Complete version history and release notes (v1.00 to v1.60.0)
+- **[TECHNICAL_NOTES.md](docs/TECHNICAL_NOTES.md)** - Design decisions, methodology, known discrepancies, and rationale
+- **[FUNCTIONALITY.md](docs/FUNCTIONALITY.md)** - System architecture, test flow, and how everything works internally
+
+These documents provide deep insights into:
+- Why we use fixed-duration testing (10 seconds)
+- How multi-threaded measurements work
+- Speed calculation formulas and algorithms
+- Known edge cases and false positives
+- API specifications and configuration
+- PWA lifecycle and offline behavior
+
+---
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
