@@ -2,6 +2,7 @@
   "name": "speedcheck-frontend",
   "version": "1.62.0",
   "description": "Frontend static file server with PWA support",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
     "build": "node build-version.js"
