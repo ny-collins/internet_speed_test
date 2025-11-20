@@ -144,41 +144,42 @@ jobs:
           echo "Build successful"
   
   # Deploy to Railway (only on main branch after all tests pass)
-  deploy-railway:
-    name: Deploy to Railway
-    runs-on: ubuntu-latest
-    needs: [frontend-test, backend-test, lint]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy Backend
-        working-directory: ./backend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          echo "Deploying backend to Railway..."
-          # Railway will auto-deploy based on railway.json configuration
-          echo "Backend deployment triggered"
-        continue-on-error: true
-
-      - name: Deploy Frontend
-        working-directory: ./frontend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          echo "Deploying frontend to Railway..."
-          # Railway will auto-deploy based on railway.json configuration
-          echo "Frontend deployment triggered"
-        continue-on-error: true
-      
-      - name: Deployment Status
-        run: |
-          echo "✅ All tests passed"
-          echo "✅ Deployment to Railway completed"
-          echo "🚀 Application is live at https://speed-test.up.railway.app/"
+  # TEMPORARILY DISABLED - Use Railway CLI or GitHub integration instead
+  # deploy-railway:
+  #   name: Deploy to Railway
+  #   runs-on: ubuntu-latest
+  #   needs: [frontend-test, backend-test, lint]
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     
+  #     - name: Install Railway CLI
+  #       run: npm install -g @railway/cli
+  #
+  #     - name: Deploy Backend
+  #       working-directory: ./backend
+  #       env:
+  #         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  #       run: |
+  #         echo "Deploying backend to Railway..."
+  #         # Railway will auto-deploy based on railway.json configuration
+  #         echo "Backend deployment triggered"
+  #       continue-on-error: true
+  #
+  #     - name: Deploy Frontend
+  #       working-directory: ./frontend
+  #       env:
+  #         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  #       run: |
+  #         echo "Deploying frontend to Railway..."
+  #         # Railway will auto-deploy based on railway.json configuration
+  #         echo "Frontend deployment triggered"
+  #       continue-on-error: true
+  #     
+  #     - name: Deployment Status
+  #       run: |
+  #         echo "✅ All tests passed"
+  #         echo "✅ Deployment to Railway completed"
+  #         echo "🚀 Application is live at https://speed-test.up.railway.app/"
