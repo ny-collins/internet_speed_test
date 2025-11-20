@@ -23,7 +23,7 @@ const logger = pino({
 
 const httpLogger = pinoHttp({
   logger,
-  customLogLevel: (req, res, err) => {
+  customLogLevel: (req, res, _err) => {
     if (res.statusCode >= 500) return 'error';
     if (res.statusCode >= 400) return 'warn';
     return 'info';
@@ -125,16 +125,16 @@ app.use(trackInflight);
 
 app.use((req, res, next) => {
   const start = Date.now();
-  
+
   const originalWriteHead = res.writeHead;
   res.writeHead = function(...args) {
     res.setHeader('X-Process-Time', `${Date.now() - start}ms`);
     return originalWriteHead.apply(this, args);
   };
-  
+
   res.on('finish', () => {
     const duration = (Date.now() - start) / 1000;
-    
+
     if (config.metrics.enabled) {
       const path = req.route?.path || req.path;
       app.locals.metrics.requestsTotal.inc({
@@ -203,7 +203,7 @@ if (config.metrics.enabled) {
 
 app.get('/api/ping', (req, res) => {
   const timestamp = Date.now();
-  res.json({ 
+  res.json({
     timestamp,
     server: 'ok'
   });
@@ -214,12 +214,12 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   if (sizeParam !== undefined && (isNaN(parseInt(sizeParam, 10)) || parseInt(sizeParam, 10) < 0)) {
     return res.status(400).json({ error: 'Invalid size parameter. Must be a positive number.' });
   }
-  
+
   const chunkParam = req.query.chunk;
   if (chunkParam !== undefined && (isNaN(parseInt(chunkParam, 10)) || parseInt(chunkParam, 10) < 0)) {
     return res.status(400).json({ error: 'Invalid chunk parameter. Must be a positive number.' });
   }
-  
+
   let sizeInMB = parseInt(req.query.size, 10) || 5;
   if (sizeInMB < 1) sizeInMB = 1;
   if (sizeInMB > config.maxDownloadSizeMB) sizeInMB = config.maxDownloadSizeMB;
@@ -228,21 +228,21 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   if (isNaN(chunkKB) || chunkKB < 16) chunkKB = 64;
   if (chunkKB > 1024) chunkKB = 1024;
   const chunkSize = chunkKB * 1024;
-  
+
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', sizeInBytes);
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  
+
   let sent = 0;
   let clientDisconnected = false;
-  
+
   req.on('close', () => {
     clientDisconnected = true;
     logger.debug({ sent, sizeInBytes }, 'Client disconnected during download');
   });
-  
+
   const sendChunk = () => {
     if (clientDisconnected || sent >= sizeInBytes) {
       if (sent >= sizeInBytes) {
@@ -253,21 +253,21 @@ app.get('/api/download', circuitBreaker, (req, res) => {
       }
       return;
     }
-    
+
     const remainingBytes = sizeInBytes - sent;
     const currentChunkSize = Math.min(chunkSize, remainingBytes);
     const chunk = crypto.randomBytes(currentChunkSize);
-    
+
     const canContinue = res.write(chunk);
     sent += currentChunkSize;
-    
+
     if (canContinue) {
       setImmediate(sendChunk);
     } else {
       res.once('drain', sendChunk);
     }
   };
-  
+
   sendChunk();
 });
 
@@ -301,11 +301,11 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000;
     const speedMbps = (receivedBytes * 8) / (duration * 1000000);
-    
+
     if (config.metrics.enabled) {
       app.locals.metrics.uploadBytesTotal.inc(receivedBytes);
     }
-    
+
     res.json({
       success: true,
       receivedBytes,
@@ -326,11 +326,11 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
 app.post('/api/ping-batch', (req, res) => {
   let { count = 10 } = req.body || {};
   const countNum = parseInt(count, 10);
-  
+
   if (isNaN(countNum) || countNum < 0) {
     return res.status(400).json({ error: 'Invalid count parameter. Must be a positive number.' });
   }
-  
+
   count = countNum;
   if (count < 1) count = 1;
   if (count > 100) count = 100;
@@ -353,24 +353,24 @@ app.get('/api/info', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
-    res.json({
-        downloadSize: config.maxDownloadSizeMB,
-        uploadSize: config.maxUploadSizeMB,
-        serverLocation: config.serverLocation
-    });
+  res.json({
+    downloadSize: config.maxDownloadSizeMB,
+    uploadSize: config.maxUploadSizeMB,
+    serverLocation: config.serverLocation
+  });
 });
 
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'healthy',
     timestamp: Date.now(),
     uptime: process.uptime(),
-    ip: req.ip 
+    ip: req.ip
   });
 });
 
 app.get('/api/test', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Connection successful',
     clientIp: req.ip,
     timestamp: Date.now()
@@ -378,9 +378,9 @@ app.get('/api/test', (req, res) => {
 });
 
 // Global error handler - must include CORS headers
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   logger.error({ err, path: req.path, method: req.method }, 'Unhandled error');
-  
+
   // Ensure CORS headers are sent even on errors
   if (allowedOrigins === '*') {
     res.header('Access-Control-Allow-Origin', '*');
@@ -389,8 +389,8 @@ app.use((err, req, res, next) => {
   }
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
-  
-  res.status(err.status || 500).json({ 
+
+  res.status(err.status || 500).json({
     error: 'Internal server error',
     message: config.nodeEnv === 'development' ? err.message : undefined,
     stack: config.nodeEnv === 'development' ? err.stack : undefined

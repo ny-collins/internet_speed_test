@@ -154,7 +154,7 @@ jobs:
       
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-      
+
       - name: Deploy Backend
         working-directory: ./backend
         env:
@@ -163,7 +163,8 @@ jobs:
           echo "Deploying backend to Railway..."
           # Railway will auto-deploy based on railway.json configuration
           echo "Backend deployment triggered"
-      
+        continue-on-error: true
+
       - name: Deploy Frontend
         working-directory: ./frontend
         env:
@@ -172,6 +173,7 @@ jobs:
           echo "Deploying frontend to Railway..."
           # Railway will auto-deploy based on railway.json configuration
           echo "Frontend deployment triggered"
+        continue-on-error: true
       
       - name: Deployment Status
         run: |
