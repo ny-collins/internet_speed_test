@@ -1,0 +1,26 @@
+# Railway.toml - Monorepo configuration
+# This file tells Railway how to deploy services from a monorepo
+
+[[services]]
+name = "backend"
+root = "backend"
+
+[services.build]
+builder = "NIXPACKS"
+
+[services.deploy]
+startCommand = "npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "frontend"
+root = "frontend"
+
+[services.build]
+builder = "NIXPACKS"
+
+[services.deploy]
+startCommand = "npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
