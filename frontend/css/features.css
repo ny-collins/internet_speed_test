@@ -1,0 +1,235 @@
+/* ========================================
+   FEATURE-SPECIFIC STYLES
+   ======================================== */
+
+/* --- The Gauge --- */
+.gauge-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-2xl) var(--spacing-xl);
+}
+
+.gauge-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1 / 1;
+}
+
+.gauge-circle {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from -135deg,
+        transparent 0deg,
+        var(--color-border) 0deg,
+        var(--color-border) 270deg,
+        transparent 270deg
+    );
+    mask: radial-gradient(circle, transparent 0%, transparent 55%, black 55%, black 100%);
+    -webkit-mask: radial-gradient(circle, transparent 0%, transparent 55%, black 55%, black 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gauge-progress {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    z-index: 1;
+    background: conic-gradient(
+        from -135deg,
+        transparent 0deg,
+        #3b82f6 0deg,
+        #8b5cf6 135deg,
+        #ec4899 270deg,
+        transparent 270deg
+    );
+    mask: radial-gradient(circle, transparent 0%, transparent 55%, black 55%, black 100%);
+    -webkit-mask: radial-gradient(circle, transparent 0%, transparent 55%, black 55%, black 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    will-change: opacity, background;
+    transform: translateZ(0);
+}
+
+.gauge-inner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 65%;
+    height: 65%;
+    border-radius: 50%;
+    background: var(--color-bg-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 2;
+    box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.gauge-value-live {
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    color: var(--color-text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+}
+
+.gauge-start-button {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-xl);
+    z-index: 20;
+}
+
+.gauge-start-button:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+}
+
+/* --- History & Charts --- */
+.history-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.history-chart-container {
+    width: 100%;
+    height: 250px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    position: relative;
+}
+
+canvas#historyChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+}
+
+.history-item:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+/* --- Sparklines --- */
+.sparkline-container {
+    margin-top: 8px;
+    height: 30px;
+    width: 100%;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.matrix-card:hover .sparkline-container {
+    opacity: 1;
+}
+
+.sparkline-path {
+    vector-effect: non-scaling-stroke;
+    stroke: var(--color-primary);
+    fill: none;
+}
+
+/* --- Matrix Card Animation --- */
+.matrix-card::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: var(--radius-xl);
+    background: conic-gradient(
+        from -90deg,
+        var(--color-primary) calc(var(--progress) * 1%),
+        transparent calc(var(--progress) * 1%)
+    );
+    -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
+    mask-composite: exclude;
+    padding: 3px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 0;
+}
+
+.matrix-card[data-status="measuring"]::before {
+    opacity: 1;
+}
+
+/* --- Progress Bar --- */
+.progress-bar {
+    height: 8px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--spacing-lg);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    border-radius: var(--radius-full);
+    transition: width var(--transition-base);
+    width: 0%;
+}
+
+.phase-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+    transition: all var(--transition-base);
+}
+
+.phase[data-status="active"] .phase-dot {
+    background: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--color-primary-glow);
+    animation: pulse 2s infinite;
+}
+
+.phase[data-status="complete"] .phase-dot {
+    background: var(--color-success);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}

@@ -1,0 +1,97 @@
+/* ========================================
+   PAGE-SPECIFIC STYLES
+   ======================================== */
+
+/* --- Learn Page --- */
+body.page-learn {
+    background: var(--color-bg-primary);
+}
+
+.page-learn .hero {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding: 3rem 2rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.page-learn .hero h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-success));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-learn .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    background: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 95;
+    overflow-y: auto;
+    padding-top: 4rem;
+}
+
+.page-learn .sidebar.active {
+    transform: translateX(0);
+}
+
+.page-learn .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.page-learn .comparison-card {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: border-color 0.2s ease;
+}
+
+.page-learn .comparison-card:hover {
+    border-color: var(--color-primary);
+}
+
+/* --- 404 Page --- */
+.page-404 {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.page-404 .error-code {
+    font-size: clamp(6rem, 15vw, 12rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-success));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 1rem;
+    animation: pulse-404 3s ease-in-out infinite;
+}
+
+.page-404 .error-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 2rem;
+    color: var(--color-primary);
+    animation: float-404 3s ease-in-out infinite;
+}
+
+@keyframes float-404 {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
