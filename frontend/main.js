@@ -398,7 +398,8 @@ function queryDOMElements() {
     DOM.clearHistory = document.getElementById('clearHistory');
     DOM.exportHistory = document.getElementById('exportHistory');
     
-    console.log('[DOM] All elements queried and cached');
+    // Accessibility
+    DOM.ariaLiveRegion = null;
 }
 
 // ========================================
@@ -930,6 +931,10 @@ async function measureLatency() {
     
     announceToScreenReader('Measuring latency');
     
+    // Reset sparkline
+    const sparkline = document.querySelector('#jitterSparkline path');
+    if (sparkline) sparkline.setAttribute('d', '');
+    
     try {
         for (let i = 0; i < sampleCount; i++) {
             if (STATE.cancelling || abortController.signal.aborted) break;
@@ -942,6 +947,9 @@ async function measureLatency() {
             const duration = performance.now() - start;
             
             samples.push(duration);
+            
+            // Draw sparkline
+            drawSparkline(samples);
             
             // Update live average in matrix card
             const currentAvg = samples.reduce((a, b) => a + b, 0) / samples.length;
@@ -997,6 +1005,30 @@ function calculateJitter(samples) {
     }
     
     return sumDifferences / (samples.length - 1);
+}
+
+function drawSparkline(data) {
+    const svg = document.getElementById('jitterSparkline');
+    if (!svg) return;
+    
+    const path = svg.querySelector('path');
+    if (!path) return;
+    
+    svg.parentElement.hidden = false;
+    
+    const width = 100;
+    const height = 30;
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
+    
+    const points = data.map((val, i) => {
+        const x = (i / (data.length - 1)) * width;
+        const y = height - ((val - min) / range) * height;
+        return `${x},${y}`;
+    });
+    
+    path.setAttribute('d', `M${points.join(' L')}`);
 }
 
 // ========================================
@@ -1831,6 +1863,10 @@ function clearResultsDisplay() {
         const qualityEl = card.querySelector('.metric-quality');
         if (qualityEl) qualityEl.textContent = '';
     });
+    
+    // Reset sparkline
+    const sparkline = document.querySelector('#jitterSparkline path');
+    if (sparkline) sparkline.setAttribute('d', '');
 }
 
 function getSpeedQuality(speed, type) {

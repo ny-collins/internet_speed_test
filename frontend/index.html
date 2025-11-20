@@ -84,6 +84,23 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="page-home">
+    
+    <!-- Africa Optimization Banner -->
+    <div id="africa-banner" style="display: none; background: linear-gradient(90deg, #10b981, #059669); color: white; padding: 12px; text-align: center; font-weight: 500; position: relative; z-index: 9999;">
+        <span>🌍 Visiting from Africa? Use our high-speed Edge version for 10x faster loading.</span>
+        <a href="https://speed-test-ahc.pages.dev/" style="color: white; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px; text-decoration: none; margin-left: 10px; font-weight: 700; border: 1px solid rgba(255,255,255,0.3);">Switch Now →</a>
+        <button onclick="this.parentElement.style.display='none'; localStorage.setItem('hideAfricaBanner', 'true');" style="background: none; border: none; color: white; float: right; font-size: 20px; cursor: pointer; opacity: 0.7;">&times;</button>
+    </div>
+
+    <script>
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const isLikelyAfrica = timeZone.includes('Africa') || timeZone.includes('Nairobi') || timeZone.includes('Johannesburg') || timeZone.includes('Lagos') || timeZone.includes('Cairo');
+        
+        if (isLikelyAfrica && !localStorage.getItem('hideAfricaBanner')) {
+            document.getElementById('africa-banner').style.display = 'block';
+        }
+    </script>
+
     <!-- Settings Toggle -->
     <button class="settings-toggle" id="settingsToggle" aria-label="Open settings" aria-expanded="false">
         <i data-lucide="settings" class="settings-icon"></i>
@@ -249,6 +266,12 @@
                             <div class="matrix-value">
                                 <span class="matrix-number">—</span>
                                 <span class="matrix-unit">ms</span>
+                            </div>
+                            <!-- Sparkline Container -->
+                            <div class="sparkline-container" id="jitterSparkline" hidden>
+                                <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <path class="sparkline-path" d="" fill="none" stroke="currentColor" stroke-width="2"></path>
+                                </svg>
                             </div>
                         </div>
                     </div>
