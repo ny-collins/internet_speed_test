@@ -315,3 +315,13 @@ export function drawSparkline(data) {
     
     path.setAttribute('d', `M${points.join(' L')}`);
 }
+
+// Add this export to fix the error
+export function announceToScreenReader(message) {
+    if (DOM.ariaLiveRegion) {
+        DOM.ariaLiveRegion.textContent = '';
+        setTimeout(() => {
+            if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
+        }, 100);
+    }
+}
