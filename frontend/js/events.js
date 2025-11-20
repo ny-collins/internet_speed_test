@@ -26,11 +26,11 @@ export function initializeEventListeners() {
     DOM.themeToggleSwitch?.addEventListener('click', toggleTheme);
     const headerThemeToggle = document.getElementById('themeToggle'); // From header
     headerThemeToggle?.addEventListener('click', toggleTheme);
-    
+
     // Settings Panel
     DOM.settingsToggle?.addEventListener('click', toggleSettings);
     DOM.settingsClose?.addEventListener('click', toggleSettings);
-    
+
     // Settings Controls
     if (DOM.downloadThreads) {
         DOM.downloadThreads.addEventListener('input', (e) => {
@@ -38,28 +38,28 @@ export function initializeEventListeners() {
         });
         DOM.downloadThreads.addEventListener('change', saveSettings);
     }
-    
+
     if (DOM.maxDuration) {
         DOM.maxDuration.addEventListener('input', (e) => {
             updateSettingValue('maxDuration', e.target.value + 's');
         });
         DOM.maxDuration.addEventListener('change', saveSettings);
     }
-    
+
     DOM.resetSettings?.addEventListener('click', resetSettings);
-    
+
     // Test Controls
     DOM.startTest?.addEventListener('click', () => startTestFn());
     DOM.cancelTest?.addEventListener('click', () => cancelTestFn());
     DOM.gaugeStartButton?.addEventListener('click', () => startTestFn());
-    
+
     // History Actions
     DOM.clearHistory?.addEventListener('click', () => clearHistoryFn());
     DOM.exportHistory?.addEventListener('click', () => exportHistoryFn());
-    
+
     // Keyboard
     document.addEventListener('keydown', handleKeyboardShortcuts);
-    
+
     // Sidebar (if present)
     initializeTabNavigation();
 }
@@ -71,7 +71,7 @@ function toggleSettings() {
     const isOpen = DOM.settingsPanel.getAttribute('data-open') === 'true';
     DOM.settingsPanel.setAttribute('data-open', !isOpen);
     DOM.settingsToggle.setAttribute('aria-expanded', !isOpen);
-    
+
     if (!isOpen) {
         setTimeout(() => DOM.downloadThreads?.focus(), 300);
         announceToScreenReader('Settings panel opened');
@@ -88,17 +88,17 @@ function updateSettingValue(id, value) {
 
 function saveSettings() {
     if (!DOM.downloadThreads || !DOM.maxDuration) return;
-    
+
     const threads = parseInt(DOM.downloadThreads.value);
     const maxDur = parseFloat(DOM.maxDuration.value);
-    
+
     CONFIG.threads.download = threads;
     CONFIG.threads.upload = threads;
     CONFIG.duration.download.max = maxDur;
     CONFIG.duration.download.default = maxDur;
     CONFIG.duration.upload.max = Math.max(3, maxDur - 2);
     CONFIG.duration.upload.default = CONFIG.duration.upload.max;
-    
+
     localStorage.setItem('config', JSON.stringify(CONFIG));
     showStatus('Settings saved', 'success');
     announceToScreenReader('Settings saved');
@@ -111,13 +111,13 @@ function resetSettings() {
     CONFIG.duration.download.default = 10;
     CONFIG.duration.upload.max = 10;
     CONFIG.duration.upload.default = 10;
-    
+
     if (DOM.downloadThreads) DOM.downloadThreads.value = CONFIG.threads.download;
     if (DOM.maxDuration) DOM.maxDuration.value = CONFIG.duration.download.max;
-    
+
     updateSettingValue('downloadThreads', CONFIG.threads.download);
     updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
-    
+
     localStorage.removeItem('config');
     showStatus('Settings reset to defaults', 'info');
     announceToScreenReader('Settings reset to defaults');
@@ -130,7 +130,7 @@ export function loadConfiguration() {
             const savedConfig = JSON.parse(saved);
             Object.assign(CONFIG, savedConfig);
         }
-        
+
         if (DOM.downloadThreads) {
             DOM.downloadThreads.value = CONFIG.threads.download;
             updateSettingValue('downloadThreads', CONFIG.threads.download);
@@ -174,12 +174,12 @@ function updateThemeIcon(theme) {
 
 function handleKeyboardShortcuts(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    
+
     if ((e.ctrlKey || e.metaKey) && e.key === 't') {
         e.preventDefault();
         if (!STATE.testing) startTestFn();
     }
-    
+
     if (e.key === 'Escape') {
         const settingsOpen = DOM.settingsPanel?.getAttribute('data-open') === 'true';
         if (settingsOpen) {
@@ -188,7 +188,7 @@ function handleKeyboardShortcuts(e) {
             cancelTestFn();
         }
     }
-    
+
     if ((e.ctrlKey || e.metaKey) && e.key === ',') {
         e.preventDefault();
         toggleSettings();
@@ -201,9 +201,9 @@ function initializeTabNavigation() {
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
     const contentSections = document.querySelectorAll('.content-section');
-    
+
     if (!sidebar || !sidebarToggle) return;
-    
+
     function toggleSidebar() {
         const isActive = sidebar.classList.contains('active');
         if (isActive) {
@@ -214,19 +214,19 @@ function initializeTabNavigation() {
             sidebarOverlay.classList.add('active');
         }
     }
-    
+
     function closeSidebar() {
         sidebar.classList.remove('active');
         sidebarOverlay.classList.remove('active');
     }
-    
+
     function switchSection(sectionId) {
         sidebarLinks.forEach(link => link.classList.remove('active'));
         contentSections.forEach(section => section.classList.remove('active'));
-        
+
         const targetSection = document.getElementById(sectionId);
         const targetLink = document.querySelector(`.sidebar-link[data-section="${sectionId}"]`);
-        
+
         if (targetSection) {
             targetSection.classList.add('active');
             if (targetLink) targetLink.classList.add('active');
@@ -234,10 +234,10 @@ function initializeTabNavigation() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
-    
+
     sidebarToggle.addEventListener('click', toggleSidebar);
     sidebarOverlay.addEventListener('click', closeSidebar);
-    
+
     sidebarLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -248,21 +248,21 @@ function initializeTabNavigation() {
             }
         });
     });
-    
+
     const hash = window.location.hash.replace('#', '');
     if (hash && document.getElementById(hash)) {
         switchSection(hash);
     } else {
         switchSection('speed-testing');
     }
-    
+
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash.replace('#', '');
         if (hash && document.getElementById(hash)) {
             switchSection(hash);
         }
     });
-    
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             closeSidebar();

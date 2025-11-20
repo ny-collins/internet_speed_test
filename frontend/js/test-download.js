@@ -11,23 +11,23 @@ export async function measureDownload() {
     const threadCount = CONFIG.threads.download;
     const maxDuration = CONFIG.duration.download.max * 1000;
     const minDuration = CONFIG.duration.download.min * 1000;
-    
+
     console.log(`[Download] Starting with ${threadCount} threads`);
     announceToScreenReader(`Starting download test with ${threadCount} threads`);
-    
+
     const startTime = performance.now();
     let totalBytes = 0;
     let isRunning = true;
-    
+
     // Stability tracking
     const speedSamples = [];
     let lastSampleTime = startTime;
     let lastBytes = 0;
-    
+
     const byteCounters = [];
-    
+
     // Spawn threads
-    const threadPromises = Array.from({ length: threadCount }, (_, i) => {
+    Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
         byteCounters.push(counter);
         return downloadThread(i, () => isRunning, counter)
@@ -36,18 +36,18 @@ export async function measureDownload() {
                 return { bytes: counter.bytes };
             });
     });
-    
+
     // Monitor Loop
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
-            
+
             const elapsed = performance.now() - startTime;
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-            
+
             if (elapsed > 0 && totalBytes > 0) {
                 const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
-                
+
                 // Smoothing
                 if (speedSamples.length >= 3) {
                     const recentSamples = speedSamples.slice(-3);
@@ -57,16 +57,16 @@ export async function measureDownload() {
                     updateGauge(currentSpeed, 'download');
                 }
             }
-            
+
             // Stability Check (every 500ms)
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
-                
+
                 if (intervalBytes > 0) {
                     const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                     speedSamples.push(intervalSpeed);
-                    
+
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
                         if (isSpeedStable(speedSamples)) {
                             console.log('[Download] Speed stabilized, stopping early');
@@ -75,21 +75,21 @@ export async function measureDownload() {
                         }
                     }
                 }
-                
+
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
             }
-            
+
             if (elapsed >= maxDuration) {
                 console.log('[Download] Max duration reached');
                 isRunning = false;
                 break;
             }
-            
+
             // Update Progress (25% -> 60%)
             const progressPercent = 25 + (elapsed / maxDuration) * 35;
             setProgress(Math.min(progressPercent, 60));
-            
+
             // Update Matrix Card Border
             const downloadCard = document.querySelector('.matrix-card[data-metric="download"]');
             if (downloadCard) {
@@ -98,27 +98,27 @@ export async function measureDownload() {
             }
         }
     };
-    
+
     await monitorLoop();
-    
+
     // Cleanup threads
     STATE.abortControllers.forEach(controller => {
-        try { controller.abort(); } catch(e) {}
+        try { controller.abort(); } catch (e) { /* Ignore abort errors */ }
     });
     STATE.abortControllers = [];
-    
+
     const endTime = performance.now();
     const duration = (endTime - startTime) / 1000;
-    
+
     if (duration === 0 || totalBytes === 0) {
         console.warn('[Download] Invalid test data');
         throw new Error('Invalid download test data');
     }
-    
+
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     console.log(`[Download] Final: ${speedMbps.toFixed(2)} Mbps`);
     announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
-    
+
     return {
         speed: speedMbps,
         bytesTransferred: totalBytes,
@@ -131,7 +131,7 @@ async function downloadThread(threadId, isRunning, byteCounter) {
     const abortController = new AbortController();
     const controllerIndex = STATE.abortControllers.push(abortController) - 1;
     let cleanupDone = false;
-    
+
     const cleanup = () => {
         if (cleanupDone) return;
         cleanupDone = true;
@@ -139,27 +139,27 @@ async function downloadThread(threadId, isRunning, byteCounter) {
             STATE.abortControllers.splice(controllerIndex, 1);
         }
     };
-    
+
     try {
         const url = `${CONFIG.apiBase}/api/download?size=${CONFIG.downloadSize}&chunk=${CONFIG.chunkSize}&t=${Date.now()}`;
-        const response = await fetch(url, { 
+        const response = await fetch(url, {
             signal: abortController.signal,
             cache: 'no-store'
         });
-        
+
         if (!response.ok) throw new Error(`Status ${response.status}`);
         if (!response.body) throw new Error('No body');
-        
+
         const reader = response.body.getReader();
-        
+
         while (!abortController.signal.aborted) {
             const { done, value } = await reader.read();
             if (done) break;
             byteCounter.bytes += value.length;
         }
-        
-        try { await reader.cancel(); } catch (e) {}
-        
+
+        try { await reader.cancel(); } catch (e) { /* Ignore cancel errors */ }
+
     } catch (error) {
         if (error.name !== 'AbortError') {
             console.error(`[Download] Thread ${threadId} error:`, error);

@@ -9,7 +9,7 @@ import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 // Reusable 64KB chunk to avoid GC pressure and UI freezing
 const REUSABLE_UPLOAD_CHUNK = (() => {
-    const chunk = new Uint8Array(65536); 
+    const chunk = new Uint8Array(65536);
     crypto.getRandomValues(chunk);
     return chunk;
 })();
@@ -18,22 +18,22 @@ export async function measureUpload() {
     const threadCount = CONFIG.threads.upload;
     const maxDuration = CONFIG.duration.upload.max * 1000;
     const minDuration = CONFIG.duration.upload.min * 1000;
-    
+
     console.log(`[Upload] Starting with ${threadCount} threads`);
     announceToScreenReader(`Starting upload test with ${threadCount} threads`);
-    
+
     const startTime = performance.now();
     let totalBytes = 0;
     let isRunning = true;
-    
+
     const speedSamples = [];
     let lastSampleTime = startTime;
     let lastBytes = 0;
-    
+
     const byteCounters = [];
-    
+
     // Spawn threads
-    const threadPromises = Array.from({ length: threadCount }, (_, i) => {
+    Array.from({ length: threadCount }, (_, i) => {
         const counter = { bytes: 0 };
         byteCounters.push(counter);
         return uploadThread(i, () => isRunning, counter)
@@ -42,18 +42,18 @@ export async function measureUpload() {
                 return { bytes: counter.bytes };
             });
     });
-    
+
     // Monitor Loop
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
-            
+
             const elapsed = performance.now() - startTime;
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-            
+
             if (elapsed > 0 && totalBytes > 0) {
                 const currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000;
-                
+
                 if (speedSamples.length >= 3) {
                     const recentSamples = speedSamples.slice(-3);
                     const avgSpeed = recentSamples.reduce((a, b) => a + b, 0) / recentSamples.length;
@@ -62,16 +62,16 @@ export async function measureUpload() {
                     updateGauge(currentSpeed, 'upload');
                 }
             }
-            
+
             // Stability Check
             if (elapsed - lastSampleTime >= 500) {
                 const intervalBytes = totalBytes - lastBytes;
                 const intervalDuration = (elapsed - lastSampleTime) / 1000;
-                
+
                 if (intervalBytes > 0) {
                     const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                     speedSamples.push(intervalSpeed);
-                    
+
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
                         if (isSpeedStable(speedSamples)) {
                             console.log('[Upload] Speed stabilized, stopping early');
@@ -80,21 +80,21 @@ export async function measureUpload() {
                         }
                     }
                 }
-                
+
                 lastSampleTime = elapsed;
                 lastBytes = totalBytes;
             }
-            
+
             if (elapsed >= maxDuration) {
                 console.log('[Upload] Max duration reached');
                 isRunning = false;
                 break;
             }
-            
+
             // Update Progress (60% -> 95%)
             const progressPercent = 60 + (elapsed / maxDuration) * 35;
             setProgress(Math.min(progressPercent, 95));
-            
+
             // Matrix Border Update
             const uploadCard = document.querySelector('.matrix-card[data-metric="upload"]');
             if (uploadCard) {
@@ -103,27 +103,27 @@ export async function measureUpload() {
             }
         }
     };
-    
+
     await monitorLoop();
-    
+
     // Cleanup
     STATE.abortControllers.forEach(controller => {
-        try { controller.abort(); } catch(e) {}
+        try { controller.abort(); } catch (e) { /* Ignore abort errors */ }
     });
     STATE.abortControllers = [];
-    
+
     const endTime = performance.now();
     const duration = (endTime - startTime) / 1000;
-    
+
     if (duration === 0 || totalBytes === 0) {
         console.warn('[Upload] Invalid test data');
         throw new Error('Invalid upload test data');
     }
-    
+
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
     console.log(`[Upload] Final: ${speedMbps.toFixed(2)} Mbps`);
     announceToScreenReader(`Upload speed: ${speedMbps.toFixed(1)} megabits per second`);
-    
+
     return {
         speed: speedMbps,
         bytesTransferred: totalBytes,
@@ -133,15 +133,15 @@ export async function measureUpload() {
 }
 
 async function uploadThread(threadId, isRunning, byteCounter) {
-    const totalSize = CONFIG.uploadSize * 1024 * 1024; 
+    const totalSize = CONFIG.uploadSize * 1024 * 1024;
     const abortController = new AbortController();
     const controllerIndex = STATE.abortControllers.push(abortController) - 1;
-    
+
     // Build the payload efficiently
     const chunkSize = REUSABLE_UPLOAD_CHUNK.length;
     const chunksNeeded = Math.ceil(totalSize / chunkSize);
     const chunks = [];
-    
+
     for (let i = 0; i < chunksNeeded; i++) {
         if (!isRunning() || STATE.cancelling || abortController.signal.aborted) return;
         const isLastChunk = (i === chunksNeeded - 1);
@@ -153,12 +153,12 @@ async function uploadThread(threadId, isRunning, byteCounter) {
         }
     }
     const blob = new Blob(chunks, { type: 'application/octet-stream' });
-    
+
     // XHR Promise
     return new Promise((resolve) => {
         const xhr = new XMLHttpRequest();
         let finished = false;
-        
+
         const finish = () => {
             if (finished) return;
             finished = true;
@@ -167,21 +167,21 @@ async function uploadThread(threadId, isRunning, byteCounter) {
             }
             resolve();
         };
-        
+
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 byteCounter.bytes = event.loaded;
             }
         };
-        
+
         xhr.onload = finish;
         xhr.onerror = finish;
-        
+
         abortController.signal.addEventListener('abort', () => {
             xhr.abort();
             finish();
         });
-        
+
         xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
         xhr.send(blob);
