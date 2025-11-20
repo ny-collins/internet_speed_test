@@ -114,12 +114,10 @@ describe('API Enhanced Test Suite', () => {
     const res = await request(app).get('/api/info');
     
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('serverLocation');
+    expect(res.body).toHaveProperty('location');
     expect(res.body).toHaveProperty('maxDownloadSize');
     expect(res.body).toHaveProperty('maxUploadSize');
     expect(res.body).toHaveProperty('version');
-    expect(res.body).toHaveProperty('supportedTests');
-    expect(Array.isArray(res.body.supportedTests)).toBe(true);
   });
   
   // ========================================

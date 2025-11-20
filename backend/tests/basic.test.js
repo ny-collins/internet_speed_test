@@ -5,7 +5,7 @@ describe('API basic endpoints', () => {
   test('GET /api/info returns server info', async () => {
     const res = await request(app).get('/api/info');
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('serverLocation');
+    expect(res.body).toHaveProperty('location');
     expect(res.body).toHaveProperty('maxDownloadSize');
   });
 

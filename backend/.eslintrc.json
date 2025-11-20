@@ -1,0 +1,32 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true,
+    "jest": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "commonjs"
+  },
+  "rules": {
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": "off",
+    "prefer-const": "error",
+    "no-var": "error",
+    "arrow-spacing": "error",
+    "space-before-blocks": "error",
+    "keyword-spacing": "error",
+    "comma-spacing": "error",
+    "no-trailing-spaces": "error",
+    "eol-last": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "coverage/"
+  ]
+}
