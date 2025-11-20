@@ -377,14 +377,27 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Global error handler - must include CORS headers
 app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ 
+  logger.error({ err, path: req.path, method: req.method }, 'Unhandled error');
+  
+  // Ensure CORS headers are sent even on errors
+  if (allowedOrigins === '*') {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (req.headers.origin && allowedOrigins.has(req.headers.origin)) {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  
+  res.status(err.status || 500).json({ 
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    message: config.nodeEnv === 'development' ? err.message : undefined,
+    stack: config.nodeEnv === 'development' ? err.stack : undefined
   });
 });
 
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
