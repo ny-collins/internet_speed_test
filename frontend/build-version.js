@@ -3,16 +3,21 @@
 /**
  * Build script to inject version from package.json into frontend files
  * This ensures version consistency across sw.js, index.html, and other files
- * 
- * Usage: node build-version.js
+ * * Usage: node build-version.js
  * Run this before deployment or as part of CI/CD
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Equivalent to __dirname in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Read version from package.json
-const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const packageJsonPath = path.join(__dirname, 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const version = packageJson.version;
 
 console.log(`📦 Building version ${version}...`);

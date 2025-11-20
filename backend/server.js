@@ -12,6 +12,13 @@ const config = require('./config');
 const app = express();
 
 // ========================================
+// PROXY CONFIGURATION (CRITICAL FIX)
+// ========================================
+// Required because we are behind Railway's Load Balancer & Cloudflare
+// This ensures req.ip reflects the actual user, not the router.
+app.set('trust proxy', 1);
+
+// ========================================
 // LOGGING
 // ========================================
 
@@ -190,7 +197,9 @@ if (config.rateLimit.enabled) {
     windowMs: config.rateLimit.windowMs,
     max: config.rateLimit.max,
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    // Trust Proxy must be enabled for this to work correctly
+    keyGenerator: (req) => req.ip
   });
   app.use(['/api/ping', '/api/ping-batch', '/api/info', '/api/test'], standardLimiter);
 }
@@ -390,7 +399,9 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy',
     timestamp: Date.now(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    // Debugging: Show what IP the server thinks you have (Remove in strict production)
+    ip: req.ip 
   });
 });
 
