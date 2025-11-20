@@ -9,6 +9,7 @@ import { buildMainGauge, showStatus, announceToScreenReader } from './js/ui.js';
 import { measureLatency } from './js/test-latency.js';
 import { measureDownload } from './js/test-download.js';
 import { measureUpload } from './js/test-upload.js';
+import { drawHistoryChart } from './js/chart.js';
 import { CONFIG } from './js/config.js';
 import { STATE } from './js/state.js';
 
@@ -39,7 +40,6 @@ async function initializeApp() {
     registerTestFunctions(startTest, cancelTest, clearHistory, exportHistory);
     
     // 5. Setup Interaction Listeners
-    // Note: This handles the Learn page sidebar too
     initializeEventListeners();
 
     if (isSpeedTestPage) {
@@ -52,6 +52,13 @@ async function initializeApp() {
         
         // Initialize Accessibility
         initializeAccessibility();
+        
+        // Listen for resize events to redraw history chart
+        window.addEventListener('resize', () => {
+            if (STATE.history.length > 0) {
+                drawHistoryChart(STATE.history);
+            }
+        });
         
         console.log('[App] Speed test initialization complete');
         announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
@@ -85,11 +92,6 @@ async function startTest() {
     
     // Reset Results
     STATE.testResults = { download: null, upload: null, latency: null, jitter: null };
-    
-    // UI Prep
-    import('./js/ui.js').then(module => module.showGauge()); // Dynamic import example (optional optimization)
-    // Or just use the imported function:
-    // showGauge(); 
     
     // Reset UI
     import('./js/ui.js').then(m => {
@@ -168,7 +170,7 @@ function completeTest() {
     import('./js/ui.js').then(ui => {
         ui.setProgress(100);
         showStatus('Test completed successfully!', 'success');
-        ui.resetAllPhases(); // Delayed reset handled in ui.js or here
+        ui.resetAllPhases();
     });
     
     saveToHistory({
@@ -208,6 +210,10 @@ async function fetchServerInfo() {
             STATE.serverInfo = await response.json();
             const { DOM } = await import('./js/dom.js');
             if (DOM.serverLocation) DOM.serverLocation.textContent = STATE.serverInfo.location || 'Unknown';
+            if (DOM.serverLimits && STATE.serverInfo.maxDownloadSize) {
+                DOM.serverLimits.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;
+            }
+            if (DOM.serverInfo) DOM.serverInfo.hidden = false;
         }
     } catch (e) {
         console.warn('[Server] Info fetch failed', e);
@@ -236,6 +242,11 @@ function loadHistory() {
 function updateHistoryUI() {
     import('./js/dom.js').then(({ DOM }) => {
         if (!DOM.historyList) return;
+        
+        // Draw Chart
+        import('./js/chart.js').then(chart => {
+            chart.drawHistoryChart(STATE.history);
+        });
         
         if (STATE.history.length === 0) {
             DOM.historyList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--color-text-tertiary)">No test history yet</div>';
@@ -281,6 +292,8 @@ function exportHistory() {
     a.href = url;
     a.download = `speedtest-${Date.now()}.csv`;
     a.click();
+    URL.revokeObjectURL(url);
+    showStatus('History exported', 'success');
 }
 
 function initializeAccessibility() {
