@@ -1,8 +1,3 @@
-/* ========================================
-   FEATURE-SPECIFIC STYLES
-   ======================================== */
-
-/* --- The Gauge --- */
 .gauge-container {
     display: flex;
     justify-content: center;
@@ -86,6 +81,12 @@
     margin-bottom: var(--spacing-xs);
 }
 
+@keyframes softPulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
 .gauge-start-button {
     position: absolute;
     left: 50%;
@@ -104,14 +105,15 @@
     transition: all var(--transition-base);
     box-shadow: var(--shadow-xl);
     z-index: 20;
+    animation: softPulse 2s infinite;
 }
 
 .gauge-start-button:hover {
     transform: translate(-50%, -50%) scale(1.05);
     box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+    animation: none;
 }
 
-/* --- History & Charts --- */
 .history-section {
     margin-bottom: var(--spacing-2xl);
 }
@@ -149,7 +151,6 @@ canvas#historyChart {
     box-shadow: var(--shadow-sm);
 }
 
-/* --- Sparklines --- */
 .sparkline-container {
     margin-top: 8px;
     height: 30px;
@@ -168,7 +169,6 @@ canvas#historyChart {
     fill: none;
 }
 
-/* --- Matrix Card Animation --- */
 .matrix-card::before {
     content: '';
     position: absolute;
@@ -194,7 +194,6 @@ canvas#historyChart {
     opacity: 1;
 }
 
-/* --- Progress Bar --- */
 .progress-bar {
     height: 8px;
     background: var(--color-bg-secondary);

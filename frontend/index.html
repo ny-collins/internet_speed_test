@@ -5,13 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO Meta Tags -->
     <meta name="description" content="Test your internet speed with SpeedCheck. Measure download, upload, ping, and jitter. Server hosted in Amsterdam for European users.">
     <meta name="keywords" content="internet speed test, bandwidth test, network speed, ping test, latency test, jitter test, download speed, upload speed">
     <meta name="author" content="SpeedCheck">
     <meta name="robots" content="index, follow">
     
-    <!-- Open Graph / Social Media -->
     <meta property="fb:app_id" content="24685616031079978">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://speed-test.up.railway.app/">
@@ -23,7 +21,6 @@
     <meta property="og:image:alt" content="SpeedCheck - Internet Speed Test Interface">
     <meta property="og:site_name" content="SpeedCheck">
     
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="SpeedCheck - Internet Speed Test">
     <meta name="twitter:description" content="Test your internet speed with accurate measurements">
@@ -32,21 +29,17 @@
     
     <title>SpeedCheck - Internet Speed Test</title>
     
-    <!-- Canonical URL -->
     <link rel="canonical" href="https://speed-test.up.railway.app/">
     
     <link rel="stylesheet" href="/main.css?v=1.62.0">
     
-    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg">
     <link rel="manifest" href="/site.webmanifest">
     
-    <!-- Theme Color for Mobile Browsers -->
     <meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     
-    <!-- Structured Data (JSON-LD) for SEO -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -80,34 +73,46 @@
     }
     </script>
     
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="page-home">
     
-    <!-- Africa Optimization Banner -->
-    <div id="africa-banner" style="display: none; background: linear-gradient(90deg, #10b981, #059669); color: white; padding: 12px; text-align: center; font-weight: 500; position: relative; z-index: 9999;">
-        <span>🌍 Visiting from Africa? Use our high-speed Edge version for 10x faster loading.</span>
-        <a href="https://speed-test-ahc.pages.dev/" style="color: white; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px; text-decoration: none; margin-left: 10px; font-weight: 700; border: 1px solid rgba(255,255,255,0.3);">Switch Now →</a>
-        <button onclick="this.parentElement.style.display='none'; localStorage.setItem('hideAfricaBanner', 'true');" style="background: none; border: none; color: white; float: right; font-size: 20px; cursor: pointer; opacity: 0.7;">&times;</button>
+    <div id="africa-banner" class="smart-banner">
+        <div class="smart-banner-content">
+            <span>🌍 Visiting from Africa? Use our high-speed Edge version for 10x faster loading.</span>
+            <a href="https://speed-test-ahc.pages.dev/" class="smart-banner-btn">Switch Now →</a>
+            <button id="close-banner" class="smart-banner-close" aria-label="Close banner">&times;</button>
+        </div>
     </div>
 
     <script>
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const isLikelyAfrica = timeZone.includes('Africa') || timeZone.includes('Nairobi') || timeZone.includes('Johannesburg') || timeZone.includes('Lagos') || timeZone.includes('Cairo');
-        
-        if (isLikelyAfrica && !localStorage.getItem('hideAfricaBanner')) {
-            document.getElementById('africa-banner').style.display = 'block';
-        }
+        (function() {
+            const EDGE_DOMAIN = 'speed-test-ahc.pages.dev';
+            const CURRENT_DOMAIN = window.location.hostname;
+            
+            if (CURRENT_DOMAIN === EDGE_DOMAIN) return;
+
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const isLikelyAfrica = /Africa|Nairobi|Johannesburg|Lagos|Cairo|Algiers|Casablanca|Accra/.test(timeZone);
+
+            const isDismissed = localStorage.getItem('hideAfricaBanner');
+
+            if (isLikelyAfrica && !isDismissed) {
+                document.getElementById('africa-banner').style.display = 'block';
+            }
+
+            document.getElementById('close-banner').addEventListener('click', function() {
+                document.getElementById('africa-banner').style.display = 'none';
+                localStorage.setItem('hideAfricaBanner', 'true');
+            });
+        })();
     </script>
 
-    <!-- Settings Toggle -->
     <button class="settings-toggle" id="settingsToggle" aria-label="Open settings" aria-expanded="false">
         <i data-lucide="settings" class="settings-icon"></i>
     </button>
 
     <div class="app-container">
-        <!-- Header -->
         <header class="header">
             <div class="header-content">
                 <div class="logo">
@@ -118,7 +123,6 @@
             </div>
         </header>
 
-        <!-- Settings Panel -->
         <div class="settings-panel" id="settingsPanel" role="dialog" aria-labelledby="settingsTitle" data-open="false">
             <div class="settings-content">
                 <div class="settings-header">
@@ -128,7 +132,6 @@
                     </button>
                 </div>
                 <div class="settings-body">
-                    <!-- Theme Section -->
                     <div class="setting-section">
                         <h3 class="setting-section-title">Appearance</h3>
                         <div class="setting-group setting-group-row">
@@ -142,7 +145,6 @@
                         </div>
                     </div>
 
-                    <!-- Test Configuration Section -->
                     <div class="setting-section">
                         <h3 class="setting-section-title">Test Configuration</h3>
                         <p class="setting-section-description">Adjust how tests are performed. Higher values = more accurate but slower.</p>
@@ -178,7 +180,6 @@
             </div>
         </div>
 
-        <!-- Status Bar -->
         <div class="status-bar" id="statusBar" role="status" aria-live="polite" hidden>
             <div class="status-content">
                 <i data-lucide="info" class="status-icon"></i>
@@ -186,24 +187,18 @@
             </div>
         </div>
 
-        <!-- Main Test Section -->
         <main class="test-section">
-            <!-- Combined Test Area: Gauge + Results Matrix -->
             <div class="test-display">
-                <!-- Speedometer Gauge -->
                 <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
                     <div class="gauge-wrapper">
-                        <!-- Round START button (shows before test) -->
                         <button class="gauge-start-button" id="gaugeStartButton" aria-label="Start speed test">
                             <span class="start-button-text">START</span>
                         </button>
                         
-                        <!-- Pure CSS Circular Progress Gauge -->
                         <div class="gauge-circle" id="gaugeCircle" hidden>
                             <div class="gauge-progress" id="gaugeProgress"></div>
                         </div>
                         
-                        <!-- Gauge Inner Content (outside mask) -->
                         <div class="gauge-inner" id="gaugeInner" hidden>
                             <div class="gauge-value-live" id="gaugeValue">0</div>
                             <div class="gauge-unit" id="gaugeUnit">Mbps</div>
@@ -212,9 +207,7 @@
                     </div>
                 </div>
 
-                <!-- Results Matrix (2x2 Grid) -->
                 <div class="results-matrix" id="resultsMatrix">
-                    <!-- Download -->
                     <div class="matrix-card" data-metric="download">
                         <div class="matrix-icon">
                             <i data-lucide="arrow-down-circle"></i>
@@ -228,7 +221,6 @@
                         </div>
                     </div>
 
-                    <!-- Upload -->
                     <div class="matrix-card" data-metric="upload">
                         <div class="matrix-icon">
                             <i data-lucide="arrow-up-circle"></i>
@@ -242,7 +234,6 @@
                         </div>
                     </div>
 
-                    <!-- Ping (Latency) -->
                     <div class="matrix-card" data-metric="latency">
                         <div class="matrix-icon">
                             <i data-lucide="activity"></i>
@@ -256,7 +247,6 @@
                         </div>
                     </div>
 
-                    <!-- Jitter -->
                     <div class="matrix-card" data-metric="jitter">
                         <div class="matrix-icon">
                             <i data-lucide="radio"></i>
@@ -267,7 +257,6 @@
                                 <span class="matrix-number">—</span>
                                 <span class="matrix-unit">ms</span>
                             </div>
-                            <!-- Sparkline Container -->
                             <div class="sparkline-container" id="jitterSparkline" hidden>
                                 <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none">
                                     <path class="sparkline-path" d="" fill="none" stroke="currentColor" stroke-width="2"></path>
@@ -278,7 +267,6 @@
                 </div>
             </div>
 
-            <!-- Test Controls (Cancel only, Start is on gauge) -->
             <div class="controls">
                 <button class="btn-secondary btn-cancel" id="cancelTest" hidden>
                     <i data-lucide="x-circle" class="btn-icon"></i>
@@ -286,7 +274,6 @@
                 </button>
             </div>
 
-            <!-- Progress Indicator -->
             <div class="progress-container" id="progressContainer" hidden>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
@@ -308,7 +295,6 @@
             </div>
         </main>
 
-        <!-- History Section -->
         <section class="history-section" id="historySection" hidden>
             <div class="history-header">
                 <h2>Test History</h2>
@@ -322,20 +308,16 @@
                 </div>
             </div>
             
-            <!-- History Chart -->
             <div class="history-chart-container">
                 <canvas id="historyChart"></canvas>
             </div>
             
             <div class="history-list" id="historyList" role="list">
-                <!-- Populated by JS -->
             </div>
         </section>
 
-        <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <!-- Server Info -->
                 <div class="server-info" id="serverInfo" hidden>
                     <div class="server-info-item">
                         <i data-lucide="server" class="info-icon"></i>
@@ -351,7 +333,6 @@
                     </div>
                 </div>
 
-                <!-- Why Amsterdam Banner -->
                 <div class="why-amsterdam-banner">
                     <div class="banner-content">
                         <div class="banner-icon">
@@ -368,7 +349,6 @@
                     </div>
                 </div>
 
-                <!-- Educational Info Section -->
                 <div class="footer-info-grid">
                     <div class="info-card">
                         <div class="info-icon-wrapper">
@@ -435,7 +415,6 @@
                     </div>
                 </div>
                 
-                <!-- Simple Footer Note -->
                 <div class="footer-note">
                     <p>
                         <i data-lucide="alert-circle"></i>
@@ -450,7 +429,6 @@
         </footer>
     </div>
 
-    <!-- Accessibility: Screen reader announcements -->
     <div id="ariaLiveRegion" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     <script type="module" src="/main.js?v=1.62.0"></script>

@@ -11,16 +11,7 @@ const config = require('./config');
 
 const app = express();
 
-// ========================================
-// PROXY CONFIGURATION (CRITICAL FIX)
-// ========================================
-// Required because we are behind Railway's Load Balancer & Cloudflare
-// This ensures req.ip reflects the actual user, not the router.
 app.set('trust proxy', 1);
-
-// ========================================
-// LOGGING
-// ========================================
 
 const logger = pino({
   level: config.logLevel,
@@ -44,10 +35,6 @@ const httpLogger = pinoHttp({
     return `${req.method} ${req.url} ${res.statusCode} - ${err.message}`;
   }
 });
-
-// ========================================
-// METRICS
-// ========================================
 
 const register = new client.Registry();
 
@@ -96,10 +83,6 @@ if (config.metrics.enabled) {
   };
 }
 
-// ========================================
-// INFLIGHT REQUEST TRACKING
-// ========================================
-
 let inflightCount = 0;
 
 function trackInflight(req, res, next) {
@@ -131,10 +114,6 @@ function circuitBreaker(req, res, next) {
   next();
 }
 
-// ========================================
-// MIDDLEWARE
-// ========================================
-
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' }
@@ -147,7 +126,6 @@ app.use(trackInflight);
 app.use((req, res, next) => {
   const start = Date.now();
   
-  // Override writeHead to add process time header before response starts
   const originalWriteHead = res.writeHead;
   res.writeHead = function(...args) {
     res.setHeader('X-Process-Time', `${Date.now() - start}ms`);
@@ -177,7 +155,7 @@ app.use((req, res, next) => {
 const allowedOrigins = config.corsOrigin === '*' ? '*' : new Set(config.corsOrigin.split(',').map(o => o.trim()).filter(Boolean));
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // same-origin / curl
+    if (!origin) return callback(null, true);
     if (allowedOrigins === '*' || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
@@ -198,24 +176,17 @@ if (config.rateLimit.enabled) {
     max: config.rateLimit.max,
     standardHeaders: true,
     legacyHeaders: false,
-    // Trust Proxy must be enabled for this to work correctly
     keyGenerator: (req) => req.ip
   });
   app.use(['/api/ping', '/api/ping-batch', '/api/info', '/api/test'], standardLimiter);
 }
 
-// Parse JSON for API endpoints that need it (but skip /api/upload for streaming)
 app.use((req, res, next) => {
   if (req.path === '/api/upload') {
-    // Skip body parsing for upload endpoint to allow streaming
     return next();
   }
   express.json()(req, res, next);
 });
-
-// ========================================
-// METRICS ENDPOINT
-// ========================================
 
 if (config.metrics.enabled) {
   app.get('/metrics', async (req, res) => {
@@ -230,10 +201,6 @@ if (config.metrics.enabled) {
   });
 }
 
-// ========================================
-// API ENDPOINTS
-// ========================================
-
 app.get('/api/ping', (req, res) => {
   const timestamp = Date.now();
   res.json({ 
@@ -243,7 +210,6 @@ app.get('/api/ping', (req, res) => {
 });
 
 app.get('/api/download', circuitBreaker, (req, res) => {
-  // Input validation
   const sizeParam = req.query.size;
   if (sizeParam !== undefined && (isNaN(parseInt(sizeParam, 10)) || parseInt(sizeParam, 10) < 0)) {
     return res.status(400).json({ error: 'Invalid size parameter. Must be a positive number.' });
@@ -256,14 +222,12 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   
   let sizeInMB = parseInt(req.query.size, 10) || 5;
   if (sizeInMB < 1) sizeInMB = 1;
-  if (sizeInMB > config.maxDownloadSizeMB) sizeInMB = config.maxDownloadSizeMB; // clamp
+  if (sizeInMB > config.maxDownloadSizeMB) sizeInMB = config.maxDownloadSizeMB;
   const sizeInBytes = sizeInMB * 1024 * 1024;
-  // Optional chunk size (KB) parameter for performance tuning
   let chunkKB = parseInt(req.query.chunk, 10);
-  if (isNaN(chunkKB) || chunkKB < 16) chunkKB = 64; // min 16KB
-  if (chunkKB > 1024) chunkKB = 1024; // cap 1MB chunks to avoid huge memory use
+  if (isNaN(chunkKB) || chunkKB < 16) chunkKB = 64;
+  if (chunkKB > 1024) chunkKB = 1024;
   const chunkSize = chunkKB * 1024;
-  // Using crypto random bytes per chunk; streaming directly to response
   
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Length', sizeInBytes);
@@ -274,7 +238,6 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   let sent = 0;
   let clientDisconnected = false;
   
-  // Track client disconnect
   req.on('close', () => {
     clientDisconnected = true;
     logger.debug({ sent, sizeInBytes }, 'Client disconnected during download');
@@ -283,7 +246,6 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   const sendChunk = () => {
     if (clientDisconnected || sent >= sizeInBytes) {
       if (sent >= sizeInBytes) {
-        // Track successful download bytes
         if (config.metrics.enabled) {
           app.locals.metrics.downloadBytesTotal.inc(sizeInBytes);
         }
@@ -300,10 +262,8 @@ app.get('/api/download', circuitBreaker, (req, res) => {
     sent += currentChunkSize;
     
     if (canContinue) {
-      // Continue immediately if buffer isn't full
       setImmediate(sendChunk);
     } else {
-      // Wait for drain event if buffer is full
       res.once('drain', sendChunk);
     }
   };
@@ -318,7 +278,6 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
   let aborted = false;
   let clientDisconnected = false;
 
-  // Track client disconnect
   req.on('close', () => {
     clientDisconnected = true;
     if (!aborted && !res.headersSent) {
@@ -338,12 +297,11 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
   });
 
   req.on('end', () => {
-    if (aborted || clientDisconnected) return; // already responded or disconnected
+    if (aborted || clientDisconnected) return;
     const endTime = Date.now();
-    const duration = (endTime - startTime) / 1000; // seconds
+    const duration = (endTime - startTime) / 1000;
     const speedMbps = (receivedBytes * 8) / (duration * 1000000);
     
-    // Track successful upload bytes
     if (config.metrics.enabled) {
       app.locals.metrics.uploadBytesTotal.inc(receivedBytes);
     }
@@ -369,14 +327,13 @@ app.post('/api/ping-batch', (req, res) => {
   let { count = 10 } = req.body || {};
   const countNum = parseInt(count, 10);
   
-  // Input validation
   if (isNaN(countNum) || countNum < 0) {
     return res.status(400).json({ error: 'Invalid count parameter. Must be a positive number.' });
   }
   
   count = countNum;
   if (count < 1) count = 1;
-  if (count > 100) count = 100; // clamp to prevent abuse
+  if (count > 100) count = 100;
   const measurements = [];
   for (let i = 0; i < count; i++) {
     measurements.push({ id: i, timestamp: Date.now(), nonce: crypto.randomBytes(8).toString('hex') });
@@ -395,12 +352,19 @@ app.get('/api/info', (req, res) => {
   });
 });
 
+app.get('/api/config', (req, res) => {
+    res.json({
+        downloadSize: config.maxDownloadSizeMB,
+        uploadSize: config.maxUploadSizeMB,
+        serverLocation: config.serverLocation
+    });
+});
+
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy',
     timestamp: Date.now(),
     uptime: process.uptime(),
-    // Debugging: Show what IP the server thinks you have (Remove in strict production)
     ip: req.ip 
   });
 });
@@ -413,10 +377,6 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// ========================================
-// ERROR HANDLERS
-// ========================================
-
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({ 
@@ -428,10 +388,6 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
-
-// ========================================
-// SERVER START
-// ========================================
 
 let server;
 if (require.main === module) {
