@@ -152,16 +152,21 @@ app.use((req, res, next) => {
   next();
 });
 
-const allowedOrigins = config.corsOrigin === '*' ? '*' : new Set(config.corsOrigin.split(',').map(o => o.trim()).filter(Boolean));
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins === '*' || allowedOrigins.has(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: false,
-  exposedHeaders: ['Content-Length', 'Content-Type']
-}));
+// CORS Configuration
+if (config.corsOrigin === '*') {
+  app.use(cors());
+} else {
+  const allowedOrigins = new Set(config.corsOrigin.split(',').map(o => o.trim()).filter(Boolean));
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.has(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: false,
+    exposedHeaders: ['Content-Length', 'Content-Type']
+  }));
+}
 
 app.use(compression({
   filter: (req, res) => {
@@ -382,10 +387,13 @@ app.use((err, req, res, _next) => {
   logger.error({ err, path: req.path, method: req.method }, 'Unhandled error');
 
   // Ensure CORS headers are sent even on errors
-  if (allowedOrigins === '*') {
+  if (config.corsOrigin === '*') {
     res.header('Access-Control-Allow-Origin', '*');
-  } else if (req.headers.origin && allowedOrigins.has(req.headers.origin)) {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
+  } else {
+    const allowedOrigins = new Set(config.corsOrigin.split(',').map(o => o.trim()).filter(Boolean));
+    if (req.headers.origin && allowedOrigins.has(req.headers.origin)) {
+      res.header('Access-Control-Allow-Origin', req.headers.origin);
+    }
   }
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
