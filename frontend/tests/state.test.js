@@ -5,11 +5,7 @@
 import { STATE } from '../js/state.js';
 
 describe('STATE', () => {
-    // Save initial state
-    let initialState;
-    
     beforeEach(() => {
-        initialState = JSON.parse(JSON.stringify(STATE));
         // Reset state before each test
         STATE.testing = false;
         STATE.cancelling = false;
@@ -72,7 +68,7 @@ describe('STATE', () => {
     test('can update testing flag', () => {
         STATE.testing = true;
         expect(STATE.testing).toBe(true);
-        
+
         STATE.testing = false;
         expect(STATE.testing).toBe(false);
     });
@@ -80,10 +76,10 @@ describe('STATE', () => {
     test('can update current phase', () => {
         STATE.currentPhase = 'latency';
         expect(STATE.currentPhase).toBe('latency');
-        
+
         STATE.currentPhase = 'download';
         expect(STATE.currentPhase).toBe('download');
-        
+
         STATE.currentPhase = null;
         expect(STATE.currentPhase).toBe(null);
     });
@@ -91,10 +87,10 @@ describe('STATE', () => {
     test('can add abort controllers', () => {
         const controller1 = new AbortController();
         const controller2 = new AbortController();
-        
+
         STATE.abortControllers.push(controller1);
         expect(STATE.abortControllers.length).toBe(1);
-        
+
         STATE.abortControllers.push(controller2);
         expect(STATE.abortControllers.length).toBe(2);
     });
@@ -102,7 +98,7 @@ describe('STATE', () => {
     test('can store test results', () => {
         STATE.testResults.download = { speed: 50.5, bytesTransferred: 1000000 };
         expect(STATE.testResults.download).toEqual({ speed: 50.5, bytesTransferred: 1000000 });
-        
+
         STATE.testResults.latency = { average: 45.2, min: 40, max: 50 };
         expect(STATE.testResults.latency).toEqual({ average: 45.2, min: 40, max: 50 });
     });

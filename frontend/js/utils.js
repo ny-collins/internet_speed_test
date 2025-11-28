@@ -66,13 +66,13 @@ export function getFriendlyError(errorMessage) {
         'Load failed': 'Failed to connect to server. Please try again.',
         'Type error': 'An unexpected error occurred. Please refresh the page and try again.'
     };
-    
+
     for (const [key, message] of Object.entries(errors)) {
         if (errorMessage.includes(key)) {
             return message;
         }
     }
-    
+
     return errorMessage || 'An unexpected error occurred. Please try again.';
 }
 
@@ -80,10 +80,10 @@ export function getConnectionType() {
     if (!navigator.connection && !navigator.mozConnection && !navigator.webkitConnection) {
         return 'Unknown';
     }
-    
+
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const type = connection.effectiveType || connection.type || 'unknown';
-    
+
     const types = {
         'slow-2g': 'Slow 2G',
         '2g': '2G',
@@ -93,6 +93,6 @@ export function getConnectionType() {
         'ethernet': 'Ethernet',
         'unknown': 'Unknown'
     };
-    
+
     return types[type] || type;
 }

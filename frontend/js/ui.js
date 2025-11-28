@@ -38,12 +38,12 @@ export function hideGauge() {
 
 export function updateCountdown(secondsRemaining, phase) {
     if (!DOM.timerValue || !DOM.testTimer) return;
-    
+
     const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
     DOM.timerValue.textContent = `${secondsRemaining}s`;
-    
+
     if (DOM.testTimer.querySelector('.timer-text')) {
-        DOM.testTimer.querySelector('.timer-text').innerHTML = 
+        DOM.testTimer.querySelector('.timer-text').innerHTML =
             `Testing ${phaseName}: <strong id="timerValue">${secondsRemaining}s</strong>`;
     }
 }
@@ -189,7 +189,7 @@ export function updateResultCard(type, result) {
         if (matrixCard) {
             const matrixNumber = matrixCard.querySelector('.matrix-number');
             if (matrixNumber) matrixNumber.textContent = speed;
-            
+
             // Add quality badge
             const quality = getSpeedQuality(result.speed, type);
             let badge = matrixCard.querySelector('.quality-badge');
@@ -200,7 +200,7 @@ export function updateResultCard(type, result) {
             }
             badge.textContent = quality;
             badge.className = `quality-badge ${quality.toLowerCase()}`;
-            
+
             // Add quality context
             let context = matrixCard.querySelector('.quality-context');
             if (!context) {
@@ -334,22 +334,22 @@ let countdownInterval = null;
 export function startCountdown(seconds) {
     const timerEl = document.getElementById('testTimer');
     const valueEl = document.getElementById('timerValue');
-    
+
     if (!timerEl || !valueEl) return;
-    
+
     timerEl.hidden = false;
     let remaining = seconds;
-    
+
     const updateTimer = () => {
         valueEl.textContent = `${remaining}s`;
         remaining--;
-        
+
         if (remaining < 0) {
             clearInterval(countdownInterval);
             countdownInterval = null;
         }
     };
-    
+
     updateTimer();
     countdownInterval = setInterval(updateTimer, 1000);
 }
@@ -357,7 +357,7 @@ export function startCountdown(seconds) {
 export function hideCountdown() {
     const timerEl = document.getElementById('testTimer');
     if (timerEl) timerEl.hidden = true;
-    
+
     if (countdownInterval) {
         clearInterval(countdownInterval);
         countdownInterval = null;

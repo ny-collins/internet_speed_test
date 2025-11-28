@@ -147,7 +147,7 @@ describe('sleep', () => {
         await sleep(100);
         const end = Date.now();
         const elapsed = end - start;
-        
+
         // Allow some timing variance (within 50ms)
         expect(elapsed).toBeGreaterThanOrEqual(90);
         expect(elapsed).toBeLessThan(150);

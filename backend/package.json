@@ -8,8 +8,8 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "lint": "eslint **/*.js",
-    "lint:fix": "eslint **/*.js --fix"
+    "lint": "eslint *.js config/*.js tests/*.js",
+    "lint:fix": "eslint *.js config/*.js tests/*.js --fix"
   },
   "keywords": [
     "speed-test",

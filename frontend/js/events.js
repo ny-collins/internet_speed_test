@@ -62,16 +62,16 @@ export function initializeEventListeners() {
 
     // Sidebar (if present)
     initializeTabNavigation();
-    
+
     // Footer toggle
     const footerToggleBtn = document.getElementById('footerToggleBtn');
     const footerInfoGrid = document.getElementById('footerInfoGrid');
     const footerToggleText = document.getElementById('footerToggleText');
-    
+
     if (footerToggleBtn && footerInfoGrid && footerToggleText) {
         footerToggleBtn.addEventListener('click', () => {
             const isCollapsed = footerInfoGrid.classList.contains('collapsed');
-            
+
             if (isCollapsed) {
                 footerInfoGrid.classList.remove('collapsed');
                 footerToggleText.textContent = 'Show Less';
@@ -81,49 +81,49 @@ export function initializeEventListeners() {
             }
         });
     }
-    
+
     // Help modal
     const helpModal = document.getElementById('helpModal');
     const closeHelpBtn = document.getElementById('closeHelpModal');
-    
+
     if (closeHelpBtn) {
         closeHelpBtn.addEventListener('click', () => {
             if (helpModal) helpModal.hidden = true;
         });
     }
-    
+
     if (helpModal) {
         helpModal.addEventListener('click', (e) => {
             if (e.target === helpModal) helpModal.hidden = true;
         });
     }
-    
+
     // Share modal
     const shareModal = document.getElementById('shareModal');
     const closeShareBtn = document.getElementById('closeShareModal');
     const shareResultBtn = document.getElementById('shareResultBtn');
-    
+
     if (shareResultBtn) {
         shareResultBtn.addEventListener('click', openShareModal);
     }
-    
+
     if (closeShareBtn) {
         closeShareBtn.addEventListener('click', () => {
             if (shareModal) shareModal.hidden = true;
         });
     }
-    
+
     if (shareModal) {
         shareModal.addEventListener('click', (e) => {
             if (e.target === shareModal) shareModal.hidden = true;
         });
     }
-    
+
     // Share options
     document.getElementById('copyLinkBtn')?.addEventListener('click', copyResultLink);
     document.getElementById('downloadImageBtn')?.addEventListener('click', downloadResultImage);
     document.getElementById('copyTextBtn')?.addEventListener('click', copyResultText);
-    
+
     // Initialize Lucide icons after all DOM updates
     setTimeout(() => {
         if (typeof lucide !== 'undefined') {
@@ -168,12 +168,12 @@ async function saveSettings() {
     CONFIG.duration.upload.default = CONFIG.duration.upload.max;
 
     localStorage.setItem('config', JSON.stringify(CONFIG));
-    
+
     // Update config summary
     if (typeof window.updateConfigSummary === 'function') {
         window.updateConfigSummary();
     }
-    
+
     showStatus('Settings saved', 'success');
     announceToScreenReader('Settings saved');
 }
@@ -266,17 +266,17 @@ function handleKeyboardShortcuts(e) {
         // Close modals first
         const helpModal = document.getElementById('helpModal');
         const shareModal = document.getElementById('shareModal');
-        
+
         if (helpModal && !helpModal.hidden) {
             helpModal.hidden = true;
             return;
         }
-        
+
         if (shareModal && !shareModal.hidden) {
             shareModal.hidden = true;
             return;
         }
-        
+
         const settingsOpen = DOM.settingsPanel?.getAttribute('data-open') === 'true';
         if (settingsOpen) {
             toggleSettings();
@@ -390,9 +390,9 @@ function copyResultLink() {
         l: results.latency?.average?.toFixed(0) || 0,
         j: results.jitter?.value?.toFixed(1) || 0
     });
-    
+
     const url = `${window.location.origin}?${params.toString()}`;
-    
+
     navigator.clipboard.writeText(url).then(() => {
         showStatus('Link copied to clipboard!', 'success');
     }).catch(() => {
@@ -404,41 +404,41 @@ function downloadResultImage() {
     // Create a canvas with result card
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     canvas.width = 1200;
     canvas.height = 630;
-    
+
     // Background gradient
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, '#1e293b');
     gradient.addColorStop(1, '#0f172a');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Title
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 48px system-ui';
     ctx.textAlign = 'center';
     ctx.fillText('SpeedCheck Results', canvas.width / 2, 100);
-    
+
     // Results
     const results = STATE.testResults;
     ctx.font = '32px system-ui';
     ctx.fillStyle = '#cbd5e1';
-    
+
     const y = 250;
     const spacing = 80;
-    
+
     ctx.fillText(`Download: ${results.download?.speed?.toFixed(1) || 0} Mbps`, canvas.width / 2, y);
     ctx.fillText(`Upload: ${results.upload?.speed?.toFixed(1) || 0} Mbps`, canvas.width / 2, y + spacing);
     ctx.fillText(`Latency: ${results.latency?.average?.toFixed(0) || 0} ms`, canvas.width / 2, y + spacing * 2);
     ctx.fillText(`Jitter: ${results.jitter?.value?.toFixed(1) || 0} ms`, canvas.width / 2, y + spacing * 3);
-    
+
     // Date
     ctx.font = '24px system-ui';
     ctx.fillStyle = '#64748b';
     ctx.fillText(new Date().toLocaleString(), canvas.width / 2, canvas.height - 50);
-    
+
     // Download
     canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
@@ -463,7 +463,7 @@ Jitter: ${results.jitter?.value?.toFixed(1) || 0} ms
 Server: Amsterdam, Netherlands
 Tested: ${new Date().toLocaleString()}
 ━━━━━━━━━━━━━━━━━━━━`;
-    
+
     navigator.clipboard.writeText(text).then(() => {
         showStatus('Results copied to clipboard!', 'success');
     }).catch(() => {
