@@ -157,22 +157,6 @@
                     </div>
 
                     <div class="setting-section">
-                        <h3 class="setting-section-title">ISP Plan Comparison</h3>
-                        <p class="setting-section-description">Enter your advertised plan speed to compare with actual performance.</p>
-                        
-                        <div class="setting-group">
-                            <div class="setting-info">
-                                <label for="ispPlanSpeed">Your ISP Plan Speed (Mbps)</label>
-                                <p class="setting-description">Download speed advertised by your internet provider</p>
-                            </div>
-                            <div class="setting-control">
-                                <input type="number" id="ispPlanSpeed" min="1" max="10000" value="100" step="1" placeholder="100">
-                                <span class="setting-value" id="ispPlanSpeedValue">100 Mbps</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="setting-section">
                         <h3 class="setting-section-title">Test Configuration</h3>
                         <p class="setting-section-description">Adjust how tests are performed. Higher values = more accurate but slower.</p>
                         
@@ -308,35 +292,6 @@
                                 </svg>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="isp-comparison-card" id="ispComparisonCard" hidden>
-                <div class="isp-comparison-header">
-                    <div class="isp-comparison-title">
-                        <i data-lucide="trending-up"></i>
-                        <h3>ISP Plan Comparison</h3>
-                    </div>
-                    <button class="btn-icon-small" onclick="document.getElementById('settingsToggle').click()" title="Change plan speed">
-                        <i data-lucide="settings"></i>
-                    </button>
-                </div>
-                <div class="isp-comparison-body">
-                    <div class="isp-comparison-row">
-                        <div class="isp-comparison-label">Advertised Speed:</div>
-                        <div class="isp-comparison-value" id="ispPlanValue">100 Mbps</div>
-                    </div>
-                    <div class="isp-comparison-row">
-                        <div class="isp-comparison-label">Actual Speed:</div>
-                        <div class="isp-comparison-value" id="ispActualValue">— Mbps</div>
-                    </div>
-                    <div class="isp-comparison-bar">
-                        <div class="isp-comparison-bar-fill" id="ispComparisonBarFill" style="width: 0%"></div>
-                        <div class="isp-comparison-bar-label" id="ispComparisonBarLabel">0%</div>
-                    </div>
-                    <div class="isp-comparison-verdict" id="ispVerdictText">
-                        Run a test to see how your actual speed compares to your ISP plan.
                     </div>
                 </div>
             </div>
