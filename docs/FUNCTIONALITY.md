@@ -14,31 +14,100 @@ This document explains how SpeedCheck works internally - the architecture, measu
 
 ## System Architecture
 
+### High-Level Overview
+
 ```
-┌─────────────────┐         ┌──────────────────┐
-│   Frontend      │  HTTP   │    Backend       │
-│  (index.html    │◄───────►│   (server.js)    │
-│   main.js)      │         │                  │
-│                 │         │  Amsterdam, NL   │
-│  • UI/Gauge     │         │  Railway.app     │
-│  • PWA/SW       │         │                  │
-│  • Tests Logic  │         │  • /api/download │
-└─────────────────┘         │  • /api/upload   │
-                           │  • /api/ping     │
-                           └──────────────────┘
+                    ┌────────────────────────────────────────┐
+                    │         GitHub Repository              │
+                    │   ny-collins/internet_speed_test       │
+                    └────────┬───────────────────┬───────────┘
+                             │                   │
+                    ┌────────▼────────┐ ┌────────▼──────────┐
+                    │  Railway        │ │  Cloudflare Pages │
+                    │  Auto-Deploy    │ │  Manual Deploy    │
+                    └────────┬────────┘ └────────┬──────────┘
+                             │                   │
+        ┌────────────────────┼───────────────────┘
+        │                    │
+        │              ┌─────▼──────┐
+        │              │  Backend   │
+        │              │  API       │
+        │              │  Amsterdam │
+        │              │  Railway   │
+        │              └─────▲──────┘
+        │                    │
+   ┌────▼─────┐         ┌───┴────┐
+   │ Frontend │         │Frontend│
+   │ Railway  │         │Cloudfl.│
+   │Amsterdam │         │Dar es  │
+   │(Primary) │         │Salaam  │
+   └──────────┘         └────────┘
 ```
+
+### Distributed Deployment Strategy
+
+SpeedCheck uses a **tri-service architecture** with geographic distribution:
+
+**1. Backend API (Amsterdam, Netherlands - Railway)**
+- **URL:** https://speed-test-backend.up.railway.app/
+- **Purpose:** Single source of truth for speed measurements
+- **Location:** Fixed in Amsterdam, Netherlands (EU West)
+- **Endpoints:** `/api/download`, `/api/upload`, `/api/ping`, `/api/ping-batch`, `/api/info`
+- **Deployment:** Automatic on git push to main branch
+- **Why Amsterdam?**
+  - Central European internet hub (AMS-IX)
+  - Excellent global connectivity
+  - Represents real-world international routing
+  - Consistent baseline for all measurements
+
+**2. Frontend - Primary (Amsterdam, Netherlands - Railway)**
+- **URL:** https://speed-test.up.railway.app/
+- **Purpose:** Primary user interface for European users
+- **Type:** Express.js static file server with 404 handling
+- **Co-location Benefit:** Minimal latency between UI and backend
+- **Deployment:** Automatic on git push to main branch
+- **Features:** Custom 404 page, clean URL routing, PWA support
+
+**3. Frontend - Regional (Dar es Salaam, Tanzania - Cloudflare Pages)**
+- **URL:** https://speed-test-ahc.pages.dev/
+- **Purpose:** Optimized UI delivery for African users
+- **Type:** Static site hosting on Cloudflare's CDN edge network
+- **Location:** Deployed to Dar es Salaam edge location
+- **Deployment:** Manual via `wrangler pages deploy` or `./deploy-cloudflare.sh`
+- **Benefits:**
+  - Faster initial page load for African users (reduced TTFB)
+  - Lower latency for static asset delivery
+  - Still connects to Amsterdam backend for consistent measurements
+
+### Why Two Frontend Deployments?
+
+**Problem:** Users in Africa accessing the Amsterdam-hosted frontend experience:
+- High Time to First Byte (TTFB) - 200-400ms just to load the page
+- Slow static asset loading (HTML, CSS, JS, images)
+- Poor perceived performance despite fast internet connection
+
+**Solution:** Deploy identical frontend to Cloudflare Pages with African edge location:
+- **UI Loading:** Served from Dar es Salaam (fast, <50ms TTFB)
+- **Speed Testing:** Still connects to Amsterdam backend (accurate international measurements)
+- **Result:** Fast page load + Real-world speed test
+
+**Key Insight:** The frontend is *just the interface* - separating UI delivery from measurement logic allows geographic optimization without compromising test accuracy.
 
 ### Components
 
-**Frontend**:
-- **Static Files**: HTML, CSS, JavaScript served via Express
-- **Service Worker**: Offline caching, PWA functionality
-- **Main Logic**: Speed test orchestration in `main.js`
+**Frontend (Both Deployments)**:
+- **Static Files**: HTML, CSS, JavaScript
+- **Service Worker**: Offline caching, PWA functionality (`sw.js`)
+- **Main Logic**: Speed test orchestration in `main.js` (2,124 lines)
+- **Modular Architecture**: Separate JS modules (11 files) and CSS files (7 files)
+- **API Detection**: Automatically connects to Amsterdam backend regardless of frontend location
 
-**Backend**:
-- **Express Server**: API endpoints for download/upload/ping
+**Backend (Single Deployment)**:
+- **Express Server**: RESTful API endpoints for download/upload/ping
 - **Configuration**: Centralized in `config/index.js`
-- **Observability**: Request tracking, metrics (optional)
+- **Observability**: Pino logging, Prometheus metrics (optional)
+- **Performance**: Circuit breaker, rate limiting, streaming upload/download
+- **Security**: Helmet.js, CORS, request size limits
 
 ---
 

@@ -219,24 +219,91 @@ internet_speed_test/
 
 ## 🚀 Deployment Architecture
 
-This application uses a **split deployment** on Railway with two separate services:
+SpeedCheck uses a **distributed deployment strategy** with one backend and two geographically separated frontend deployments:
 
-### Service 1: Frontend (Express Static Server)
-- **URL:** https://speed-test.up.railway.app/
-- **Type:** Express.js static file server with 404 handling
-- **Port:** 8080
-- **Files:** HTML, CSS, JS, assets
-- **Purpose:** User interface and client-side logic
-- **Features:** Custom 404 error page, clean URL routing
-
-### Service 2: Backend (API)
+### Backend (API Server)
 - **URL:** https://speed-test-backend.up.railway.app/
+- **Platform:** Railway
+- **Location:** Amsterdam, Netherlands (EU West)
 - **Type:** Node.js Express server
 - **Port:** 3000
-- **Location:** Amsterdam, Netherlands (fixed)
-- **Purpose:** Speed test API endpoints
+- **Deployment:** Automatic on push to `main` branch
+- **Purpose:** Speed test API endpoints for download/upload/ping measurements
 
-Both services are deployed from the same repository with automatic deployments on push to `main` branch.
+### Frontend #1 (Primary - Railway)
+- **URL:** https://speed-test.up.railway.app/
+- **Platform:** Railway
+- **Location:** Amsterdam, Netherlands (EU West)
+- **Type:** Express.js static file server
+- **Port:** 8080
+- **Deployment:** Automatic on push to `main` branch
+- **Purpose:** Primary user interface, co-located with backend for optimal latency
+
+### Frontend #2 (Regional - Cloudflare Pages)
+- **URL:** https://speed-test-ahc.pages.dev/
+- **Platform:** Cloudflare Pages
+- **Location:** Dar es Salaam, Tanzania (Africa)
+- **Type:** Static site hosting (CDN edge deployment)
+- **Deployment:** Manual via `wrangler pages deploy` or `./frontend/deploy-cloudflare.sh`
+- **Purpose:** Regional frontend serving African users with lower latency for UI loading
+
+### Architecture Rationale
+
+**Why Two Frontend Deployments?**
+
+1. **Improved User Experience:**
+   - Users in Africa experience faster initial page load from Cloudflare's Dar es Salaam edge location
+   - Static assets (HTML/CSS/JS) served from geographically closer servers
+   - Reduced Time to First Byte (TTFB) for better perceived performance
+
+2. **Separation of Concerns:**
+   - **UI delivery** optimized via CDN (Cloudflare) - fast page loads
+   - **Speed test measurements** still connect to Amsterdam backend - accurate international speed testing
+   - This separation allows fast UI while maintaining consistent measurement baseline
+
+3. **Geographic Distribution:**
+   - Railway Frontend: Serves European users optimally
+   - Cloudflare Frontend: Serves African users optimally
+   - Both frontends connect to the same Amsterdam backend for consistent speed measurements
+
+**The Testing Flow:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  User in Africa                                             │
+├─────────────────────────────────────────────────────────────┤
+│  1. Loads UI from Cloudflare (Dar es Salaam) - Fast        │
+│     https://speed-test-ahc.pages.dev/                       │
+│                                                             │
+│  2. Speed test connects to Amsterdam backend - Real         │
+│     https://speed-test-backend.up.railway.app/              │
+│                                                             │
+│  Result: Fast page load + Accurate international speed test │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  User in Europe                                             │
+├─────────────────────────────────────────────────────────────┤
+│  1. Loads UI from Railway (Amsterdam) - Fast               │
+│     https://speed-test.up.railway.app/                      │
+│                                                             │
+│  2. Speed test connects to Amsterdam backend - Local        │
+│     https://speed-test-backend.up.railway.app/              │
+│                                                             │
+│  Result: Fast page load + Low latency measurements          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Both frontends are identical** - same HTML, CSS, and JavaScript files. The only difference is geographic deployment location for optimal static asset delivery.
+
+### Deployment URLs Summary
+
+| Service | Platform | Location | URL | Auto-Deploy |
+|---------|----------|----------|-----|-------------|
+| Backend API | Railway | Amsterdam, NL | https://speed-test-backend.up.railway.app/ | ✅ Yes |
+| Frontend (Primary) | Railway | Amsterdam, NL | https://speed-test.up.railway.app/ | ✅ Yes |
+| Frontend (Regional) | Cloudflare Pages | Dar es Salaam, TZ | https://speed-test-ahc.pages.dev/ | ❌ Manual |
+
+All three services are deployed from the same GitHub repository: https://github.com/ny-collins/internet_speed_test
 
 ---
 
