@@ -94,11 +94,10 @@ async function startTest() {
     STATE.testResults = { download: null, upload: null, latency: null, jitter: null };
     
     // Reset UI
-    import('./js/ui.js').then(m => {
-        m.showGauge();
-        m.clearResultsDisplay();
-        m.setProgress(0);
-    });
+    const ui = await import('./js/ui.js');
+    ui.showGauge();
+    ui.clearResultsDisplay();
+    ui.setProgress(0);
     
     const { DOM } = await import('./js/dom.js');
     if (DOM.startTest) DOM.startTest.disabled = true;
@@ -123,7 +122,7 @@ async function startTest() {
         if (STATE.cancelling) return;
         
         // Complete
-        completeTest();
+        await completeTest();
         
     } catch (error) {
         console.error('[Test] Error:', error);
@@ -165,13 +164,12 @@ function cancelTest() {
     cleanupTest();
 }
 
-function completeTest() {
+async function completeTest() {
     console.log('[Test] Complete');
-    import('./js/ui.js').then(ui => {
-        ui.setProgress(100);
-        showStatus('Test completed successfully!', 'success');
-        ui.resetAllPhases();
-    });
+    const ui = await import('./js/ui.js');
+    ui.setProgress(100);
+    showStatus('Test completed successfully!', 'success');
+    ui.resetAllPhases();
     
     saveToHistory({
         timestamp: Date.now(),
@@ -184,19 +182,19 @@ function completeTest() {
     announceToScreenReader('Test complete');
 }
 
-function cleanupTest() {
+async function cleanupTest() {
     STATE.testing = false;
     STATE.cancelling = false;
     
-    import('./js/ui.js').then(ui => ui.resetGauge());
+    const ui = await import('./js/ui.js');
+    ui.resetGauge();
     
-    import('./js/dom.js').then(({ DOM }) => {
+    const { DOM } = await import('./js/dom.js');
         if (DOM.startTest) DOM.startTest.disabled = false;
         if (DOM.cancelTest) {
             DOM.cancelTest.disabled = true;
             DOM.cancelTest.hidden = true;
         }
-    });
 }
 
 // ========================================
@@ -239,14 +237,13 @@ function loadHistory() {
     }
 }
 
-function updateHistoryUI() {
-    import('./js/dom.js').then(({ DOM }) => {
+async function updateHistoryUI() {
+    const { DOM } = await import('./js/dom.js');
         if (!DOM.historyList) return;
         
-        // Draw Chart
-        import('./js/chart.js').then(chart => {
-            chart.drawHistoryChart(STATE.history);
-        });
+    // Draw Chart
+    const chart = await import('./js/chart.js');
+    chart.drawHistoryChart(STATE.history);
         
         if (STATE.history.length === 0) {
             DOM.historyList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--color-text-tertiary)">No test history yet</div>';
@@ -267,7 +264,6 @@ function updateHistoryUI() {
             `;
             DOM.historyList.appendChild(item);
         });
-    });
 }
 
 function clearHistory() {
@@ -296,12 +292,11 @@ function exportHistory() {
     showStatus('History exported', 'success');
 }
 
-function initializeAccessibility() {
-    import('./js/dom.js').then(({ DOM }) => {
+async function initializeAccessibility() {
+    const { DOM } = await import('./js/dom.js');
         DOM.ariaLiveRegion = document.createElement('div');
         DOM.ariaLiveRegion.className = 'sr-only';
         DOM.ariaLiveRegion.setAttribute('role', 'status');
         DOM.ariaLiveRegion.setAttribute('aria-live', 'polite');
-        document.body.appendChild(DOM.ariaLiveRegion);
-    });
+    document.body.appendChild(DOM.ariaLiveRegion);
 }

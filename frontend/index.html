@@ -431,6 +431,15 @@
 
     <div id="ariaLiveRegion" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
+    <!-- API Configuration: Set API_BASE_URL before loading main.js -->
+    <script>
+        // For local development: window.API_BASE_URL = 'http://localhost:3000';
+        // For production: This will be undefined, falling back to Railway backend
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.API_BASE_URL = 'http://localhost:3000';
+        }
+    </script>
+
     <script type="module" src="/main.js?v=1.62.0"></script>
 </body>
 </html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SpeedCheck Local Test</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; }
+        #log { background: #000; color: #0f0; padding: 20px; font-family: monospace; white-space: pre-wrap; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>SpeedCheck Module Test</h1>
+    <button onclick="testImports()">Test Module Imports</button>
+    <button onclick="testAPI()">Test API Connection</button>
+    <button onclick="testConfig()">Test Configuration</button>
+    <div id="log"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        const log = (msg) => {
+            document.getElementById('log').innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+        };
+
+        async function testImports() {
+            log('Testing module imports...');
+            try {
+                const { CONFIG } = await import('./js/config.js');
+                log(`✓ config.js loaded: apiBase=${CONFIG.apiBase}`);
+                
+                const { STATE } = await import('./js/state.js');
+                log(`✓ state.js loaded: testing=${STATE.testing}`);
+                
+                const { DOM } = await import('./js/dom.js');
+                log(`✓ dom.js loaded`);
+                
+                const ui = await import('./js/ui.js');
+                log(`✓ ui.js loaded: buildMainGauge=${typeof ui.buildMainGauge}`);
+                
+                const events = await import('./js/events.js');
+                log(`✓ events.js loaded`);
+                
+                const latency = await import('./js/test-latency.js');
+                log(`✓ test-latency.js loaded: measureLatency=${typeof latency.measureLatency}`);
+                
+                const download = await import('./js/test-download.js');
+                log(`✓ test-download.js loaded: measureDownload=${typeof download.measureDownload}`);
+                
+                const upload = await import('./js/test-upload.js');
+                log(`✓ test-upload.js loaded: measureUpload=${typeof upload.measureUpload}`);
+                
+                log('✅ All modules loaded successfully!');
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                log(`Stack: ${error.stack}`);
+            }
+        }
+
+        async function testAPI() {
+            log('Testing API connection...');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/info`);
+                const data = await response.json();
+                log(`✓ Backend API responsive: ${JSON.stringify(data, null, 2)}`);
+                
+                const pingResponse = await fetch(`${API_BASE_URL}/api/ping`);
+                const pingData = await pingResponse.json();
+                log(`✓ Ping endpoint working: ${JSON.stringify(pingData)}`);
+                
+                log('✅ API tests passed!');
+            } catch (error) {
+                log(`❌ API Error: ${error.message}`);
+            }
+        }
+
+        async function testConfig() {
+            log('Testing configuration...');
+            try {
+                const { CONFIG } = await import('./js/config.js');
+                log(`Threads: ${JSON.stringify(CONFIG.threads)}`);
+                log(`Duration: ${JSON.stringify(CONFIG.duration)}`);
+                log(`API Base: ${CONFIG.apiBase}`);
+                log(`Chunk Size: ${CONFIG.chunkSize}KB`);
+                log(`Upload Size: ${CONFIG.uploadSize}MB`);
+                log(`Download Size: ${CONFIG.downloadSize}MB`);
+                log('✅ Configuration looks good!');
+            } catch (error) {
+                log(`❌ Config Error: ${error.message}`);
+            }
+        }
+
+        log('Test page loaded. Click buttons to run tests.');
+    </script>
+</body>
+</html>

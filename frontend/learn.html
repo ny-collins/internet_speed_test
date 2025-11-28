@@ -116,9 +116,15 @@
         <div class="footer-content">
             <div class="footer-copyright">
                 <p>&copy; 2025 SpeedCheck. Educational Resources.</p>
-            </div>
         </div>
     </footer>
+
+    <!-- API Configuration: Set API_BASE_URL before loading main.js -->
+    <script>
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.API_BASE_URL = 'http://localhost:3000';
+        }
+    </script>
 
     <script type="module" src="/main.js?v=1.62.0"></script>
 </body>
