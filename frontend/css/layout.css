@@ -85,6 +85,54 @@
     transition: all var(--transition-base);
 }
 
+.settings-toggle[data-custom="true"]::after {
+    content: attr(data-count);
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    background: var(--color-danger);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--color-bg-primary);
+}
+
+@media (max-width: 768px) {
+    .settings-panel {
+        top: auto;
+        bottom: 0;
+        max-width: 100%;
+        height: auto;
+        max-height: 80vh;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        transform: translateY(100%);
+    }
+    
+    .settings-panel[data-open="true"] {
+        transform: translateY(0);
+    }
+    
+    .settings-panel::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: var(--color-bg-overlay);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity var(--transition-base);
+    }
+    
+    .settings-panel[data-open="true"]::before {
+        opacity: 1;
+    }
+}
+
 /* Test Section Grid */
 .test-display {
     display: grid;
@@ -189,10 +237,18 @@
 }
 
 /* Responsive Breakpoints */
-@media (min-width: 769px) {
-    .test-display {
-        grid-template-columns: minmax(300px, 400px) 1fr;
-        gap: var(--spacing-2xl);
+@media (max-width: 374px) {
+    /* Very small phones */
+    .results-matrix {
+        grid-template-columns: 1fr;
+    }
+    
+    .logo-text {
+        font-size: var(--font-size-xl);
+    }
+    
+    .matrix-card {
+        padding: var(--spacing-md);
     }
 }
 
@@ -214,5 +270,37 @@
         height: 2.5rem !important;
         top: var(--spacing-md) !important;
         right: var(--spacing-md) !important;
+    }
+    
+    .gauge-wrapper {
+        max-width: 280px;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+    /* Large phones / small tablets */
+    .gauge-wrapper {
+        max-width: 320px;
+    }
+}
+
+@media (min-width: 769px) {
+    .test-display {
+        grid-template-columns: minmax(300px, 400px) 1fr;
+        gap: var(--spacing-2xl);
+    }
+}
+
+@media (min-width: 1024px) {
+    /* Desktop */
+    .app-container {
+        padding: var(--spacing-3xl) var(--spacing-xl);
+    }
+}
+
+@media (min-width: 1440px) {
+    /* Large desktop */
+    .app-container {
+        max-width: 1400px;
     }
 }

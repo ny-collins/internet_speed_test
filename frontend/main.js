@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     console.log('[App] Initializing SpeedCheck (Modular)...');
     
+    // Hide loading skeleton, show app
+    const skeleton = document.getElementById('loadingSkeleton');
+    const appContainer = document.querySelector('.app-container');
+    if (skeleton) skeleton.style.display = 'none';
+    if (appContainer) appContainer.style.opacity = '1';
+    
     // 1. Setup PWA & Theme
     registerServiceWorker();
     initializeTheme();
@@ -50,6 +56,7 @@ async function initializeApp() {
 
     if (isSpeedTestPage) {
         loadConfiguration();
+        updateConfigSummary();
         buildMainGauge();
         loadHistory();
         await fetchServerInfo();
@@ -130,7 +137,8 @@ async function startTest() {
         
     } catch (error) {
         console.error('[Test] Error:', error);
-        showStatus(`Test failed: ${error.message}`, 'error');
+        const { getFriendlyError } = await import('./js/utils.js');
+        showStatus(getFriendlyError(error.message), 'error');
     } finally {
         cleanupTest();
     }
@@ -178,17 +186,26 @@ function cancelTest() {
 async function completeTest() {
     console.log('[Test] Complete');
     const ui = await import('./js/ui.js');
+    const utils = await import('./js/utils.js');
+    
     ui.setProgress(100);
     showStatus('Test completed successfully!', 'success');
     ui.resetAllPhases();
     
-    saveToHistory({
+    // Show share button
+    const shareBtn = document.getElementById('shareResultBtn');
+    if (shareBtn) shareBtn.hidden = false;
+    
+    const testResult = {
         timestamp: Date.now(),
         download: STATE.testResults.download?.speed || 0,
         upload: STATE.testResults.upload?.speed || 0,
         latency: STATE.testResults.latency?.average || 0,
-        jitter: STATE.testResults.jitter?.value || 0
-    });
+        jitter: STATE.testResults.jitter?.value || 0,
+        connectionType: utils.getConnectionType()
+    };
+    
+    saveToHistory(testResult);
     
     announceToScreenReader('Test complete');
 }
@@ -201,11 +218,45 @@ async function cleanupTest() {
     ui.resetGauge();
     
     const { DOM } = await import('./js/dom.js');
-        if (DOM.startTest) DOM.startTest.disabled = false;
-        if (DOM.cancelTest) {
-            DOM.cancelTest.disabled = true;
-            DOM.cancelTest.hidden = true;
+    if (DOM.startTest) DOM.startTest.disabled = false;
+    if (DOM.cancelTest) {
+        DOM.cancelTest.disabled = true;
+        DOM.cancelTest.hidden = true;
+    }
+}
+
+function updateConfigSummary() {
+    const summary = document.getElementById('configSummary');
+    const threadsEl = document.getElementById('configThreads');
+    const durationEl = document.getElementById('configDuration');
+    
+    if (!summary) return;
+    
+    const isDefault = CONFIG.threads.download === 4 && CONFIG.duration.download.max === 10;
+    
+    if (isDefault) {
+        summary.hidden = true;
+        const settingsToggle = document.getElementById('settingsToggle');
+        if (settingsToggle) {
+            settingsToggle.removeAttribute('data-custom');
+            settingsToggle.removeAttribute('data-count');
         }
+    } else {
+        summary.hidden = false;
+        if (threadsEl) threadsEl.textContent = `${CONFIG.threads.download} threads`;
+        if (durationEl) durationEl.textContent = `${CONFIG.duration.download.max}s duration`;
+        
+        // Add badge to settings button
+        const settingsToggle = document.getElementById('settingsToggle');
+        if (settingsToggle) {
+            let customCount = 0;
+            if (CONFIG.threads.download !== 4) customCount++;
+            if (CONFIG.duration.download.max !== 10) customCount++;
+            
+            settingsToggle.setAttribute('data-custom', 'true');
+            settingsToggle.setAttribute('data-count', customCount);
+        }
+    }
 }
 
 // ========================================
@@ -305,9 +356,13 @@ function exportHistory() {
 
 async function initializeAccessibility() {
     const { DOM } = await import('./js/dom.js');
+
         DOM.ariaLiveRegion = document.createElement('div');
         DOM.ariaLiveRegion.className = 'sr-only';
         DOM.ariaLiveRegion.setAttribute('role', 'status');
         DOM.ariaLiveRegion.setAttribute('aria-live', 'polite');
     document.body.appendChild(DOM.ariaLiveRegion);
 }
+
+// Export updateConfigSummary so events.js can call it
+window.updateConfigSummary = updateConfigSummary;

@@ -112,7 +112,18 @@
         <i data-lucide="settings" class="settings-icon"></i>
     </button>
 
-    <div class="app-container">
+    <!-- Loading Skeleton (shown while JS loads) -->
+    <div class="loading-skeleton" id="loadingSkeleton">
+        <div class="skeleton-gauge"></div>
+        <div class="skeleton-cards">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+        </div>
+    </div>
+
+    <div class="app-container" style="opacity: 0; transition: opacity 0.3s;"
         <header class="header">
             <div class="header-content">
                 <div class="logo">
@@ -180,6 +191,15 @@
             </div>
         </div>
 
+        <div class="config-summary" id="configSummary" hidden>
+            <div class="config-summary-text">
+                <span>Test config: <strong id="configThreads">4 threads</strong>, <strong id="configDuration">10s duration</strong></span>
+            </div>
+            <button class="btn-icon-small" onclick="document.getElementById('settingsToggle').click()" title="Change settings">
+                <i data-lucide="settings"></i>
+            </button>
+        </div>
+
         <div class="status-bar" id="statusBar" role="status" aria-live="polite" hidden>
             <div class="status-content">
                 <i data-lucide="info" class="status-icon"></i>
@@ -222,7 +242,11 @@
                                 <span class="matrix-number">—</span>
                                 <span class="matrix-unit">Mbps</span>
                             </div>
+                            <div class="matrix-context" style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 4px;"></div>
                         </div>
+                        <button class="btn-icon-small" style="position: absolute; top: 8px; right: 8px; opacity: 0;" id="shareDownload" title="Share result">
+                            <i data-lucide="share-2"></i>
+                        </button>
                     </div>
 
                     <div class="matrix-card" data-metric="upload">
@@ -235,6 +259,7 @@
                                 <span class="matrix-number">—</span>
                                 <span class="matrix-unit">Mbps</span>
                             </div>
+                            <div class="matrix-context" style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 4px;"></div>
                         </div>
                     </div>
 
@@ -275,6 +300,10 @@
                 <button class="btn-secondary btn-cancel" id="cancelTest" hidden>
                     <i data-lucide="x-circle" class="btn-icon"></i>
                     <span class="btn-text">Cancel</span>
+                </button>
+                <button class="btn-primary" id="shareResultBtn" hidden style="margin-left: auto;">
+                    <i data-lucide="share-2" class="btn-icon"></i>
+                    <span class="btn-text">Share Results</span>
                 </button>
             </div>
 
@@ -443,6 +472,66 @@
     </div>
 
     <div id="ariaLiveRegion" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="helpModal" hidden>
+        <div class="help-modal-content">
+            <div class="help-modal-header">
+                <h2>Keyboard Shortcuts</h2>
+                <button class="btn-icon-small" id="closeHelpModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="shortcut-list">
+                <div class="shortcut-item">
+                    <span>Start test</span>
+                    <kbd>Ctrl+T</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Cancel test</span>
+                    <kbd>Esc</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Open settings</span>
+                    <kbd>Ctrl+,</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Close modal</span>
+                    <kbd>Esc</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Show this help</span>
+                    <kbd>?</kbd>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="share-modal" id="shareModal" hidden>
+        <div class="share-modal-content">
+            <div class="help-modal-header">
+                <h2>Share Results</h2>
+                <button class="btn-icon-small" id="closeShareModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="share-options">
+                <button class="share-option-btn" id="copyLinkBtn">
+                    <i data-lucide="link"></i>
+                    <span>Copy Link with Results</span>
+                </button>
+                <button class="share-option-btn" id="downloadImageBtn">
+                    <i data-lucide="image"></i>
+                    <span>Download Result Image</span>
+                </button>
+                <button class="share-option-btn" id="copyTextBtn">
+                    <i data-lucide="clipboard"></i>
+                    <span>Copy as Text</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- API Configuration: Set API_BASE_URL before loading main.js -->
     <script>

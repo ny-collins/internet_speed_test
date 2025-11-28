@@ -81,6 +81,48 @@ export function initializeEventListeners() {
             }
         });
     }
+    
+    // Help modal
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpBtn = document.getElementById('closeHelpModal');
+    
+    if (closeHelpBtn) {
+        closeHelpBtn.addEventListener('click', () => {
+            if (helpModal) helpModal.hidden = true;
+        });
+    }
+    
+    if (helpModal) {
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) helpModal.hidden = true;
+        });
+    }
+    
+    // Share modal
+    const shareModal = document.getElementById('shareModal');
+    const closeShareBtn = document.getElementById('closeShareModal');
+    const shareResultBtn = document.getElementById('shareResultBtn');
+    
+    if (shareResultBtn) {
+        shareResultBtn.addEventListener('click', openShareModal);
+    }
+    
+    if (closeShareBtn) {
+        closeShareBtn.addEventListener('click', () => {
+            if (shareModal) shareModal.hidden = true;
+        });
+    }
+    
+    if (shareModal) {
+        shareModal.addEventListener('click', (e) => {
+            if (e.target === shareModal) shareModal.hidden = true;
+        });
+    }
+    
+    // Share options
+    document.getElementById('copyLinkBtn')?.addEventListener('click', copyResultLink);
+    document.getElementById('downloadImageBtn')?.addEventListener('click', downloadResultImage);
+    document.getElementById('copyTextBtn')?.addEventListener('click', copyResultText);
 }
 
 // --- Settings Logic ---
@@ -119,6 +161,16 @@ function saveSettings() {
     CONFIG.duration.upload.default = CONFIG.duration.upload.max;
 
     localStorage.setItem('config', JSON.stringify(CONFIG));
+    
+    // Update config summary
+    if (typeof window.updateConfigSummary === 'function') {
+        window.updateConfigSummary();
+    } else {
+        // Call directly from main.js scope
+        const mainModule = await import('../main.js');
+        if (mainModule.updateConfigSummary) mainModule.updateConfigSummary();
+    }
+    
     showStatus('Settings saved', 'success');
     announceToScreenReader('Settings saved');
 }
@@ -194,12 +246,34 @@ function updateThemeIcon(theme) {
 function handleKeyboardShortcuts(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+    // Show help modal on '?'
+    if (e.key === '?' && !e.shiftKey) {
+        e.preventDefault();
+        const helpModal = document.getElementById('helpModal');
+        if (helpModal) helpModal.hidden = false;
+        return;
+    }
+
     if ((e.ctrlKey || e.metaKey) && e.key === 't') {
         e.preventDefault();
         if (!STATE.testing) startTestFn();
     }
 
     if (e.key === 'Escape') {
+        // Close modals first
+        const helpModal = document.getElementById('helpModal');
+        const shareModal = document.getElementById('shareModal');
+        
+        if (helpModal && !helpModal.hidden) {
+            helpModal.hidden = true;
+            return;
+        }
+        
+        if (shareModal && !shareModal.hidden) {
+            shareModal.hidden = true;
+            return;
+        }
+        
         const settingsOpen = DOM.settingsPanel?.getAttribute('data-open') === 'true';
         if (settingsOpen) {
             toggleSettings();
@@ -217,6 +291,7 @@ function handleKeyboardShortcuts(e) {
 function initializeTabNavigation() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
+
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const sidebarLinks = document.querySelectorAll('.sidebar-link[data-section]');
     const contentSections = document.querySelectorAll('.content-section');
@@ -286,5 +361,104 @@ function initializeTabNavigation() {
         if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             closeSidebar();
         }
+    });
+}
+
+// === Share Functionality ===
+
+function openShareModal() {
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal) {
+        shareModal.hidden = false;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+}
+
+function copyResultLink() {
+    const results = STATE.testResults;
+    const params = new URLSearchParams({
+        d: results.download?.speed?.toFixed(1) || 0,
+        u: results.upload?.speed?.toFixed(1) || 0,
+        l: results.latency?.average?.toFixed(0) || 0,
+        j: results.jitter?.value?.toFixed(1) || 0
+    });
+    
+    const url = `${window.location.origin}?${params.toString()}`;
+    
+    navigator.clipboard.writeText(url).then(() => {
+        showStatus('Link copied to clipboard!', 'success');
+    }).catch(() => {
+        showStatus('Failed to copy link', 'error');
+    });
+}
+
+function downloadResultImage() {
+    // Create a canvas with result card
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = 1200;
+    canvas.height = 630;
+    
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#1e293b');
+    gradient.addColorStop(1, '#0f172a');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 48px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('SpeedCheck Results', canvas.width / 2, 100);
+    
+    // Results
+    const results = STATE.testResults;
+    ctx.font = '32px system-ui';
+    ctx.fillStyle = '#cbd5e1';
+    
+    const y = 250;
+    const spacing = 80;
+    
+    ctx.fillText(`Download: ${results.download?.speed?.toFixed(1) || 0} Mbps`, canvas.width / 2, y);
+    ctx.fillText(`Upload: ${results.upload?.speed?.toFixed(1) || 0} Mbps`, canvas.width / 2, y + spacing);
+    ctx.fillText(`Latency: ${results.latency?.average?.toFixed(0) || 0} ms`, canvas.width / 2, y + spacing * 2);
+    ctx.fillText(`Jitter: ${results.jitter?.value?.toFixed(1) || 0} ms`, canvas.width / 2, y + spacing * 3);
+    
+    // Date
+    ctx.font = '24px system-ui';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(new Date().toLocaleString(), canvas.width / 2, canvas.height - 50);
+    
+    // Download
+    canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `speedtest-result-${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showStatus('Image downloaded!', 'success');
+    });
+}
+
+function copyResultText() {
+    const results = STATE.testResults;
+    const text = `SpeedCheck Results
+━━━━━━━━━━━━━━━━━━━━
+Download: ${results.download?.speed?.toFixed(1) || 0} Mbps
+Upload: ${results.upload?.speed?.toFixed(1) || 0} Mbps
+Latency: ${results.latency?.average?.toFixed(0) || 0} ms
+Jitter: ${results.jitter?.value?.toFixed(1) || 0} ms
+
+Server: Amsterdam, Netherlands
+Tested: ${new Date().toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showStatus('Results copied to clipboard!', 'success');
+    }).catch(() => {
+        showStatus('Failed to copy results', 'error');
     });
 }

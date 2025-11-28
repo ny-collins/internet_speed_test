@@ -55,3 +55,44 @@ export function getJitterQuality(jitter) {
     if (jitter <= 30) return 'Average';
     return 'Unstable';
 }
+
+export function getFriendlyError(errorMessage) {
+    const errors = {
+        'Failed to fetch': 'Connection lost. Check your internet connection and try again.',
+        'Network request failed': 'Unable to reach test server. Check if a firewall or VPN is blocking the connection.',
+        'NetworkError': 'Network connection interrupted. Please check your connection and retry.',
+        'The user aborted a request': 'Test was cancelled.',
+        'Timeout': 'Test took too long. Your connection may be very slow or unstable.',
+        'Load failed': 'Failed to connect to server. Please try again.',
+        'Type error': 'An unexpected error occurred. Please refresh the page and try again.'
+    };
+    
+    for (const [key, message] of Object.entries(errors)) {
+        if (errorMessage.includes(key)) {
+            return message;
+        }
+    }
+    
+    return errorMessage || 'An unexpected error occurred. Please try again.';
+}
+
+export function getConnectionType() {
+    if (!navigator.connection && !navigator.mozConnection && !navigator.webkitConnection) {
+        return 'Unknown';
+    }
+    
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const type = connection.effectiveType || connection.type || 'unknown';
+    
+    const types = {
+        'slow-2g': 'Slow 2G',
+        '2g': '2G',
+        '3g': '3G',
+        '4g': '4G/LTE',
+        'wifi': 'WiFi',
+        'ethernet': 'Ethernet',
+        'unknown': 'Unknown'
+    };
+    
+    return types[type] || type;
+}
