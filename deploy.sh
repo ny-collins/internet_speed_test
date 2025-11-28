@@ -79,7 +79,7 @@ deploy() {
             fi
             cd frontend
             echo -e "${YELLOW}Deploying frontend to Cloudflare Pages...${NC}"
-            wrangler pages deploy . --project-name=speed-test-ahc
+            wrangler pages deploy . --project-name=speed-test
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}✅ Frontend deployed to Cloudflare${NC}"
                 echo -e "${GREEN}   URL: https://speed-test-ahc.pages.dev${NC}"
