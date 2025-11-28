@@ -849,6 +849,29 @@ input[type="range"]::-webkit-slider-thumb:hover {
     transform: scale(1.1);
 }
 
+input[type="number"] {
+    width: 120px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    outline: none;
+    transition: all var(--transition-base);
+}
+
+input[type="number"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 30px;
+}
+
 .smart-banner {
     background: linear-gradient(90deg, #10b981, #059669);
     color: white;
@@ -904,6 +927,137 @@ input[type="range"]::-webkit-slider-thumb:hover {
 @keyframes slideDown {
     from { transform: translateY(-100%); }
     to { transform: translateY(0); }
+}
+
+/* --- ISP Comparison Card --- */
+.isp-comparison-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    margin-top: var(--spacing-2xl);
+}
+
+.isp-comparison-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.isp-comparison-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-text-primary);
+}
+
+.isp-comparison-title i {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-primary);
+}
+
+.isp-comparison-title h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin: 0;
+}
+
+.isp-comparison-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.isp-comparison-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+}
+
+.isp-comparison-label {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+}
+
+.isp-comparison-value {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.isp-comparison-bar {
+    position: relative;
+    height: 2.5rem;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin: var(--spacing-md) 0;
+}
+
+.isp-comparison-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    transition: width 1s ease-out;
+    border-radius: var(--radius-md);
+}
+
+.isp-comparison-bar-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.isp-comparison-verdict {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    text-align: center;
+    font-weight: 500;
+}
+
+.isp-comparison-verdict.excellent {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: var(--color-success);
+}
+
+.isp-comparison-verdict.good {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: var(--color-primary);
+}
+
+.isp-comparison-verdict.fair {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.05));
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: var(--color-warning);
+}
+
+.isp-comparison-verdict.poor {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--color-danger);
+}
+
+@media (max-width: 480px) {
+    .isp-comparison-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .isp-comparison-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
 }.gauge-container {
     display: flex;
     justify-content: center;

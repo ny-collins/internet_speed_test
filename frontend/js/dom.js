@@ -14,6 +14,8 @@ export const DOM = {
     downloadThreadsValue: null,
     maxDuration: null,
     maxDurationValue: null,
+    ispPlanSpeed: null,
+    ispPlanSpeedValue: null,
     resetSettings: null,
 
     // Test controls
@@ -31,6 +33,14 @@ export const DOM = {
 
     // Results
     resultsMatrix: null,
+    
+    // ISP Comparison
+    ispComparisonCard: null,
+    ispPlanValue: null,
+    ispActualValue: null,
+    ispComparisonBarFill: null,
+    ispComparisonBarLabel: null,
+    ispVerdictText: null,
 
     // Server info
     serverLocation: null,
@@ -65,6 +75,8 @@ export function queryDOMElements() {
     DOM.downloadThreadsValue = document.getElementById('downloadThreadsValue');
     DOM.maxDuration = document.getElementById('maxDuration');
     DOM.maxDurationValue = document.getElementById('maxDurationValue');
+    DOM.ispPlanSpeed = document.getElementById('ispPlanSpeed');
+    DOM.ispPlanSpeedValue = document.getElementById('ispPlanSpeedValue');
     DOM.resetSettings = document.getElementById('resetSettings');
 
     // Test controls
@@ -82,6 +94,14 @@ export function queryDOMElements() {
 
     // Results
     DOM.resultsMatrix = document.getElementById('resultsMatrix');
+    
+    // ISP Comparison
+    DOM.ispComparisonCard = document.getElementById('ispComparisonCard');
+    DOM.ispPlanValue = document.getElementById('ispPlanValue');
+    DOM.ispActualValue = document.getElementById('ispActualValue');
+    DOM.ispComparisonBarFill = document.getElementById('ispComparisonBarFill');
+    DOM.ispComparisonBarLabel = document.getElementById('ispComparisonBarLabel');
+    DOM.ispVerdictText = document.getElementById('ispVerdictText');
 
     // Server info
     DOM.serverLocation = document.getElementById('serverLocation');

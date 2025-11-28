@@ -187,6 +187,7 @@ async function completeTest() {
     console.log('[Test] Complete');
     const ui = await import('./js/ui.js');
     const utils = await import('./js/utils.js');
+    const ispComparison = await import('./js/isp-comparison.js');
     
     ui.setProgress(100);
     showStatus('Test completed successfully!', 'success');
@@ -206,6 +207,9 @@ async function completeTest() {
     };
     
     saveToHistory(testResult);
+    
+    // Update ISP comparison with download speed
+    ispComparison.updateISPComparison(testResult.download);
     
     announceToScreenReader('Test complete');
 }

@@ -27,6 +27,8 @@ export const CONFIG = {
         checkWindow: 10,         // Analyze last 10 samples for more reliable detection
         varianceThreshold: 0.05
     },
+    // ISP Comparison
+    ispPlanSpeed: 100, // User's advertised ISP plan speed in Mbps
     // Performance
     updateInterval: 100, // ms between gauge updates
     rafThrottle: 16,     // ~60fps

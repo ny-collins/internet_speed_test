@@ -46,6 +46,13 @@ export function initializeEventListeners() {
         DOM.maxDuration.addEventListener('change', saveSettings);
     }
 
+    if (DOM.ispPlanSpeed) {
+        DOM.ispPlanSpeed.addEventListener('input', (e) => {
+            updateSettingValue('ispPlanSpeed', e.target.value + ' Mbps');
+        });
+        DOM.ispPlanSpeed.addEventListener('change', saveSettings);
+    }
+
     DOM.resetSettings?.addEventListener('click', resetSettings);
 
     // Test Controls
@@ -159,6 +166,7 @@ async function saveSettings() {
 
     const threads = parseInt(DOM.downloadThreads.value);
     const maxDur = parseFloat(DOM.maxDuration.value);
+    const ispSpeed = DOM.ispPlanSpeed ? parseInt(DOM.ispPlanSpeed.value) : 100;
 
     CONFIG.threads.download = threads;
     CONFIG.threads.upload = threads;
@@ -166,6 +174,7 @@ async function saveSettings() {
     CONFIG.duration.download.default = maxDur;
     CONFIG.duration.upload.max = Math.max(3, maxDur - 2);
     CONFIG.duration.upload.default = CONFIG.duration.upload.max;
+    CONFIG.ispPlanSpeed = ispSpeed;
 
     localStorage.setItem('config', JSON.stringify(CONFIG));
     
@@ -185,12 +194,15 @@ function resetSettings() {
     CONFIG.duration.download.default = 10;
     CONFIG.duration.upload.max = 10;
     CONFIG.duration.upload.default = 10;
+    CONFIG.ispPlanSpeed = 100;
 
     if (DOM.downloadThreads) DOM.downloadThreads.value = CONFIG.threads.download;
     if (DOM.maxDuration) DOM.maxDuration.value = CONFIG.duration.download.max;
+    if (DOM.ispPlanSpeed) DOM.ispPlanSpeed.value = CONFIG.ispPlanSpeed;
 
     updateSettingValue('downloadThreads', CONFIG.threads.download);
     updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
+    updateSettingValue('ispPlanSpeed', CONFIG.ispPlanSpeed + ' Mbps');
 
     localStorage.removeItem('config');
     showStatus('Settings reset to defaults', 'info');
@@ -212,6 +224,10 @@ export function loadConfiguration() {
         if (DOM.maxDuration) {
             DOM.maxDuration.value = CONFIG.duration.download.max;
             updateSettingValue('maxDuration', CONFIG.duration.download.max + 's');
+        }
+        if (DOM.ispPlanSpeed) {
+            DOM.ispPlanSpeed.value = CONFIG.ispPlanSpeed || 100;
+            updateSettingValue('ispPlanSpeed', (CONFIG.ispPlanSpeed || 100) + ' Mbps');
         }
     } catch (error) {
         console.error('[Config] Failed to load configuration:', error);
