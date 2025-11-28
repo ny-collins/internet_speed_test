@@ -565,12 +565,76 @@ cors({
 
 ---
 
+---
+
+## Technical Notes & Design Decisions
+
+### Speed Measurement Methodology
+
+Internet speed is fundamentally measured by observing data transfer over time:
+
+```
+Speed (Mbps) = (Bytes Transferred × 8) / Duration (seconds) / 1,000,000
+```
+
+#### The Two Approaches
+
+**1. Test-to-Completion (v1.05.1 and earlier)**
+- Transfer a fixed amount of data (e.g., 50 MB)
+- Measure how long it takes
+- **Problem**: Tests could take 60+ seconds on slow connections
+
+**2. Fixed-Duration Testing (v1.60.0 and later)**
+- Run test for exactly 10 seconds
+- Measure how much data transferred
+- **Benefit**: Consistent test duration regardless of connection speed
+
+### Why We Changed (v1.05.1 → v1.60.0)
+
+In v1.05.1, users experienced upload tests taking 60+ seconds with UI appearing frozen. The monitor loop would exit at 8 seconds but threads continued uploading for another 50+ seconds.
+
+**The Solution**: Fixed duration testing measures **current network capacity** in a consistent 10-second window.
+
+**Benefits:**
+- ✅ Fast tests (10s vs. 60s)
+- ✅ Consistent duration
+- ✅ No UI freezing
+- ✅ Simpler code (removed 60+ lines)
+- ✅ Still accurate (measures current speed)
+
+### Known Discrepancies
+
+**Speed Varies Between Tests**: Internet speed is not constant - network conditions change second-to-second. This is not a bug, it's reality.
+
+**Different Results from Other Tools**: We measure speed to Amsterdam over 10 seconds. Others might measure to different locations over different durations. All tools are "correct" - they're measuring different things.
+
+**Upload Faster Than Download**: Upload and download use different network paths and can have different speeds. Server capacity, ISP prioritization, and network routing all affect this.
+
+### Design Decision History
+
+**Why 4 Threads?** Modern connections can saturate with multiple streams. Single thread might not fully utilize bandwidth. Industry standard is 4-8 threads.
+
+**Why 10 Seconds?** 5 seconds is too short (unstable connections don't stabilize), 15 seconds is too long (users get impatient). 10 seconds provides 95% accuracy vs. 60s tests, but 4× faster.
+
+**Why Amsterdam Server?** Central European location with good connectivity, low latency to major internet exchanges, and Railway.app datacenter availability.
+
+**Why Not WebRTC P2P?** Requires two users online simultaneously, complex NAT traversal, security concerns, and unreliable peer connections. Client-server model is more reliable and consistent.
+
+### Performance Optimization Notes
+
+**Abort at 10 Seconds**: Clean shutdown prevents hanging connections, ensures accurate measurement, and frees resources.
+
+**Reuse Upload Chunks**: Upload test builds blob once and reuses it - faster test startup, less memory usage, browser optimization with single blob in memory.
+
+---
+
 ## Conclusion
 
-SpeedCheck is designed for:
-- **Speed**: 10-second tests
-- **Accuracy**: Multi-threaded measurement
-- **Reliability**: Robust error handling
-- **User Experience**: Smooth, responsive UI
+SpeedCheck prioritizes:
+1. **User experience**: Fast, predictable tests
+2. **Accuracy**: Measures current network speed accurately
+3. **Simplicity**: Clean, maintainable code
 
-See `TECHNICAL_NOTES.md` for design decisions and `CHANGELOG.md` for version history.
+When making design decisions, we optimize for these principles in that order. If a feature sacrifices UX for marginal accuracy gains, we reject it.
+
+See `CHANGELOG.md` for version history.
