@@ -62,6 +62,25 @@ export function initializeEventListeners() {
 
     // Sidebar (if present)
     initializeTabNavigation();
+    
+    // Footer toggle
+    const footerToggleBtn = document.getElementById('footerToggleBtn');
+    const footerInfoGrid = document.getElementById('footerInfoGrid');
+    const footerToggleText = document.getElementById('footerToggleText');
+    
+    if (footerToggleBtn && footerInfoGrid) {
+        footerToggleBtn.addEventListener('click', () => {
+            const isCollapsed = footerInfoGrid.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                footerInfoGrid.classList.remove('collapsed');
+                footerToggleText.textContent = 'Show Less';
+            } else {
+                footerInfoGrid.classList.add('collapsed');
+                footerToggleText.textContent = 'Show More Information';
+            }
+        });
+    }
 }
 
 // --- Settings Logic ---

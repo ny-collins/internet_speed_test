@@ -193,6 +193,7 @@
                     <div class="gauge-wrapper">
                         <button class="gauge-start-button" id="gaugeStartButton" aria-label="Start speed test">
                             <span class="start-button-text">START</span>
+                            <span class="start-button-subtitle">~25 sec · Tests to Amsterdam</span>
                         </button>
                         
                         <div class="gauge-circle" id="gaugeCircle" hidden>
@@ -204,6 +205,9 @@
                             <div class="gauge-unit" id="gaugeUnit">Mbps</div>
                             <div class="gauge-phase-label" id="gaugePhase">Ready</div>
                         </div>
+                    </div>
+                    <div class="test-timer" id="testTimer" hidden>
+                        <span class="timer-text">Time remaining: <strong id="timerValue">10s</strong></span>
                     </div>
                 </div>
 
@@ -349,13 +353,33 @@
                     </div>
                 </div>
 
-                <div class="footer-info-grid">
+                <button class="footer-toggle-btn" id="footerToggleBtn">
+                    <span id="footerToggleText">Show More Information</span>
+                </button>
+
+                <div class="footer-info-grid collapsed" id="footerInfoGrid">
                     <div class="info-card">
                         <div class="info-icon-wrapper">
                             <i data-lucide="server"></i>
                         </div>
                         <h3>European Server Connection</h3>
                         <p>Our server is hosted in <strong>Amsterdam, Netherlands</strong>. Your internet packets travel from your location to Europe and back, measuring real international connectivity rather than idealized local speeds.</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon-wrapper">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <h3>Understanding Metrics</h3>
+                        <p><strong>Download:</strong> How fast you receive data. <strong>Upload:</strong> How fast you send data. <strong>Ping:</strong> Response delay (lower = better). <strong>Jitter:</strong> Connection consistency (lower = better, critical for video calls).</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon-wrapper">
+                            <i data-lucide="wifi"></i>
+                        </div>
+                        <h3>Network Latency Explained</h3>
+                        <p>Latency (ping) is the time it takes for a signal to travel to the server and back. <strong>Physics limits speed</strong> - light travels 300,000 km/s, but internet signals travel slower through fiber cables. Distance creates unavoidable delay.</p>
                     </div>
                     
                     <div class="info-card">
@@ -384,22 +408,6 @@
                     
                     <div class="info-card">
                         <div class="info-icon-wrapper">
-                            <i data-lucide="activity"></i>
-                        </div>
-                        <h3>Understanding Metrics</h3>
-                        <p><strong>Download:</strong> How fast you receive data. <strong>Upload:</strong> How fast you send data. <strong>Ping:</strong> Response delay (lower = better). <strong>Jitter:</strong> Connection consistency (lower = better, critical for video calls).</p>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="wifi"></i>
-                        </div>
-                        <h3>Network Latency Explained</h3>
-                        <p>Latency (ping) is the time it takes for a signal to travel to the server and back. <strong>Physics limits speed</strong> - light travels 300,000 km/s, but internet signals travel slower through fiber cables. Distance creates unavoidable delay.</p>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
                             <i data-lucide="trending-up"></i>
                         </div>
                         <h3>What Affects Your Speed?</h3>
@@ -414,6 +422,11 @@
                         <p>If other speed tests show higher speeds, they're likely using <strong>local servers</strong>. Both results are valid - they test different scenarios. Our test shows international performance, theirs shows local network capacity.</p>
                     </div>
                 </div>
+                
+                <button class="footer-show-more" id="footerShowMore">
+                    <span>Show More Information</span>
+                    <i data-lucide="chevron-down"></i>
+                </button>
                 
                 <div class="footer-note">
                     <p>

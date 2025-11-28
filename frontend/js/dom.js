@@ -41,6 +41,8 @@ export const DOM = {
     progressBar: null,
     statusBar: null,
     statusText: null,
+    testTimer: null,
+    timerValue: null,
 
     // History
     historyList: null,
@@ -90,6 +92,8 @@ export function queryDOMElements() {
     DOM.progressBar = document.querySelector('.progress-fill');
     DOM.statusBar = document.getElementById('statusBar');
     DOM.statusText = DOM.statusBar?.querySelector('.status-text');
+    DOM.testTimer = document.getElementById('testTimer');
+    DOM.timerValue = document.getElementById('timerValue');
 
     // History
     DOM.historyList = document.getElementById('historyList');

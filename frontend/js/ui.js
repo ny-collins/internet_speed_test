@@ -4,7 +4,7 @@
 
 import { DOM } from './dom.js';
 import { STATE } from './state.js';
-import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality } from './utils.js';
+import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getSpeedContext } from './utils.js';
 
 // Gauge scale breakpoints for adaptive scaling
 const GAUGE_SCALES = [10, 25, 50, 100, 250, 500, 1000];
@@ -26,12 +26,26 @@ export function showGauge() {
     if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = true;
     if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
     if (DOM.gaugeInner) DOM.gaugeInner.hidden = false;
+    if (DOM.testTimer) DOM.testTimer.hidden = false;
 }
 
 export function hideGauge() {
     if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = false;
     if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = true;
     if (DOM.gaugeInner) DOM.gaugeInner.hidden = true;
+    if (DOM.testTimer) DOM.testTimer.hidden = true;
+}
+
+export function updateCountdown(secondsRemaining, phase) {
+    if (!DOM.timerValue || !DOM.testTimer) return;
+    
+    const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
+    DOM.timerValue.textContent = `${secondsRemaining}s`;
+    
+    if (DOM.testTimer.querySelector('.timer-text')) {
+        DOM.testTimer.querySelector('.timer-text').innerHTML = 
+            `Testing ${phaseName}: <strong id="timerValue">${secondsRemaining}s</strong>`;
+    }
 }
 
 export function updateGauge(speed, phase) {
@@ -175,6 +189,26 @@ export function updateResultCard(type, result) {
         if (matrixCard) {
             const matrixNumber = matrixCard.querySelector('.matrix-number');
             if (matrixNumber) matrixNumber.textContent = speed;
+            
+            // Add quality badge
+            const quality = getSpeedQuality(result.speed, type);
+            let badge = matrixCard.querySelector('.quality-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'quality-badge';
+                matrixCard.appendChild(badge);
+            }
+            badge.textContent = quality;
+            badge.className = `quality-badge ${quality.toLowerCase()}`;
+            
+            // Add quality context
+            let context = matrixCard.querySelector('.quality-context');
+            if (!context) {
+                context = document.createElement('div');
+                context.className = 'quality-context';
+                matrixCard.querySelector('.matrix-content').appendChild(context);
+            }
+            context.innerHTML = getSpeedContext(result.speed, type);
         }
 
         if (resultCard) {
@@ -293,6 +327,41 @@ export function showStatus(message, type = 'info') {
     setTimeout(() => {
         if (DOM.statusBar) DOM.statusBar.hidden = true;
     }, 5000);
+}
+
+let countdownInterval = null;
+
+export function startCountdown(seconds) {
+    const timerEl = document.getElementById('testTimer');
+    const valueEl = document.getElementById('timerValue');
+    
+    if (!timerEl || !valueEl) return;
+    
+    timerEl.hidden = false;
+    let remaining = seconds;
+    
+    const updateTimer = () => {
+        valueEl.textContent = `${remaining}s`;
+        remaining--;
+        
+        if (remaining < 0) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    };
+    
+    updateTimer();
+    countdownInterval = setInterval(updateTimer, 1000);
+}
+
+export function hideCountdown() {
+    const timerEl = document.getElementById('testTimer');
+    if (timerEl) timerEl.hidden = true;
+    
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
 }
 
 export function drawSparkline(data) {

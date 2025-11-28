@@ -141,8 +141,15 @@ async function runPhase(name, testFn) {
     const ui = await import('./js/ui.js');
     ui.updatePhaseUI(name, 'active');
     
+    // Show countdown timer
+    const duration = name === 'latency' ? 3 : 10;
+    ui.startCountdown(duration);
+    
     console.log(`[Test] Starting ${name}...`);
     const result = await testFn();
+    
+    // Hide countdown timer
+    ui.hideCountdown();
     
     if (!STATE.cancelling) {
         STATE.testResults[name] = result;

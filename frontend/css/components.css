@@ -120,6 +120,45 @@
     isolation: isolate;
 }
 
+.quality-badge {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.quality-badge.excellent {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--color-success);
+}
+
+.quality-badge.good {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--color-primary);
+}
+
+.quality-badge.fair {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--color-warning);
+}
+
+.quality-badge.poor {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-danger);
+}
+
+.quality-context {
+    margin-top: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    line-height: 1.4;
+}
+
 .theme-toggle-inline, .theme-toggle {
     width: 48px;
     height: 48px;
