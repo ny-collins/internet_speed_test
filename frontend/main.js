@@ -36,15 +36,19 @@ async function initializeApp() {
     // 3. Check Page Type (Speed Test vs Learn)
     const isSpeedTestPage = document.getElementById('gaugeCircle') !== null;
     
+    if (isSpeedTestPage) {
+        console.log('[App] Speed test page detected');
+        // Query DOM elements FIRST before attaching listeners
+        queryDOMElements();
+    }
+    
     // 4. Register Test Functions (so events.js can call them without circular deps)
     registerTestFunctions(startTest, cancelTest, clearHistory, exportHistory);
     
-    // 5. Setup Interaction Listeners
+    // 5. Setup Interaction Listeners (after DOM is queried)
     initializeEventListeners();
 
     if (isSpeedTestPage) {
-        console.log('[App] Speed test page detected');
-        queryDOMElements();
         loadConfiguration();
         buildMainGauge();
         loadHistory();
