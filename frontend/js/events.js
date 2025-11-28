@@ -68,7 +68,7 @@ export function initializeEventListeners() {
     const footerInfoGrid = document.getElementById('footerInfoGrid');
     const footerToggleText = document.getElementById('footerToggleText');
     
-    if (footerToggleBtn && footerInfoGrid) {
+    if (footerToggleBtn && footerInfoGrid && footerToggleText) {
         footerToggleBtn.addEventListener('click', () => {
             const isCollapsed = footerInfoGrid.classList.contains('collapsed');
             
@@ -123,6 +123,13 @@ export function initializeEventListeners() {
     document.getElementById('copyLinkBtn')?.addEventListener('click', copyResultLink);
     document.getElementById('downloadImageBtn')?.addEventListener('click', downloadResultImage);
     document.getElementById('copyTextBtn')?.addEventListener('click', copyResultText);
+    
+    // Initialize Lucide icons after all DOM updates
+    setTimeout(() => {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }, 100);
 }
 
 // --- Settings Logic ---
@@ -366,7 +373,12 @@ function openShareModal() {
     const shareModal = document.getElementById('shareModal');
     if (shareModal) {
         shareModal.hidden = false;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        // Reinitialize icons in the modal
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 50);
     }
 }
 
