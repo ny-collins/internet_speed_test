@@ -147,7 +147,7 @@ function updateSettingValue(id, value) {
     if (displayElement) displayElement.textContent = value;
 }
 
-function saveSettings() {
+async function saveSettings() {
     if (!DOM.downloadThreads || !DOM.maxDuration) return;
 
     const threads = parseInt(DOM.downloadThreads.value);
@@ -165,10 +165,6 @@ function saveSettings() {
     // Update config summary
     if (typeof window.updateConfigSummary === 'function') {
         window.updateConfigSummary();
-    } else {
-        // Call directly from main.js scope
-        const mainModule = await import('../main.js');
-        if (mainModule.updateConfigSummary) mainModule.updateConfigSummary();
     }
     
     showStatus('Settings saved', 'success');
