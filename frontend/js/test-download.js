@@ -4,7 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
-import { sleep } from './utils.js';
+import { sleep, performanceMonitor } from './utils.js';
 import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 export async function measureDownload() {
@@ -41,6 +41,7 @@ export async function measureDownload() {
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
+            performanceMonitor.recordMemoryUsage();
 
             const elapsed = performance.now() - startTime;
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);

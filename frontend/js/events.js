@@ -85,23 +85,53 @@ export function initializeEventListeners() {
         });
     }
 
-    // Help modal
+    // Help modal with focus trapping
     const helpModal = document.getElementById('helpModal');
     const closeHelpBtn = document.getElementById('closeHelpModal');
 
     if (closeHelpBtn) {
         closeHelpBtn.addEventListener('click', () => {
-            if (helpModal) helpModal.hidden = true;
+            if (helpModal) {
+                helpModal.hidden = true;
+                // Return focus to trigger element
+                DOM.settingsToggle?.focus();
+            }
         });
     }
 
     if (helpModal) {
         helpModal.addEventListener('click', (e) => {
-            if (e.target === helpModal) helpModal.hidden = true;
+            if (e.target === helpModal) {
+                helpModal.hidden = true;
+                DOM.settingsToggle?.focus();
+            }
+        });
+
+        // Focus trapping for accessibility
+        helpModal.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                const focusableElements = helpModal.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        lastElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            }
         });
     }
 
-    // Share modal
+    // Share modal with focus trapping
     const shareModal = document.getElementById('shareModal');
     const closeShareBtn = document.getElementById('closeShareModal');
     const shareResultBtn = document.getElementById('shareResultBtn');
@@ -112,13 +142,43 @@ export function initializeEventListeners() {
 
     if (closeShareBtn) {
         closeShareBtn.addEventListener('click', () => {
-            if (shareModal) shareModal.hidden = true;
+            if (shareModal) {
+                shareModal.hidden = true;
+                // Return focus to trigger element
+                document.getElementById('shareResultBtn')?.focus();
+            }
         });
     }
 
     if (shareModal) {
         shareModal.addEventListener('click', (e) => {
-            if (e.target === shareModal) shareModal.hidden = true;
+            if (e.target === shareModal) {
+                shareModal.hidden = true;
+                document.getElementById('shareResultBtn')?.focus();
+            }
+        });
+
+        // Focus trapping for accessibility
+        shareModal.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                const focusableElements = shareModal.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        lastElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            }
         });
     }
 

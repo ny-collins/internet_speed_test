@@ -6,12 +6,11 @@ import { queryDOMElements, DOM } from './js/dom.js';
 import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './js/events.js';
 import { registerServiceWorker } from './js/worker.js';
 import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay } from './js/ui.js';
-import { getFriendlyError, getConnectionType } from './js/utils.js';
+import { getFriendlyError, getConnectionType, performanceMonitor } from './js/utils.js';
 import { drawHistoryChart } from './js/chart.js';
 import { measureLatency } from './js/test-latency.js';
 import { measureDownload } from './js/test-download.js';
 import { measureUpload } from './js/test-upload.js';
-import { drawHistoryChart } from './js/chart.js';
 import { CONFIG } from './js/config.js';
 import { STATE } from './js/state.js';
 
@@ -73,6 +72,9 @@ async function initializeApp() {
             }
         });
         
+        // Setup global error handling
+        setupGlobalErrorHandling();
+        
         console.log('[App] Speed test initialization complete');
         announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
     } else {
@@ -102,6 +104,9 @@ async function startTest() {
     STATE.testing = true;
     STATE.cancelling = false;
     STATE.abortControllers = [];
+    
+    // Start performance monitoring
+    performanceMonitor.startTest();
     
     // Hide retry button when starting a new test
     if (DOM.retryTest) DOM.retryTest.hidden = true;
@@ -231,6 +236,9 @@ async function retryTest() {
 
 async function completeTest() {
     console.log('[Test] Complete');
+    
+    // End performance monitoring
+    performanceMonitor.endTest();
     
     setProgress(100);
     showStatus('Test completed successfully!', 'success');
@@ -399,6 +407,45 @@ async function initializeAccessibility() {
     DOM.ariaLiveRegion.setAttribute('role', 'status');
     DOM.ariaLiveRegion.setAttribute('aria-live', 'polite');
     document.body.appendChild(DOM.ariaLiveRegion);
+}
+
+function setupGlobalErrorHandling() {
+    // Global error handler for unhandled errors
+    window.addEventListener('error', (event) => {
+        console.error('[Global Error]', event.error);
+        performanceMonitor.recordError(event.error, 'global');
+        
+        // Show user-friendly error message for critical errors
+        if (!STATE.testing) {
+            showStatus('An unexpected error occurred. Please refresh the page.', 'error');
+        }
+    });
+
+    // Global promise rejection handler
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('[Unhandled Promise Rejection]', event.reason);
+        performanceMonitor.recordError(event.reason, 'promise');
+        
+        // Prevent the default browser behavior (logging to console)
+        event.preventDefault();
+    });
+
+    // Performance monitoring for long tasks
+    if ('PerformanceObserver' in window) {
+        try {
+            const observer = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    if (entry.duration > 50) { // Tasks longer than 50ms
+                        console.warn('[Performance] Long task detected:', entry.duration.toFixed(2) + 'ms');
+                        performanceMonitor.recordError(`Long task: ${entry.duration.toFixed(2)}ms`, 'performance');
+                    }
+                }
+            });
+            observer.observe({ entryTypes: ['longtask'] });
+        } catch (e) {
+            console.warn('[Performance] Long task monitoring not supported');
+        }
+    }
 }
 
 // Export updateConfigSummary so events.js can call it

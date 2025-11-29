@@ -111,5 +111,99 @@ export function getConnectionType() {
         'unknown': 'Unknown'
     };
 
-    return types[type] || type;
+    return types[type] || 'Unknown';
 }
+
+// ========================================
+// PERFORMANCE MONITORING
+// ========================================
+
+export class PerformanceMonitor {
+    constructor() {
+        this.metrics = {
+            testStartTime: null,
+            testEndTime: null,
+            memoryUsage: [],
+            networkRequests: 0,
+            errors: []
+        };
+        this.enabled = false;
+    }
+
+    enable() {
+        this.enabled = true;
+        console.log('[Performance] Monitoring enabled');
+    }
+
+    disable() {
+        this.enabled = false;
+        console.log('[Performance] Monitoring disabled');
+    }
+
+    startTest() {
+        if (!this.enabled) return;
+        this.metrics.testStartTime = performance.now();
+        this.metrics.memoryUsage = [];
+        this.metrics.networkRequests = 0;
+        this.metrics.errors = [];
+        console.log('[Performance] Test started');
+    }
+
+    endTest() {
+        if (!this.enabled || !this.metrics.testStartTime) return;
+        this.metrics.testEndTime = performance.now();
+        this.logMetrics();
+    }
+
+    recordMemoryUsage() {
+        if (!this.enabled || !performance.memory) return;
+        this.metrics.memoryUsage.push({
+            timestamp: performance.now(),
+            used: performance.memory.usedJSHeapSize,
+            total: performance.memory.totalJSHeapSize,
+            limit: performance.memory.jsHeapSizeLimit
+        });
+    }
+
+    recordNetworkRequest() {
+        if (!this.enabled) return;
+        this.metrics.networkRequests++;
+    }
+
+    recordError(error, context = '') {
+        if (!this.enabled) return;
+        this.metrics.errors.push({
+            timestamp: performance.now(),
+            error: error.message || error,
+            context
+        });
+    }
+
+    logMetrics() {
+        if (!this.enabled) return;
+
+        const duration = this.metrics.testEndTime - this.metrics.testStartTime;
+        console.group('[Performance] Test Metrics');
+        console.log(`Duration: ${duration.toFixed(2)}ms`);
+        console.log(`Network requests: ${this.metrics.networkRequests}`);
+        console.log(`Errors: ${this.metrics.errors.length}`);
+
+        if (this.metrics.errors.length > 0) {
+            console.group('Errors:');
+            this.metrics.errors.forEach(err => {
+                console.log(`${err.timestamp.toFixed(2)}ms: ${err.error} (${err.context})`);
+            });
+            console.groupEnd();
+        }
+
+        if (this.metrics.memoryUsage.length > 0) {
+            const latest = this.metrics.memoryUsage[this.metrics.memoryUsage.length - 1];
+            console.log(`Memory: ${(latest.used / 1024 / 1024).toFixed(2)}MB used of ${(latest.total / 1024 / 1024).toFixed(2)}MB`);
+        }
+
+        console.groupEnd();
+    }
+}
+
+// Global performance monitor instance
+export const performanceMonitor = new PerformanceMonitor();
