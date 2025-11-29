@@ -2,10 +2,12 @@
 // SPEEDCHECK - MAIN ENTRY POINT
 // ========================================
 
-import { queryDOMElements } from './js/dom.js';
+import { queryDOMElements, DOM } from './js/dom.js';
 import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './js/events.js';
 import { registerServiceWorker } from './js/worker.js';
-import { buildMainGauge, showStatus, announceToScreenReader } from './js/ui.js';
+import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay } from './js/ui.js';
+import { getFriendlyError, getConnectionType } from './js/utils.js';
+import { drawHistoryChart } from './js/chart.js';
 import { measureLatency } from './js/test-latency.js';
 import { measureDownload } from './js/test-download.js';
 import { measureUpload } from './js/test-upload.js';
@@ -102,19 +104,16 @@ async function startTest() {
     STATE.abortControllers = [];
     
     // Hide retry button when starting a new test
-    const { DOM } = await import('./js/dom.js');
     if (DOM.retryTest) DOM.retryTest.hidden = true;
     
     // Reset Results
     STATE.testResults = { download: null, upload: null, latency: null, jitter: null };
     
     // Reset UI
-    const ui = await import('./js/ui.js');
     ui.showGauge();
     ui.clearResultsDisplay();
     ui.setProgress(0);
     
-    const { DOM } = await import('./js/dom.js');
     if (DOM.startTest) DOM.startTest.disabled = true;
     if (DOM.cancelTest) {
         DOM.cancelTest.disabled = false;
@@ -141,9 +140,6 @@ async function startTest() {
         
     } catch (error) {
         console.error('[Test] Error:', error);
-        const { getFriendlyError } = await import('./js/utils.js');
-        const { DOM } = await import('./js/dom.js');
-        
         showStatus(getFriendlyError(error.message), 'error');
         
         // Show retry button for failed tests
@@ -155,12 +151,11 @@ async function startTest() {
 
 async function runPhase(name, testFn, maxRetries = 2) {
     STATE.currentPhase = name;
-    const ui = await import('./js/ui.js');
-    ui.updatePhaseUI(name, 'active');
+    updatePhaseUI(name, 'active');
     
     // Show countdown timer
     const duration = name === 'latency' ? 3 : 10;
-    ui.startCountdown(duration);
+    startCountdown(duration);
     
     let lastError;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -169,12 +164,12 @@ async function runPhase(name, testFn, maxRetries = 2) {
             const result = await testFn();
             
             // Hide countdown timer
-            ui.hideCountdown();
+            hideCountdown();
             
             if (!STATE.cancelling) {
                 STATE.testResults[name] = result;
-                ui.updatePhaseUI(name, 'complete');
-                ui.updateResultCard(name, result);
+                updatePhaseUI(name, 'complete');
+                updateResultCard(name, result);
             }
             return; // Success, exit retry loop
             
@@ -200,7 +195,7 @@ async function runPhase(name, testFn, maxRetries = 2) {
     }
     
     // All retries failed
-    ui.hideCountdown();
+    hideCountdown();
     throw lastError;
 }
 
@@ -225,7 +220,6 @@ async function retryTest() {
     console.log('[Test] Retrying...');
     
     // Hide retry button
-    const { DOM } = await import('./js/dom.js');
     if (DOM.retryTest) DOM.retryTest.hidden = true;
     
     // Clear any error status and start fresh
@@ -237,12 +231,10 @@ async function retryTest() {
 
 async function completeTest() {
     console.log('[Test] Complete');
-    const ui = await import('./js/ui.js');
-    const utils = await import('./js/utils.js');
     
-    ui.setProgress(100);
+    setProgress(100);
     showStatus('Test completed successfully!', 'success');
-    ui.resetAllPhases();
+    resetAllPhases();
     
     // Show share button
     const shareBtn = document.getElementById('shareResultBtn');
@@ -254,7 +246,7 @@ async function completeTest() {
         upload: STATE.testResults.upload?.speed || 0,
         latency: STATE.testResults.latency?.average || 0,
         jitter: STATE.testResults.jitter?.value || 0,
-        connectionType: utils.getConnectionType()
+        connectionType: getConnectionType()
     };
     
     saveToHistory(testResult);
@@ -266,10 +258,8 @@ async function cleanupTest() {
     STATE.testing = false;
     STATE.cancelling = false;
     
-    const ui = await import('./js/ui.js');
-    ui.resetGauge();
+    resetGauge();
     
-    const { DOM } = await import('./js/dom.js');
     if (DOM.startTest) DOM.startTest.disabled = false;
     if (DOM.cancelTest) {
         DOM.cancelTest.disabled = true;
@@ -320,7 +310,6 @@ async function fetchServerInfo() {
         const response = await fetch(`${CONFIG.apiBase}/api/info`);
         if (response.ok) {
             STATE.serverInfo = await response.json();
-            const { DOM } = await import('./js/dom.js');
             if (DOM.serverLocation) DOM.serverLocation.textContent = STATE.serverInfo.location || 'Unknown';
             if (DOM.serverLimits && STATE.serverInfo.maxDownloadSize) {
                 DOM.serverLimits.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;
@@ -352,12 +341,10 @@ function loadHistory() {
 }
 
 async function updateHistoryUI() {
-    const { DOM } = await import('./js/dom.js');
-        if (!DOM.historyList) return;
-        
+    if (!DOM.historyList) return;
+    
     // Draw Chart
-    const chart = await import('./js/chart.js');
-    chart.drawHistoryChart(STATE.history);
+    drawHistoryChart(STATE.history);
         
         if (STATE.history.length === 0) {
             DOM.historyList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--color-text-tertiary)">No test history yet</div>';
@@ -407,12 +394,10 @@ function exportHistory() {
 }
 
 async function initializeAccessibility() {
-    const { DOM } = await import('./js/dom.js');
-
-        DOM.ariaLiveRegion = document.createElement('div');
-        DOM.ariaLiveRegion.className = 'sr-only';
-        DOM.ariaLiveRegion.setAttribute('role', 'status');
-        DOM.ariaLiveRegion.setAttribute('aria-live', 'polite');
+    DOM.ariaLiveRegion = document.createElement('div');
+    DOM.ariaLiveRegion.className = 'sr-only';
+    DOM.ariaLiveRegion.setAttribute('role', 'status');
+    DOM.ariaLiveRegion.setAttribute('aria-live', 'polite');
     document.body.appendChild(DOM.ariaLiveRegion);
 }
 
