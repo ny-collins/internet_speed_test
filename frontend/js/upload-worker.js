@@ -1,6 +1,6 @@
 // ========================================
 // UPLOAD WORKER
-// Handles upload monitoring off the main thread
+// Handles heavy upload processing off the main thread
 // ========================================
 
 // Worker message types
@@ -13,12 +13,18 @@ const MESSAGE_TYPES = {
 };
 
 let isRunning = false;
+let abortController = null;
 let startTime = 0;
 let totalBytes = 0;
 let speedSamples = [];
 let lastSampleTime = 0;
 let lastBytes = 0;
+
+// Configuration (passed from main thread)
 let config = {};
+
+// Pre-built blob for upload tests (created in worker)
+let uploadBlob = null;
 
 // Stability tracking functions
 function isSpeedStable(samples) {
@@ -43,8 +49,74 @@ function calculateStability(samples) {
     return Math.max(0, Math.min(100, (1 - variance * 10) * 100));
 }
 
+// Create reusable upload blob
+function createUploadBlob() {
+    const totalSize = config.uploadSize * 1024 * 1024;
+    const chunkSize = 65536; // 64KB chunks
+    const chunksNeeded = Math.ceil(totalSize / chunkSize);
+    const chunks = [];
+
+    // Create random data chunks
+    for (let i = 0; i < chunksNeeded; i++) {
+        const chunk = new Uint8Array(chunkSize);
+        crypto.getRandomValues(chunk);
+        chunks.push(chunk.buffer);
+    }
+
+    return new Blob(chunks, { type: 'application/octet-stream' });
+}
+
+// Upload thread function (runs in worker)
+async function uploadThread(threadId, byteCounter) {
+    try {
+        // XHR Promise for upload with progress tracking
+        await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            let finished = false;
+
+            const finish = (error = null) => {
+                if (finished) return;
+                finished = true;
+                if (error) reject(error);
+                else resolve();
+            };
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    byteCounter.bytes = event.loaded;
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    finish();
+                } else {
+                    finish(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+                }
+            };
+
+            xhr.onerror = () => finish(new Error('Network error'));
+            xhr.onabort = () => finish(new Error('Aborted'));
+
+            xhr.open('POST', `${config.apiBase}/api/upload?t=${Date.now()}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+            xhr.send(uploadBlob);
+        });
+
+    } catch (error) {
+        if (error.name !== 'AbortError' && error.message !== 'Aborted') {
+            console.error(`[Upload Worker] Thread ${threadId} error:`, error);
+            self.postMessage({
+                type: MESSAGE_TYPES.UPLOAD_ERROR,
+                threadId,
+                error: error.message
+            });
+        }
+    }
+}
+
 // Monitor loop (runs in worker)
-async function monitorLoop() {
+async function monitorLoop(threadCount, byteCounters) {
     const maxDuration = config.duration.upload.max * 1000;
     const minDuration = config.duration.upload.min * 1000;
 
@@ -52,6 +124,7 @@ async function monitorLoop() {
         await new Promise(resolve => setTimeout(resolve, config.updateInterval));
 
         const elapsed = performance.now() - startTime;
+        totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
         // Calculate current speed
         let currentSpeed = 0;
@@ -120,31 +193,43 @@ async function monitorLoop() {
 
 // Message handler
 self.onmessage = function(e) {
-    const { type, config: workerConfig, bytesTransferred } = e.data;
+    const { type, config: workerConfig, threadCount } = e.data;
 
     switch (type) {
         case MESSAGE_TYPES.START_UPLOAD: {
             config = workerConfig;
             isRunning = true;
+            abortController = new AbortController();
             startTime = performance.now();
             totalBytes = 0;
             speedSamples = [];
             lastSampleTime = 0;
             lastBytes = 0;
 
-            // Start monitor loop
-            monitorLoop();
-            break;
-        }
+            // Create upload blob
+            uploadBlob = createUploadBlob();
 
-        case MESSAGE_TYPES.PROGRESS_UPDATE: {
-            // Update total bytes from main thread
-            totalBytes = bytesTransferred;
+            // Create byte counters for each thread
+            const byteCounters = [];
+            for (let i = 0; i < threadCount; i++) {
+                byteCounters.push({ bytes: 0 });
+            }
+
+            // Start upload threads
+            for (let i = 0; i < threadCount; i++) {
+                uploadThread(i, byteCounters[i]);
+            }
+
+            // Start monitor loop
+            monitorLoop(threadCount, byteCounters);
             break;
         }
 
         case MESSAGE_TYPES.ABORT: {
             isRunning = false;
+            if (abortController) {
+                abortController.abort();
+            }
             break;
         }
     }
