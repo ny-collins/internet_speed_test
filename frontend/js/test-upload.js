@@ -35,7 +35,8 @@ export async function measureUpload() {
         let lastProgressUpdate = 0;
         let smoothedSpeed = 0;
         let lastUiUpdate = 0;
-        const UI_UPDATE_INTERVAL = 100;
+        const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
+        const testStartTime = performance.now(); // Track when test actually started
 
         // Start the upload test
         worker.postMessage({
@@ -77,13 +78,14 @@ export async function measureUpload() {
                 }
 
                 // Update Progress (60% -> 95%) - always update progress for smooth bar
-                const progressPercent = 60 + (elapsed / maxDuration) * 35;
+                const testElapsed = now - testStartTime;
+                const progressPercent = 60 + (testElapsed / maxDuration) * 35;
                 setProgress(Math.min(progressPercent, 95));
 
-                // Update Matrix Card Border
+                // Update Matrix Card Border - use test elapsed time for consistent animation
                 const uploadCard = document.querySelector('.matrix-card[data-metric="upload"]');
                 if (uploadCard) {
-                    const progress = Math.min((elapsed / maxDuration) * 100, 100);
+                    const progress = Math.min((testElapsed / maxDuration) * 100, 100);
                     uploadCard.style.setProperty('--progress', progress.toFixed(2));
                 }
 
@@ -93,6 +95,24 @@ export async function measureUpload() {
 
             case 'upload_complete': {
                 const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+
+                // Continue main progress bar animation to target (95%) smoothly
+                const continueMainProgressAnimation = () => {
+                    const now = performance.now();
+                    const testElapsed = now - testStartTime;
+                    const targetProgress = 95; // Upload goes to 95%
+                    const startProgress = 60; // Upload starts at 60%
+                    const progressRange = targetProgress - startProgress;
+                    const currentProgress = startProgress + (testElapsed / maxDuration) * progressRange;
+                    const finalProgress = Math.min(currentProgress, targetProgress);
+
+                    setProgress(finalProgress);
+
+                    if (finalProgress < targetProgress) {
+                        requestAnimationFrame(continueMainProgressAnimation);
+                    }
+                };
+                requestAnimationFrame(continueMainProgressAnimation);
 
                 // Handle loaded latency asynchronously (don't block UI)
                 loadedLatencyPromise.then(loadedLatency => {

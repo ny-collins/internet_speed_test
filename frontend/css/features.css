@@ -223,7 +223,7 @@ canvas#historyChart {
     padding: 3px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, background 0.1s ease-out;
     z-index: -1; /* Place behind content to prevent blocking interactions */
 }
 

@@ -93,7 +93,7 @@ async function monitorLoop(threadCount, byteCounters) {
         totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
         // Use the most recent interval speed for current display
-        let currentSpeed = lastIntervalSpeed;
+        const currentSpeed = lastIntervalSpeed;
 
         // Send progress update to main thread
         self.postMessage({
@@ -161,35 +161,35 @@ self.onmessage = async function(e) {
     const { type, config: workerConfig, threadCount } = e.data;
 
     switch (type) {
-        case MESSAGE_TYPES.START_DOWNLOAD: {
-            config = workerConfig;
-            isRunning = true;
-            abortController = new AbortController();
-            startTime = performance.now();
-            totalBytes = 0;
-            speedSamples = [];
-            lastSampleTime = 0;
-            lastBytes = 0;
+    case MESSAGE_TYPES.START_DOWNLOAD: {
+        config = workerConfig;
+        isRunning = true;
+        abortController = new AbortController();
+        startTime = performance.now();
+        totalBytes = 0;
+        speedSamples = [];
+        lastSampleTime = 0;
+        lastBytes = 0;
 
-            // Initialize byte counters for each thread
-            const byteCounters = Array.from({ length: threadCount }, () => ({ bytes: 0 }));
+        // Initialize byte counters for each thread
+        const byteCounters = Array.from({ length: threadCount }, () => ({ bytes: 0 }));
 
-            // Start download threads
-            byteCounters.forEach((counter, i) => {
-                downloadThread(i, counter);
-            });
+        // Start download threads
+        byteCounters.forEach((counter, i) => {
+            downloadThread(i, counter);
+        });
 
-            // Start monitor loop
-            monitorLoop(threadCount, byteCounters);
-            break;
+        // Start monitor loop
+        monitorLoop(threadCount, byteCounters);
+        break;
+    }
+
+    case MESSAGE_TYPES.ABORT: {
+        isRunning = false;
+        if (abortController) {
+            abortController.abort();
         }
-
-        case MESSAGE_TYPES.ABORT: {
-            isRunning = false;
-            if (abortController) {
-                abortController.abort();
-            }
-            break;
-        }
+        break;
+    }
     }
 };

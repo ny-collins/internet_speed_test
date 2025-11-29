@@ -36,6 +36,7 @@ export async function measureDownload() {
         let smoothedSpeed = 0;
         let lastUiUpdate = 0;
         const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
+        const testStartTime = performance.now(); // Track when test actually started
 
         // Start the download test
         worker.postMessage({
@@ -52,46 +53,66 @@ export async function measureDownload() {
             const { type, ...data } = e.data;
 
             switch (type) {
-                case 'progress_update':
-                    const { elapsed, totalBytes, currentSpeed, speedSamples } = data;
-                    const now = performance.now();
+            case 'progress_update': {
+                const { elapsed, totalBytes, currentSpeed, speedSamples } = data;
+                const now = performance.now();
 
-                    // Update smoothed speed using exponential moving average
-                    if (smoothedSpeed === 0) {
-                        smoothedSpeed = currentSpeed;
-                    } else {
-                        // Alpha = 0.3 for responsive but smooth updates
-                        smoothedSpeed = smoothedSpeed * 0.7 + currentSpeed * 0.3;
-                    }
+                // Update smoothed speed using exponential moving average
+                if (smoothedSpeed === 0) {
+                    smoothedSpeed = currentSpeed;
+                } else {
+                    // Alpha = 0.3 for responsive but smooth updates
+                    smoothedSpeed = smoothedSpeed * 0.7 + currentSpeed * 0.3;
+                }
 
-                    // Throttle UI updates for smooth animation
-                    if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
-                        updateGauge(smoothedSpeed, 'download');
-                        lastUiUpdate = now;
+                // Throttle UI updates for smooth animation
+                if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
+                    updateGauge(smoothedSpeed, 'download');
+                    lastUiUpdate = now;
 
-                        // Schedule memory monitoring as idle task (non-critical)
-                        if (idleTaskId) cancelIdleTask(idleTaskId);
-                        idleTaskId = scheduleIdleTask(() => {
-                            performanceMonitor.recordMemoryUsage();
-                        });
-                    }
+                    // Schedule memory monitoring as idle task (non-critical)
+                    if (idleTaskId) cancelIdleTask(idleTaskId);
+                    idleTaskId = scheduleIdleTask(() => {
+                        performanceMonitor.recordMemoryUsage();
+                    });
+                }
 
-                    // Update Progress (25% -> 60%) - always update progress for smooth bar
-                    const progressPercent = 25 + (elapsed / maxDuration) * 35;
-                    setProgress(Math.min(progressPercent, 60));
+                // Update Progress (25% -> 60%) - always update progress for smooth bar
+                const testElapsed = now - testStartTime;
+                const progressPercent = 25 + (testElapsed / maxDuration) * 35;
+                setProgress(Math.min(progressPercent, 60));
 
-                    // Update Matrix Card Border
-                    const downloadCard = document.querySelector('.matrix-card[data-metric="download"]');
-                    if (downloadCard) {
-                        const progress = Math.min((elapsed / maxDuration) * 100, 100);
-                        downloadCard.style.setProperty('--progress', progress.toFixed(2));
-                    }
+                // Update Matrix Card Border - use test elapsed time for consistent animation
+                const downloadCard = document.querySelector('.matrix-card[data-metric="download"]');
+                if (downloadCard) {
+                    const progress = Math.min((testElapsed / maxDuration) * 100, 100);
+                    downloadCard.style.setProperty('--progress', progress.toFixed(2));
+                }
 
-                    lastProgressUpdate = elapsed;
-                    break;
+                lastProgressUpdate = elapsed;
+                break;
+            }
 
             case 'download_complete': {
                 const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+
+                // Continue main progress bar animation to target (60%) smoothly
+                const continueMainProgressAnimation = () => {
+                    const now = performance.now();
+                    const testElapsed = now - testStartTime;
+                    const targetProgress = 60; // Download goes to 60%
+                    const startProgress = 25; // Download starts at 25%
+                    const progressRange = targetProgress - startProgress;
+                    const currentProgress = startProgress + (testElapsed / maxDuration) * progressRange;
+                    const finalProgress = Math.min(currentProgress, targetProgress);
+
+                    setProgress(finalProgress);
+
+                    if (finalProgress < targetProgress) {
+                        requestAnimationFrame(continueMainProgressAnimation);
+                    }
+                };
+                requestAnimationFrame(continueMainProgressAnimation);
 
                 // Handle loaded latency asynchronously (don't block UI)
                 loadedLatencyPromise.then(loadedLatency => {
@@ -132,15 +153,15 @@ export async function measureDownload() {
                 });
                 break;
             }                case 'download_error':
-                    console.error('[Download] Worker error:', data.error);
-                    cleanup();
-                    if (idleTaskId) {
-                        cancelIdleTask(idleTaskId);
-                        idleTaskId = null;
-                    }
-                    worker.terminate();
-                    reject(new Error(`Download test failed: ${data.error}`));
-                    break;
+                console.error('[Download] Worker error:', data.error);
+                cleanup();
+                if (idleTaskId) {
+                    cancelIdleTask(idleTaskId);
+                    idleTaskId = null;
+                }
+                worker.terminate();
+                reject(new Error(`Download test failed: ${data.error}`));
+                break;
             }
         };
 

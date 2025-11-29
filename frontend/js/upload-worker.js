@@ -136,7 +136,7 @@ async function monitorLoop(threadCount, byteCounters) {
         totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
         // Use the most recent interval speed for current display
-        let currentSpeed = lastIntervalSpeed;
+        const currentSpeed = lastIntervalSpeed;
 
         // Send progress update to main thread
         self.postMessage({
@@ -209,42 +209,42 @@ self.onmessage = function(e) {
     const { type, config: workerConfig, threadCount } = e.data;
 
     switch (type) {
-        case MESSAGE_TYPES.START_UPLOAD: {
-            config = workerConfig;
-            isRunning = true;
-            abortController = new AbortController();
-            startTime = performance.now();
-            totalBytes = 0;
-            speedSamples = [];
-            lastSampleTime = 0;
-            lastBytes = 0;
+    case MESSAGE_TYPES.START_UPLOAD: {
+        config = workerConfig;
+        isRunning = true;
+        abortController = new AbortController();
+        startTime = performance.now();
+        totalBytes = 0;
+        speedSamples = [];
+        lastSampleTime = 0;
+        lastBytes = 0;
 
-            // Create upload blob
-            uploadBlob = createUploadBlob();
+        // Create upload blob
+        uploadBlob = createUploadBlob();
 
-            // Create byte counters for each thread
-            const byteCounters = [];
-            for (let i = 0; i < threadCount; i++) {
-                byteCounters.push({ bytes: 0 });
-            }
-
-            // Start upload threads
-            for (let i = 0; i < threadCount; i++) {
-                uploadThread(i, byteCounters[i]);
-            }
-
-            // Start monitor loop
-            monitorLoop(threadCount, byteCounters);
-            break;
+        // Create byte counters for each thread
+        const byteCounters = [];
+        for (let i = 0; i < threadCount; i++) {
+            byteCounters.push({ bytes: 0 });
         }
 
-        case MESSAGE_TYPES.ABORT: {
-            isRunning = false;
-            if (abortController) {
-                abortController.abort();
-            }
-            break;
+        // Start upload threads
+        for (let i = 0; i < threadCount; i++) {
+            uploadThread(i, byteCounters[i]);
         }
+
+        // Start monitor loop
+        monitorLoop(threadCount, byteCounters);
+        break;
+    }
+
+    case MESSAGE_TYPES.ABORT: {
+        isRunning = false;
+        if (abortController) {
+            abortController.abort();
+        }
+        break;
+    }
     }
 };
 
