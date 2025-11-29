@@ -6,6 +6,25 @@ export function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// RequestIdleCallback wrapper for non-critical tasks
+export function scheduleIdleTask(callback, timeout = 5000) {
+    if ('requestIdleCallback' in window) {
+        return requestIdleCallback(callback, { timeout });
+    } else {
+        // Fallback for browsers without requestIdleCallback
+        return setTimeout(callback, 0);
+    }
+}
+
+// Cancel idle task
+export function cancelIdleTask(id) {
+    if ('cancelIdleCallback' in window) {
+        cancelIdleCallback(id);
+    } else {
+        clearTimeout(id);
+    }
+}
+
 export function formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -125,19 +144,55 @@ export class PerformanceMonitor {
             testEndTime: null,
             memoryUsage: [],
             networkRequests: 0,
-            errors: []
+            errors: [],
+            threadBlocks: 0,
+            threadBlockTime: 0,
+            lastFrameTime: null
         };
         this.enabled = false;
+        this.frameCallback = null;
     }
 
     enable() {
         this.enabled = true;
+        this.startFrameMonitoring();
         console.log('[Performance] Monitoring enabled');
     }
 
     disable() {
         this.enabled = false;
+        this.stopFrameMonitoring();
         console.log('[Performance] Monitoring disabled');
+    }
+
+    startFrameMonitoring() {
+        if (!this.enabled) return;
+
+        const monitorFrame = (timestamp) => {
+            if (!this.enabled) return;
+
+            if (this.metrics.lastFrameTime !== null) {
+                const frameTime = timestamp - this.metrics.lastFrameTime;
+
+                // Detect frame drops (frames taking > 17ms at 60fps)
+                if (frameTime > 17) {
+                    this.metrics.threadBlocks++;
+                    this.metrics.threadBlockTime += (frameTime - 16.67); // Time over budget
+                }
+            }
+
+            this.metrics.lastFrameTime = timestamp;
+            this.frameCallback = requestAnimationFrame(monitorFrame);
+        };
+
+        this.frameCallback = requestAnimationFrame(monitorFrame);
+    }
+
+    stopFrameMonitoring() {
+        if (this.frameCallback) {
+            cancelAnimationFrame(this.frameCallback);
+            this.frameCallback = null;
+        }
     }
 
     startTest() {
@@ -187,6 +242,7 @@ export class PerformanceMonitor {
         console.log(`Duration: ${duration.toFixed(2)}ms`);
         console.log(`Network requests: ${this.metrics.networkRequests}`);
         console.log(`Errors: ${this.metrics.errors.length}`);
+        console.log(`Main thread blocks: ${this.metrics.threadBlocks} (${this.metrics.threadBlockTime.toFixed(2)}ms total)`);
 
         if (this.metrics.errors.length > 0) {
             console.group('Errors:');

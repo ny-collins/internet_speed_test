@@ -527,42 +527,15 @@ CONFIG = {
 
 ## Performance Optimizations
 
-### 1. Reusable Upload Chunks
+For detailed performance optimization information including recent improvements (progressive enhancement, idle task scheduling, frame monitoring), see **[TECHNICAL_NOTES.md](TECHNICAL_NOTES.md)**.
 
-Instead of generating random data for each thread:
-```javascript
-// Generate once
-REUSABLE_UPLOAD_CHUNK = crypto.getRandomValues(new Uint8Array(64 * 1024))
+### Legacy Optimizations
 
-// Reuse for all threads
-const blob = new Blob([...Array(160).fill(REUSABLE_UPLOAD_CHUNK)])
-```
+**Reusable Upload Chunks**: Pre-generated 64KB random chunks reused across threads (10× faster startup)
 
-**Benefit**: 10× faster test startup
+**RequestAnimationFrame**: Smooth 60fps gauge updates without UI blocking
 
-### 2. RequestAnimationFrame for Gauge
-
-```javascript
-function updateGauge(speed) {
-    requestAnimationFrame(() => {
-        // Update DOM
-    })
-}
-```
-
-**Benefit**: Smooth 60fps animations, no UI blocking
-
-### 3. Byte Counter Objects
-
-```javascript
-const byteCounter = { bytes: 0 }  // Object reference
-threadPromise.then(() => {
-    // byteCounter.bytes updated by thread
-    totalBytes = sum(allByteCounters)
-})
-```
-
-**Benefit**: Threads update shared counters, no message passing overhead
+**Byte Counter Objects**: Shared counter objects avoid message passing overhead
 
 ---
 

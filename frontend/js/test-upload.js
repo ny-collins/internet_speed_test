@@ -4,7 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
-import { sleep } from './utils.js';
+import { sleep, scheduleIdleTask, cancelIdleTask, performanceMonitor } from './utils.js';
 import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 // Reusable 64KB chunk to avoid GC pressure and UI freezing
@@ -66,10 +66,17 @@ export async function measureUpload() {
     // Monitor Loop
     let finalBytes = 0;
     let finalDuration = 0;
-    
+    let idleTaskId = null;
+
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
+
+            // Schedule memory monitoring as idle task (non-critical)
+            if (idleTaskId) cancelIdleTask(idleTaskId);
+            idleTaskId = scheduleIdleTask(() => {
+                performanceMonitor.recordMemoryUsage();
+            });
 
             const elapsed = performance.now() - startTime;
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
@@ -139,6 +146,12 @@ export async function measureUpload() {
     };
 
     await monitorLoop();
+
+    // Cleanup idle task
+    if (idleTaskId) {
+        cancelIdleTask(idleTaskId);
+        idleTaskId = null;
+    }
 
     // Cleanup
     STATE.abortControllers.forEach(controller => {

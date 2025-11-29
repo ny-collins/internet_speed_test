@@ -28,6 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed by hiding sparkline until at least 2 data points are available
   - Prevents console errors during latency testing
 
+### Added
+
+**Performance Optimizations:**
+- **Progressive enhancement**: Device capability detection for optimal update intervals (50-200ms based on CPU cores and memory)
+- **RequestIdleCallback integration**: Non-critical memory monitoring scheduled during browser idle periods
+- **Frame drop detection**: Real-time UI performance monitoring using requestAnimationFrame
+- **Main thread protection**: Idle task scheduling prevents UI blocking during speed tests
+- **Backend CPU optimization**: Pre-generated 1MB random buffer eliminates crypto.randomBytes() blocking
+
+**Security Improvements:**
+- **PWA update banner security**: Replaced dynamic HTML injection with pre-defined secure banner
+- **XSS prevention**: Eliminated potential injection vulnerabilities in update notifications
+
 ### Improved
 
 **Learn Page Enhancements:**

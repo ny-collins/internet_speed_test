@@ -2,6 +2,25 @@
 // CONFIGURATION
 // ========================================
 
+// Progressive enhancement based on device capabilities
+function getOptimalUpdateInterval() {
+    const hardwareConcurrency = navigator.hardwareConcurrency || 4;
+    const deviceMemory = navigator.deviceMemory || 4; // GB
+
+    // Lower-end devices: reduce update frequency to prevent UI blocking
+    if (hardwareConcurrency <= 2 || deviceMemory <= 2) {
+        return 200; // 200ms instead of 100ms
+    }
+
+    // High-end devices: can handle more frequent updates
+    if (hardwareConcurrency >= 8 && deviceMemory >= 8) {
+        return 50; // 50ms for smoother updates
+    }
+
+    // Default for mid-range devices
+    return 100;
+}
+
 export const CONFIG = {
     // Test parameters (user configurable)
     threads: {
@@ -27,8 +46,8 @@ export const CONFIG = {
         checkWindow: 10,         // Analyze last 10 samples for more reliable detection
         varianceThreshold: 0.15  // Increased from 0.05 (5%) to 0.15 (15%) for more realistic stability detection
     },
-    // Performance
-    updateInterval: 100, // ms between gauge updates
+    // Performance (dynamically optimized)
+    updateInterval: getOptimalUpdateInterval(), // ms between gauge updates
     rafThrottle: 16,     // ~60fps
     // Data transfer
     chunkSize: 512,      // KB for download chunks

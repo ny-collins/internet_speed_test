@@ -4,7 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
-import { sleep, performanceMonitor } from './utils.js';
+import { sleep, scheduleIdleTask, cancelIdleTask, performanceMonitor } from './utils.js';
 import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 export async function measureDownload() {
@@ -40,10 +40,17 @@ export async function measureDownload() {
     // Monitor Loop
     let finalBytes = 0;
     let finalDuration = 0;
+    let idleTaskId = null;
+
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
-            performanceMonitor.recordMemoryUsage();
+
+            // Schedule memory monitoring as idle task (non-critical)
+            if (idleTaskId) cancelIdleTask(idleTaskId);
+            idleTaskId = scheduleIdleTask(() => {
+                performanceMonitor.recordMemoryUsage();
+            });
 
             const elapsed = performance.now() - startTime;
             totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
@@ -109,6 +116,12 @@ export async function measureDownload() {
     };
 
     await monitorLoop();
+
+    // Cleanup idle task
+    if (idleTaskId) {
+        cancelIdleTask(idleTaskId);
+        idleTaskId = null;
+    }
 
     // Cleanup threads
     STATE.abortControllers.forEach(controller => {
