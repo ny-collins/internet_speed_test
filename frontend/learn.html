@@ -62,6 +62,22 @@
     </header>
 
     <main class="app-container">
+        <nav class="toc-nav" aria-label="Table of contents">
+            <div class="toc-content">
+                <h2>Contents</h2>
+                <ul class="toc-list">
+                    <li><a href="#understanding">Understanding Speed Testing</a></li>
+                    <li><a href="#fixed-duration">Fixed Duration Standard</a></li>
+                    <li><a href="#amsterdam">Why Amsterdam?</a></li>
+                    <li><a href="#latency">Understanding Latency</a></li>
+                    <li><a href="#bandwidth-units">Mbps vs MB/s</a></li>
+                    <li><a href="#factors">Factors Affecting Results</a></li>
+                    <li><a href="#interpreting">Interpreting Results</a></li>
+                    <li><a href="#future">Future of Speed Testing</a></li>
+                </ul>
+            </div>
+        </nav>
+
         <article class="article-content">
             <header class="article-header">
                 <h1>The Truth About Internet Speed</h1>
@@ -69,14 +85,14 @@
             </header>
 
             <div class="article-body">
-                <section class="article-section">
+                <section class="article-section" id="understanding">
                     <h2>Understanding Internet Speed Testing</h2>
                     <p>Internet speed tests have become an essential tool for diagnosing connectivity issues and verifying service quality. However, not all speed tests are created equal. The methodology, server location, and measurement techniques can dramatically affect the results you see—and their relevance to your actual internet experience.</p>
                     
                     <p>This guide explains how SpeedCheck approaches internet speed measurement, why our methodology differs from conventional tests, and what your results truly mean for real-world usage.</p>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="fixed-duration">
                     <h2>The Fixed Duration Standard</h2>
                     <p>Traditional speed tests operate by downloading or uploading files of predetermined sizes and measuring how long the transfer takes. While straightforward, this approach introduces significant variability and potential inaccuracies:</p>
                     
@@ -101,7 +117,7 @@
                     <p>The 10-second window represents an engineering compromise between test accuracy, user convenience, and data efficiency. It is long enough to measure true sustained capacity while remaining short enough to complete quickly and conserve bandwidth.</p>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="amsterdam">
                     <h2>Why Amsterdam? The Geography of Internet Performance</h2>
                     <p>SpeedCheck deliberately measures your connection speed to a server located in <strong>Amsterdam, Netherlands</strong>. For users outside Europe, this may initially seem counterintuitive. However, this geographic choice reveals critical information that local speed tests systematically obscure.</p>
 
@@ -130,7 +146,7 @@
                     <p>By testing against Amsterdam, SpeedCheck provides a realistic assessment of your internet's capability to access the global digital ecosystem, not just local resources.</p>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="latency">
                     <h2>Understanding Latency: The Hidden Performance Factor</h2>
                     <p>While bandwidth (measured in Mbps) receives the most attention, <strong>latency</strong>—the time required for data to travel from your device to the server and back—fundamentally affects your internet experience, particularly for interactive applications.</p>
 
@@ -157,7 +173,7 @@
                     <p>Geographic distance fundamentally constrains latency due to the finite speed of light. Data traveling from Africa to Amsterdam must traverse thousands of kilometers of fiber optic cable, imposing a physical minimum latency based on propagation delay. This reality means international latency will inherently exceed local latency, regardless of connection quality.</p>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="bandwidth-units">
                     <h2>Bandwidth Units: Mbps vs MB/s</h2>
                     <p>One of the most persistent sources of confusion in internet speed measurement stems from the units used to express data rates. Understanding the distinction between bits and bytes is essential for interpreting speed test results and comparing them to real-world transfer speeds.</p>
 
@@ -184,7 +200,7 @@
                     <p>The telecommunications industry standardized on bits per second for historical and technical reasons. Network engineering focuses on bit rates because network equipment operates at the bit level, transmitting individual bits across physical media. Additionally, using Mbps produces larger numbers than MB/s—a factor that may influence marketing considerations.</p>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="factors">
                     <h2>Factors Affecting Your Speed Test Results</h2>
                     <p>Internet speed measurements reflect the performance of a complex system involving multiple components, any of which may introduce bottlenecks or variability. Understanding these factors helps interpret test results and diagnose connectivity issues.</p>
 
@@ -219,7 +235,7 @@
                     </div>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="interpreting">
                     <h2>Interpreting Your Results</h2>
                     <p>Speed test results provide valuable diagnostic information, but require context for proper interpretation. A single test represents a snapshot of performance at a specific moment under specific conditions.</p>
 
@@ -249,7 +265,7 @@
                     <p>Remember that testing to Amsterdam measures international performance. If you consistently achieve excellent speeds to local servers but poor speeds internationally, the limitation likely lies in your ISP's international connectivity rather than your local connection.</p>
                 </section>
 
-                <section class="article-section">
+                <section class="article-section" id="future">
                     <h2>The Future of Speed Testing</h2>
                     <p>As internet infrastructure continues to evolve, speed testing methodologies must adapt to remain relevant. Several trends are shaping the future of connection measurement:</p>
 
@@ -284,8 +300,38 @@
 
     <footer class="footer">
         <div class="footer-content">
-            <div class="footer-copyright">
-                <p>&copy; 2025 SpeedCheck. Educational Resources.</p>
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>SpeedCheck</h3>
+                    <p>Accurate international internet speed testing from Amsterdam, Netherlands. Measure your true global connectivity performance.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="/">Speed Test</a></li>
+                        <li><a href="/learn">Learn</a></li>
+                        <li><a href="#understanding">Understanding Tests</a></li>
+                        <li><a href="#factors">Best Practices</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Technical</h4>
+                    <ul>
+                        <li><a href="#fixed-duration">Fixed Duration Testing</a></li>
+                        <li><a href="#amsterdam">Amsterdam Server</a></li>
+                        <li><a href="#latency">Latency Measurement</a></li>
+                        <li><a href="#bandwidth-units">Mbps vs MB/s</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>&copy; 2025 SpeedCheck. Educational Resources.</p>
+                </div>
+                <div class="footer-meta">
+                    <p>Last updated: November 2025</p>
+                </div>
+            </div>
         </div>
     </footer>
 
