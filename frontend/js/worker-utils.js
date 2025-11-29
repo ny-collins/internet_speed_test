@@ -4,7 +4,7 @@
 // ========================================
 
 // Shared monitor loop function for both download and upload workers
-export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable) {
+export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability) {
     const maxDuration = config.duration[testType].max * 1000;
     const minDuration = config.duration[testType].min * 1000;
     const warmupDuration = config.warmupDuration * 1000;
@@ -15,12 +15,12 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
 
         const elapsed = performance.now() - startTime;
         const currentTotalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-
+        
         // Track bytes transferred during warm-up period
         if (elapsed <= warmupDuration) {
             warmupBytesRef.value = currentTotalBytes;
         }
-
+        
         totalBytesRef.value = currentTotalBytes;
 
         // Use the most recent interval speed for current display
@@ -70,9 +70,22 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
             break;
         }
     }
-}
 
-// Shared final calculation function
+    // Calculate final results and send completion message
+    const totalDuration = (performance.now() - startTime) / 1000;
+    const finalResults = calculateFinalResults(config, testType, totalBytesRef.value, warmupBytesRef.value, totalDuration, speedSamples, calculateStability);
+
+    // Send completion message
+    const messageType = testType === 'download' ? messageTypes.DOWNLOAD_COMPLETE : messageTypes.UPLOAD_COMPLETE;
+    self.postMessage({
+        type: messageType,
+        speed: finalResults.speed,
+        bytesTransferred: finalResults.bytesTransferred,
+        duration: finalResults.duration,
+        effectiveDuration: finalResults.effectiveDuration,
+        stability: finalResults.stability
+    });
+}// Shared final calculation function
 export function calculateFinalResults(config, testType, totalBytes, warmupBytes, totalDuration, speedSamples, calculateStability) {
     const warmUpPeriod = config.warmupDuration; // Exclude warm-up period
 

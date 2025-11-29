@@ -96,7 +96,7 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
     const lastBytesRef = { value: lastBytes };
     const lastIntervalSpeedRef = { value: lastIntervalSpeed };
 
-    await monitorLoop(config, 'download', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable);
+    await monitorLoop(config, 'download', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability);
 
     // Update local variables from refs
     isRunning = isRunningRef.value;
@@ -106,29 +106,6 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
     lastSampleTime = lastSampleTimeRef.value;
     lastBytes = lastBytesRef.value;
     lastIntervalSpeed = lastIntervalSpeedRef.value;
-
-    // Calculate final results (excluding warm-up period)
-    const totalDuration = (performance.now() - startTime) / 1000;
-    const warmUpPeriod = 2.0; // Exclude first 2 seconds to avoid TCP slow start penalty
-    
-    // Use only bytes transferred after warm-up period
-    const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
-    const effectiveDuration = Math.max(totalDuration - warmUpPeriod, 1.0); // Minimum 1 second
-    
-    // Calculate speed based on post-warmup performance only
-    const speedMbps = postWarmupBytes > 0 ? (postWarmupBytes * 8) / effectiveDuration / 1_000_000 : 0;
-
-    console.log(`[Download Worker] Final: ${speedMbps.toFixed(2)} Mbps (${postWarmupBytes.toLocaleString()} bytes post-warmup in ${effectiveDuration.toFixed(1)}s effective duration, ${warmupBytes.toLocaleString()} bytes during warmup)`);
-
-    // Send completion message
-    self.postMessage({
-        type: MESSAGE_TYPES.DOWNLOAD_COMPLETE,
-        speed: speedMbps,
-        bytesTransferred: postWarmupBytes, // Use post-warmup bytes for accuracy
-        duration: totalDuration,
-        effectiveDuration,
-        stability: calculateStability(speedSamples)
-    });
 }
 
 // Message handler
