@@ -173,7 +173,8 @@ if (config.corsOrigin === '*') {
       return callback(err);
     },
     credentials: false,
-    exposedHeaders: ['Content-Length', 'Content-Type']
+    exposedHeaders: ['Content-Length', 'Content-Type'],
+    maxAge: 86400
   }));
 }
 
