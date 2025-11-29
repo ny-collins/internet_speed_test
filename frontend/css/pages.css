@@ -366,17 +366,15 @@ body.page-learn {
 }
 
 .setting-section {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    /* Removed background, border, and border-radius for etched appearance */
+    padding: var(--spacing-lg) 0;
 }
 
 .setting-section-title {
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--color-text-primary);
-    margin: 0 0 var(--spacing-xs) 0;
+    margin: var(--spacing-lg) 0 var(--spacing-xs) 0;
 }
 
 .setting-section-description {
