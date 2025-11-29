@@ -94,10 +94,18 @@ export async function measureUpload() {
             case 'upload_complete': {
                 const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
 
-                // Wait for loaded latency measurement to complete
-                const loadedLatency = await loadedLatencyPromise;
+                // Handle loaded latency asynchronously (don't block UI)
+                loadedLatencyPromise.then(loadedLatency => {
+                    console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
+                    announceToScreenReader(`Upload speed: ${speed.toFixed(1)} megabits per second`);
 
-                // Cleanup
+                    // Store loaded latency in state for later use
+                    STATE.loadedLatency = loadedLatency;
+                }).catch(error => {
+                    console.warn('[Upload] Loaded latency measurement failed:', error);
+                });
+
+                // Cleanup immediately (don't wait for loaded latency)
                 cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
@@ -112,7 +120,7 @@ export async function measureUpload() {
                     return;
                 }
 
-                console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
+                console.log(`[Upload] Speed measurement complete: ${speed.toFixed(2)} Mbps`);
                 announceToScreenReader(`Upload speed: ${speed.toFixed(1)} megabits per second`);
 
                 resolve({
@@ -121,7 +129,7 @@ export async function measureUpload() {
                     duration,
                     effectiveDuration,
                     stability,
-                    loadedLatency
+                    loadedLatency: null // Will be updated asynchronously
                 });
                 break;
             }

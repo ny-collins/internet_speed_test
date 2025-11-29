@@ -90,42 +90,48 @@ export async function measureDownload() {
                     lastProgressUpdate = elapsed;
                     break;
 
-                case 'download_complete': {
-                    const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+            case 'download_complete': {
+                const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
 
-                    // Wait for loaded latency measurement to complete
-                    const loadedLatency = await loadedLatencyPromise;
-
-                    // Cleanup
-                    cleanup();
-                    if (idleTaskId) {
-                        cancelIdleTask(idleTaskId);
-                        idleTaskId = null;
-                    }
-                    worker.terminate();
-
-                    // Validate result
-                    if (speed > 10000 || speed < 0 || !isFinite(speed)) {
-                        console.warn('[Download] Invalid speed measurement:', speed);
-                        reject(new Error('Invalid download measurement result'));
-                        return;
-                    }
-
+                // Handle loaded latency asynchronously (don't block UI)
+                loadedLatencyPromise.then(loadedLatency => {
                     console.log(`[Download] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
                     announceToScreenReader(`Download speed: ${speed.toFixed(1)} megabits per second`);
 
-                    resolve({
-                        speed: speed,
-                        bytesTransferred: bytesTransferred,
-                        duration,
-                        effectiveDuration,
-                        stability,
-                        loadedLatency
-                    });
-                    break;
+                    // Store loaded latency in state for later use
+                    STATE.loadedLatency = loadedLatency;
+                }).catch(error => {
+                    console.warn('[Download] Loaded latency measurement failed:', error);
+                });
+
+                // Cleanup immediately (don't wait for loaded latency)
+                cleanup();
+                if (idleTaskId) {
+                    cancelIdleTask(idleTaskId);
+                    idleTaskId = null;
+                }
+                worker.terminate();
+
+                // Validate result
+                if (speed > 10000 || speed < 0 || !isFinite(speed)) {
+                    console.warn('[Download] Invalid speed measurement:', speed);
+                    reject(new Error('Invalid download measurement result'));
+                    return;
                 }
 
-                case 'download_error':
+                console.log(`[Download] Speed measurement complete: ${speed.toFixed(2)} Mbps`);
+                announceToScreenReader(`Download speed: ${speed.toFixed(1)} megabits per second`);
+
+                resolve({
+                    speed: speed,
+                    bytesTransferred: bytesTransferred,
+                    duration,
+                    effectiveDuration,
+                    stability,
+                    loadedLatency: null // Will be updated asynchronously
+                });
+                break;
+            }                case 'download_error':
                     console.error('[Download] Worker error:', data.error);
                     cleanup();
                     if (idleTaskId) {
