@@ -205,19 +205,6 @@ self.onmessage = function(e) {
 
         // Start monitor loop
         monitorLoopWrapper(threadCount, byteCounters);
-
-        // Calculate final results using shared utility
-        const finalResults = calculateFinalResults(config, 'upload', totalBytes, warmupBytes, (performance.now() - startTime) / 1000, speedSamples, calculateStability);
-
-        // Send completion message
-        self.postMessage({
-            type: MESSAGE_TYPES.UPLOAD_COMPLETE,
-            speed: finalResults.speed,
-            bytesTransferred: finalResults.bytesTransferred,
-            duration: finalResults.duration,
-            effectiveDuration: finalResults.effectiveDuration,
-            stability: finalResults.stability
-        });
         break;
     }
 
