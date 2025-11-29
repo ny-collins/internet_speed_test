@@ -5,6 +5,39 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.63.0] - 2025-11-29
+
+### Fixed
+
+**Critical Module Import Bug:**
+- **UI module reference error**: Fixed `ReferenceError: ui is not defined` in `startTest` function
+  - Root cause: UI functions imported as named imports but called as `ui.functionName()`
+  - Fixed by calling imported functions directly: `showGauge()`, `clearResultsDisplay()`, `setProgress(0)`
+  - Resolves console error preventing speed tests from starting
+
+**Speed Measurement Accuracy:**
+- **Timing discrepancy in speed calculations**: Fixed download/upload speed showing different values in console vs UI
+  - Root cause: Final speed calculated after test threads continued running post-duration
+  - Fixed by capturing `finalBytes` and `finalDuration` at exact moment test should end
+  - Ensures console and UI display identical, accurate speed measurements
+  - Applied to both download and upload tests, including early termination scenarios
+
+**Sparkline Rendering Bug:**
+- **SVG path NaN coordinates**: Fixed `Error: <path> attribute d: Expected number, "MNaN,30"`
+  - Root cause: Sparkline attempted to draw with only 1 data point (division by zero in coordinate calculation)
+  - Fixed by hiding sparkline until at least 2 data points are available
+  - Prevents console errors during latency testing
+
+### Improved
+
+**Learn Page Enhancements:**
+- **Professional navigation**: Added sticky table of contents with smooth scrolling
+- **Enhanced visual design**: Improved typography, callout boxes, section separators
+- **Responsive layout**: Mobile-optimized navigation and content flow
+- **Accessibility**: Proper ARIA labels and keyboard navigation support
+
+---
+
 ## [1.62.0] - 2025-10-16
 
 ### Fixed

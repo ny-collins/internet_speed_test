@@ -4,7 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://speed-test.up.railway.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.62.0-blue)](#)
+[![Version](https://img.shields.io/badge/version-1.63.0-blue)](#)
 [![Changelog](https://img.shields.io/badge/docs-changelog-informational)](docs/CHANGELOG.md)
 [![Technical Notes](https://img.shields.io/badge/docs-technical_notes-informational)](docs/TECHNICAL_NOTES.md)
 [![Functionality](https://img.shields.io/badge/docs-functionality-informational)](docs/FUNCTIONALITY.md)
@@ -481,22 +481,25 @@ Contributions are welcome! Areas for improvement:
 
 ## 📋 Version History
 
-### v1.62.0 (Current)
-**🚀 Code Quality & Performance Improvements**
+### v1.63.0 (Current)
+**🔧 Critical Bug Fixes & Measurement Accuracy**
 
-**Medium-Priority Fixes:**
-- ✅ **State Cleanup Consistency** - Added STATE.cancelling reset to finally block
-- 🐛 **Stability Calculation Fix** - Monitor loops now pass all samples (analyzes correct 10-sample window)
-- ⚡ **DOM Update Optimization** - Only update textContent if value changed (prevents unnecessary repaints)
-- 🎨 **CSS GPU Acceleration** - Added will-change and translateZ(0) for smoother gauge animations
-- 🧹 **Magic Numbers Extracted** - Created GAUGE_SCALES constant array for better maintainability
-- 🗑️ **Dead Code Removal** - Removed supportsStreamingUpload() (31 lines) and STATE.gaugeChart
+**Critical Fixes:**
+- ✅ **Module Import Error**: Fixed `ReferenceError: ui is not defined` preventing speed tests from starting
+- ✅ **Speed Display Discrepancy**: Console and UI now show identical download/upload speeds
+- ✅ **Sparkline Rendering**: Fixed SVG path errors during latency testing
+- ✅ **Timing Accuracy**: Speed calculations now use exact test duration (no post-duration data)
 
-**Impact:** Better performance, cleaner code, more reliable stability detection
+**Learn Page Enhancements:**
+- 📚 **Table of Contents**: Added sticky navigation with smooth scrolling
+- 🎨 **Professional Design**: Enhanced typography, visual hierarchy, and responsive layout
+- ♿ **Accessibility**: Improved navigation and screen reader support
+
+**Impact:** Fully functional speed testing with accurate measurements and enhanced user experience
 
 ---
 
-### v1.61.0
+### v1.62.0
 **🔒 Critical Security & Stability Fixes**
 
 **Critical Bug Fixes:**
@@ -693,7 +696,7 @@ The following enhancements are planned for future releases:
 
 ### **Timeline**
 
-- ✅ **v1.60.0** (Current) - Fixed-duration testing, bug fixes, documentation
+- ✅ **v1.63.0** (Current) - Critical bug fixes, measurement accuracy, learn page enhancements
 - 🔄 **v1.70.0** (Next) - Testing infrastructure + CI/CD pipeline
 - 📋 **v2.00.0** (Future) - Architectural refinements + enhanced features
 

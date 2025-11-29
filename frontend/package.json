@@ -1,6 +1,6 @@
 {
   "name": "speedcheck-frontend",
-  "version": "1.62.0",
+  "version": "1.63.0",
   "description": "Frontend static file server with PWA support",
   "type": "module",
   "scripts": {

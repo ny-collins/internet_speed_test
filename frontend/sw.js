@@ -2,14 +2,14 @@
 // SERVICE WORKER - SpeedCheck PWA
 // ========================================
 
-const CACHE_NAME = 'speedcheck-v1.62.0';
+const CACHE_NAME = 'speedcheck-v1.63.0';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/learn.html',
     '/404.html',
-    '/main.js?v=1.62.0',
-    '/main.css?v=1.62.0',
+    '/main.js?v=1.63.0',
+    '/main.css?v=1.63.0',
     '/favicon.svg',
     '/favicon-192x192.png',
     '/favicon-512x512.png',
