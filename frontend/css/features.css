@@ -269,3 +269,49 @@ canvas#historyChart {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
 }
+
+/* Mobile Optimizations */
+@media (max-width: 600px) {
+    .gauge-container {
+        padding: var(--spacing-lg) var(--spacing-sm);
+    }
+    
+    .gauge-wrapper {
+        max-width: 260px;
+    }
+    
+    .gauge-value-live {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+    }
+    
+    .gauge-unit {
+        font-size: var(--font-size-lg);
+    }
+    
+    .gauge-phase-label {
+        font-size: var(--font-size-sm);
+    }
+    
+    .gauge-start-button {
+        width: 75%;
+        height: 75%;
+    }
+    
+    .start-button-text {
+        font-size: var(--font-size-xl);
+    }
+    
+    .start-button-subtitle {
+        font-size: var(--font-size-xs);
+        margin-top: var(--spacing-xs);
+    }
+    
+    /* Improve progress phases on mobile */
+    .progress-phases {
+        gap: var(--spacing-md);
+    }
+    
+    .phase-label {
+        font-size: var(--font-size-sm);
+    }
+}

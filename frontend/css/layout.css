@@ -275,6 +275,41 @@
     .gauge-wrapper {
         max-width: 280px;
     }
+    
+    /* Improve touch targets on mobile */
+    .btn-primary, .btn-secondary {
+        min-height: 44px;
+        padding: var(--spacing-lg) var(--spacing-xl);
+        font-size: var(--font-size-base);
+    }
+    
+    /* Better spacing for controls on mobile */
+    .controls {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: stretch;
+    }
+    
+    .controls .btn-primary {
+        margin-left: 0;
+        margin-top: var(--spacing-sm);
+    }
+    
+    /* Improve results matrix on mobile */
+    .results-matrix {
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg) 0;
+    }
+    
+    .matrix-card {
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+    }
+    
+    /* Better gauge spacing on mobile */
+    .gauge-container {
+        padding: var(--spacing-xl) var(--spacing-md);
+    }
 }
 
 @media (min-width: 601px) and (max-width: 768px) {
