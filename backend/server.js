@@ -166,7 +166,11 @@ if (config.corsOrigin === '*') {
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       if (allowedOrigins.has(origin)) return callback(null, true);
-      return callback(new Error('Not allowed by CORS'));
+
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      const err = new Error(msg);
+      err.status = 403;
+      return callback(err);
     },
     credentials: false,
     exposedHeaders: ['Content-Length', 'Content-Type']
