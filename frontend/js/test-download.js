@@ -38,6 +38,8 @@ export async function measureDownload() {
     });
 
     // Monitor Loop
+    let finalBytes = 0;
+    let finalDuration = 0;
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
@@ -71,6 +73,9 @@ export async function measureDownload() {
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
                         if (isSpeedStable(speedSamples)) {
                             console.log('[Download] Speed stabilized, stopping early');
+                            // Capture final values at the exact moment the test should end
+                            finalBytes = totalBytes;
+                            finalDuration = elapsed / 1000;
                             isRunning = false;
                             break;
                         }
@@ -83,6 +88,9 @@ export async function measureDownload() {
 
             if (elapsed >= maxDuration) {
                 console.log('[Download] Max duration reached');
+                // Capture final values at the exact moment the test should end
+                finalBytes = totalBytes;
+                finalDuration = elapsed / 1000;
                 isRunning = false;
                 break;
             }
@@ -108,28 +116,29 @@ export async function measureDownload() {
     });
     STATE.abortControllers = [];
 
-    const endTime = performance.now();
-    const duration = (endTime - startTime) / 1000;
+    // Use the captured values from when the test ended
+    const duration = finalDuration || ((performance.now() - startTime) / 1000);
+    const bytesTransferred = finalBytes || byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
-    if (duration === 0 || totalBytes === 0) {
+    if (duration === 0 || bytesTransferred === 0) {
         console.warn('[Download] Invalid test data');
         throw new Error('Invalid download test data');
     }
 
-    const speedMbps = (totalBytes * 8) / duration / 1_000_000;
-    
+    const speedMbps = (bytesTransferred * 8) / duration / 1_000_000;
+
     // Validate result - prevent impossible measurements
     if (speedMbps > 10000 || speedMbps < 0 || !isFinite(speedMbps)) {
         console.warn('[Download] Invalid speed measurement:', speedMbps);
         throw new Error('Invalid download measurement result');
     }
-    
+
     console.log(`[Download] Final: ${speedMbps.toFixed(2)} Mbps`);
     announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
 
     return {
         speed: speedMbps,
-        bytesTransferred: totalBytes,
+        bytesTransferred: bytesTransferred,
         duration,
         stability: calculateStability(speedSamples)
     };

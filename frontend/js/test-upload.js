@@ -64,6 +64,9 @@ export async function measureUpload() {
     });
 
     // Monitor Loop
+    let finalBytes = 0;
+    let finalDuration = 0;
+    
     const monitorLoop = async () => {
         while (isRunning && !STATE.cancelling) {
             await sleep(CONFIG.updateInterval);
@@ -100,6 +103,9 @@ export async function measureUpload() {
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
                         if (isSpeedStable(speedSamples)) {
                             console.log('[Upload] Speed stabilized, stopping early');
+                            // Capture final values at the exact moment the test should end
+                            finalBytes = totalBytes;
+                            finalDuration = elapsed / 1000;
                             isRunning = false;
                             break;
                         }
@@ -112,6 +118,9 @@ export async function measureUpload() {
 
             if (elapsed >= maxDuration) {
                 console.log('[Upload] Max duration reached');
+                // Capture final values at the exact moment the test should end
+                finalBytes = totalBytes;
+                finalDuration = elapsed / 1000;
                 isRunning = false;
                 break;
             }
@@ -137,15 +146,16 @@ export async function measureUpload() {
     });
     STATE.abortControllers = [];
 
-    const endTime = performance.now();
-    const duration = (endTime - startTime) / 1000;
+    // Use the captured values from when the test ended
+    const duration = finalDuration || ((performance.now() - startTime) / 1000);
+    const bytesTransferred = finalBytes || byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
-    if (duration === 0 || totalBytes === 0) {
+    if (duration === 0 || bytesTransferred === 0) {
         console.warn('[Upload] Invalid test data');
         throw new Error('Invalid upload test data');
     }
 
-    const speedMbps = (totalBytes * 8) / duration / 1_000_000;
+    const speedMbps = (bytesTransferred * 8) / duration / 1_000_000;
     
     // Validate result - prevent impossible measurements
     if (speedMbps > 10000 || speedMbps < 0 || !isFinite(speedMbps)) {
@@ -158,7 +168,7 @@ export async function measureUpload() {
 
     return {
         speed: speedMbps,
-        bytesTransferred: totalBytes,
+        bytesTransferred: bytesTransferred,
         duration,
         stability: calculateStability(speedSamples)
     };
