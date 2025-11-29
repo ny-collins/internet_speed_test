@@ -14,6 +14,26 @@ const REUSABLE_UPLOAD_CHUNK = (() => {
     return chunk;
 })();
 
+// Pre-built blob for upload tests to avoid repeated blob creation
+const REUSABLE_UPLOAD_BLOB = (() => {
+    const totalSize = CONFIG.uploadSize * 1024 * 1024;
+    const chunkSize = REUSABLE_UPLOAD_CHUNK.length;
+    const chunksNeeded = Math.ceil(totalSize / chunkSize);
+    const chunks = [];
+    
+    for (let i = 0; i < chunksNeeded; i++) {
+        const isLastChunk = (i === chunksNeeded - 1);
+        const remaining = totalSize - (i * chunkSize);
+        if (isLastChunk && remaining < chunkSize) {
+            chunks.push(REUSABLE_UPLOAD_CHUNK.buffer.slice(0, remaining));
+        } else {
+            chunks.push(REUSABLE_UPLOAD_CHUNK.buffer);
+        }
+    }
+    
+    return new Blob(chunks, { type: 'application/octet-stream' });
+})();
+
 export async function measureUpload() {
     const threadCount = CONFIG.threads.upload;
     const maxDuration = CONFIG.duration.upload.max * 1000;
@@ -71,6 +91,11 @@ export async function measureUpload() {
                 if (intervalBytes > 0) {
                     const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                     speedSamples.push(intervalSpeed);
+                    
+                    // Limit sample history to prevent memory growth (keep last 100 samples)
+                    if (speedSamples.length > 100) {
+                        speedSamples.shift();
+                    }
 
                     if (elapsed >= minDuration && speedSamples.length >= CONFIG.stability.sampleCount) {
                         if (isSpeedStable(speedSamples)) {
@@ -140,26 +165,8 @@ export async function measureUpload() {
 }
 
 async function uploadThread(threadId, isRunning, byteCounter) {
-    const totalSize = CONFIG.uploadSize * 1024 * 1024;
     const abortController = new AbortController();
     const controllerIndex = STATE.abortControllers.push(abortController) - 1;
-
-    // Build the payload efficiently
-    const chunkSize = REUSABLE_UPLOAD_CHUNK.length;
-    const chunksNeeded = Math.ceil(totalSize / chunkSize);
-    const chunks = [];
-
-    for (let i = 0; i < chunksNeeded; i++) {
-        if (!isRunning() || STATE.cancelling || abortController.signal.aborted) return;
-        const isLastChunk = (i === chunksNeeded - 1);
-        const remaining = totalSize - (i * chunkSize);
-        if (isLastChunk && remaining < chunkSize) {
-            chunks.push(REUSABLE_UPLOAD_CHUNK.buffer.slice(0, remaining));
-        } else {
-            chunks.push(REUSABLE_UPLOAD_CHUNK.buffer);
-        }
-    }
-    const blob = new Blob(chunks, { type: 'application/octet-stream' });
 
     // XHR Promise
     return new Promise((resolve) => {
@@ -191,7 +198,7 @@ async function uploadThread(threadId, isRunning, byteCounter) {
 
         xhr.open('POST', `${CONFIG.apiBase}/api/upload?t=${Date.now()}`, true);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        xhr.send(blob);
+        xhr.send(REUSABLE_UPLOAD_BLOB);
     });
 }
 
