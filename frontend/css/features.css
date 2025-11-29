@@ -112,10 +112,10 @@
     gap: var(--spacing-sm);
 }
 
-.gauge-start-button:hover {
-    transform: translate(-50%, -50%) scale(1.05);
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
-    animation: softPulse 1.5s ease-in-out 1;
+.gauge-start-button:focus-visible {
+    outline: 4px solid var(--color-primary);
+    outline-offset: 4px;
+    box-shadow: var(--shadow-xl), 0 0 0 8px rgba(59, 130, 246, 0.3);
 }
 
 .start-button-subtitle {

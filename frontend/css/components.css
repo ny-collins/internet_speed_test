@@ -36,10 +36,21 @@
     border: 1px solid var(--color-border);
 }
 
-.btn-secondary:hover {
-    background: var(--color-danger);
-    color: white;
-    border-color: var(--color-danger);
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.cta-button:focus-visible,
+.btn-retry:focus-visible,
+.btn-reset:focus-visible,
+.btn-icon:focus-visible,
+.btn-icon-small:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+    box-shadow: var(--shadow-lg), 0 0 0 6px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:focus-visible,
+.cta-button:focus-visible {
+    background: var(--color-primary-hover);
 }
 
 .btn-retry {
