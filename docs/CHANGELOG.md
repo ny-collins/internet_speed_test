@@ -34,6 +34,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Ensures consistent, professional-grade speed measurements across all network conditions
   - Maintains accuracy for both short and long test durations
 
+### Fixed
+
+**Critical Bug Fixes:**
+- **Race Condition Resolution**: Fixed completion logic race condition causing 0 Mbps results
+  - Moved completion message sending from individual worker wrappers to shared `monitorLoop` function
+  - Ensures tests complete properly before reporting results
+  - Eliminates premature test termination with zero-speed results
+
+- **Cancellation Logic Fix**: Resolved broken test cancellation functionality
+  - Updated `monitorLoop` to check `abortSignal.aborted` in addition to `isRunningRef.value`
+  - Prevents monitoring loop from continuing after user cancels test
+  - Ensures immediate test termination when abort signal is received
+
+- **ES Module Integration**: Fixed Web Worker instantiation for modern browsers
+  - Added `{ type: 'module' }` option to Web Worker constructors in `test-download.js` and `test-upload.js`
+  - Enables proper loading of ES module-based worker files
+  - Prevents `SyntaxError: Cannot use import statement outside a module` runtime errors
+
+- **Code Quality Improvements**: Enhanced maintainability and performance
+  - Removed unused imports and variables across worker files
+  - Cleaned up linting issues for production-ready codebase
+  - Optimized memory usage in worker message handling
+
 ## [1.64.0] - 2025-11-29
 
 ### Added

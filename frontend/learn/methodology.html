@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn how internet speed tests work. Understand the technical methodology behind accurate speed measurements and testing protocols.">
+    <meta name="keywords" content="speed test methodology, internet testing protocol, speed measurement, testing accuracy, bandwidth measurement">
+    <meta name="author" content="Speed Test App">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://speed-test.up.railway.app/learn/methodology.html">
+    <meta property="og:title" content="Testing Methodology - How Speed Tests Work">
+    <meta property="og:description" content="Learn the technical methodology behind accurate internet speed testing and measurement protocols.">
+    <meta property="og:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://speed-test.up.railway.app/learn/methodology.html">
+    <meta property="twitter:title" content="Testing Methodology - How Speed Tests Work">
+    <meta property="twitter:description" content="Learn the technical methodology behind accurate internet speed testing and measurement protocols.">
+    <meta property="twitter:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="/main.css?v=1.65.0">
+    <link rel="stylesheet" href="/learn-shared.css?v=1.65.0">
+    <link rel="stylesheet" href="methodology.css?v=1.65.0">
+
+    <title>Testing Methodology - Learn</title>
+</head>
+</head>
+<body>
+    <div class="page-loader">
+        <i data-lucide="settings" class="loader-icon" style="width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 1rem;"></i>
+        <div class="loader-text">Loading technical content...</div>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo" style="text-decoration: none;">
+                <i data-lucide="zap" class="logo-icon"></i>
+                <h1 class="logo-text">SpeedCheck</h1>
+            </a>
+            <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
+                <i data-lucide="moon" class="theme-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <nav class="toc-nav" aria-label="Table of contents">
+            <div class="toc-content">
+                <h2>Contents</h2>
+                <ul class="toc-list">
+                    <li><a href="#how-tests-work">How Speed Tests Work</a></li>
+                    <li><a href="#testing-protocol">Testing Protocol</a></li>
+                    <li><a href="#measurement-accuracy">Measurement Accuracy</a></li>
+                    <li><a href="#server-selection">Server Selection</a></li>
+                    <li><a href="#data-handling">Data Handling</a></li>
+                    <li><a href="#latency-measurement">Latency Measurement</a></li>
+                </ul>
+                <div class="toc-note">
+                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+                </div>
+            </div>
+        </nav>
+
+        <article class="article-content">
+            <header class="article-header">
+                <nav class="breadcrumb">
+                    <a href="/learn.html">Learn</a>
+                    <span>/</span>
+                    <span>Testing Methodology</span>
+                </nav>
+                <h1>Testing Methodology</h1>
+                <p class="article-subtitle">Understanding how internet speed tests work and what makes them accurate.</p>
+            </header>
+
+            <div class="article-body">
+                <section class="article-section" id="how-tests-work">
+                    <h2>How Speed Tests Work</h2>
+                    <p>Internet speed tests measure your connection's performance by transferring data between your device and a test server. The process involves multiple phases designed to provide accurate, reliable measurements.</p>
+
+                    <div class="method-diagram">
+                        <h3>Speed Test Process Overview</h3>
+                        <p>1. <strong>Latency Test:</strong> Measure ping/response time<br>
+                        2. <strong>Download Test:</strong> Measure data reception speed<br>
+                        3. <strong>Upload Test:</strong> Measure data transmission speed<br>
+                        4. <strong>Results Analysis:</strong> Calculate and display final speeds</p>
+                    </div>
+
+                    <p>Each test phase uses different techniques to ensure accurate measurements while minimizing the impact on your network and other users.</p>
+                </section>
+
+                <section class="article-section" id="testing-protocol">
+                    <h2>Testing Protocol</h2>
+                    <p>Our speed test follows industry-standard protocols to ensure reliable and comparable results.</p>
+
+                    <div class="method-steps">
+                        <div class="method-step">
+                            <h4><span class="step-number">1</span>Connection Establishment</h4>
+                            <p>Establish secure HTTPS connection to test server. Verify connection stability and measure baseline latency.</p>
+                        </div>
+
+                        <div class="method-step">
+                            <h4><span class="step-number">2</span>Latency Measurement</h4>
+                            <p>Send multiple ping requests to measure round-trip time. Calculate average, minimum, and jitter values.</p>
+                        </div>
+
+                        <div class="method-step">
+                            <h4><span class="step-number">3</span>Download Test</h4>
+                            <p>Download test data in parallel streams. Gradually increase load to find maximum sustainable speed.</p>
+                        </div>
+
+                        <div class="method-step">
+                            <h4><span class="step-number">4</span>Upload Test</h4>
+                            <p>Upload test data using multiple concurrent connections. Measure transmission capacity and stability.</p>
+                        </div>
+
+                        <div class="method-step">
+                            <h4><span class="step-number">5</span>Results Processing</h4>
+                            <p>Analyze collected data, apply statistical methods, and generate final speed measurements.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="article-section" id="measurement-accuracy">
+                    <h2>Measurement Accuracy</h2>
+                    <p>Several techniques ensure our speed tests provide accurate and reliable results.</p>
+
+                    <h3>Multi-Stream Testing</h3>
+                    <p>Modern connections can handle multiple simultaneous data streams. Our tests use parallel connections to fully utilize available bandwidth and provide more accurate measurements.</p>
+
+                    <h3>Adaptive Load Testing</h3>
+                    <p>The test gradually increases the number of concurrent connections and data transfer rate to find your connection's maximum sustainable speed without causing congestion.</p>
+
+                    <h3>Statistical Analysis</h3>
+                    <p>Raw speed measurements can vary due to network conditions. We use statistical methods to filter outliers and provide stable, representative results.</p>
+
+                    <h3>Cross-Platform Consistency</h3>
+                    <p>The same testing algorithms run across all platforms (desktop, mobile, tablet) to ensure consistent results regardless of your device.</p>
+
+                    <div class="callout-box">
+                        <h3>Accuracy Factors</h3>
+                        <ul>
+                            <li><strong>Server Quality:</strong> High-performance servers with dedicated bandwidth</li>
+                            <li><strong>Protocol Optimization:</strong> Efficient HTTP/2 and TCP optimization</li>
+                            <li><strong>Error Correction:</strong> Automatic retry and error handling</li>
+                            <li><strong>Calibration:</strong> Regular server calibration against known standards</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="article-section" id="server-selection">
+                    <h2>Server Selection</h2>
+                    <p>Choosing the right test server is crucial for accurate results. Our system automatically selects the optimal server based on several criteria.</p>
+
+                    <h3>Geographic Optimization</h3>
+                    <p>Servers are strategically located worldwide to minimize the impact of geographic distance on test results. The system automatically selects the closest available server.</p>
+
+                    <h3>Network Quality</h3>
+                    <p>All test servers undergo regular quality assessments to ensure they have sufficient bandwidth and low latency to provide accurate measurements.</p>
+
+                    <h3>Load Balancing</h3>
+                    <p>Multiple servers in each location prevent overcrowding and ensure consistent performance even during peak usage times.</p>
+
+                    <h3>Real-time Monitoring</h3>
+                    <p>Server performance is continuously monitored. If a server becomes overloaded or experiences issues, users are automatically redirected to alternative servers.</p>
+                </section>
+
+                <section class="article-section" id="data-handling">
+                    <h2>Data Handling & Privacy</h2>
+                    <p>Your privacy and security are paramount. Here's how we handle test data:</p>
+
+                    <h3>No Personal Data Collection</h3>
+                    <p>We do not collect, store, or share any personally identifiable information. Speed tests are completely anonymous.</p>
+
+                    <h3>Test Data Usage</h3>
+                    <p>Test data consists of randomly generated bytes designed specifically for bandwidth testing. No actual user files or personal data are transmitted.</p>
+
+                    <h3>Secure Connections</h3>
+                    <p>All tests use HTTPS encryption to protect data in transit. Test servers are secured with industry-standard security measures.</p>
+
+                    <h3>Data Retention</h3>
+                    <p>Test results are not stored on our servers. Any temporary data generated during testing is immediately discarded after the test completes.</p>
+                </section>
+
+                <section class="article-section" id="latency-measurement">
+                    <h2>Latency Measurement</h2>
+                    <p>Latency (ping) measures how quickly your device communicates with servers on the internet. It's a critical factor for real-time applications.</p>
+
+                    <h3>How Latency is Measured</h3>
+                    <p>Latency is measured by sending small data packets to the test server and measuring how long it takes to receive a response. This process is repeated multiple times to ensure accuracy.</p>
+
+                    <h3>Jitter Measurement</h3>
+                    <p>Jitter measures the variation in latency over time. Consistent latency is important for smooth video calls and online gaming.</p>
+
+                    <h3>Latency vs Speed</h3>
+                    <p>While speed measures data transfer capacity, latency measures responsiveness. Both are important for different types of internet usage.</p>
+
+                    <div class="callout-box">
+                        <h3>Latency Guidelines</h3>
+                        <ul>
+                            <li><strong>Excellent:</strong> < 20ms (ideal for gaming)</li>
+                            <li><strong>Good:</strong> 20-50ms (fine for most activities)</li>
+                            <li><strong>Fair:</strong> 50-100ms (acceptable for general use)</li>
+                            <li><strong>Poor:</strong> > 100ms (may cause noticeable delays)</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="article-section">
+                    <h2>Next Steps</h2>
+                    <p>Ready to dive deeper into the technical aspects?</p>
+
+                    <div class="next-steps">
+                        <a href="technical.html" class="btn-primary">Explore Technical Concepts →</a>
+                        <a href="troubleshooting.html" class="btn-secondary">Troubleshoot Issues →</a>
+                    </div>
+                </section>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>SpeedCheck</h3>
+                    <p>Accurate international internet speed testing from Amsterdam, Netherlands.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Learn More</h4>
+                    <ul>
+                        <li><a href="/learn.html">Learning Center</a></li>
+                        <li><a href="basics.html">Speed Test Basics</a></li>
+                        <li><a href="technical.html">Technical Concepts</a></li>
+                        <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Tools</h4>
+                    <ul>
+                        <li><a href="/">Speed Test</a></li>
+                        <li><a href="https://github.com/ny-collins/internet_speed_test">Source Code</a></li>
+                        <li><a href="https://speed-test.up.railway.app/">Live Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="/main.js?v=1.65.0"></script>
+</body>
+</html>

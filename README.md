@@ -126,6 +126,7 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 - 🔬 **Scientific Measurement Accuracy** - TCP slow start compensation with byte tracking for professional-grade results
 - 📈 **Bufferbloat Detection** - Loaded latency measurement during active transfers for network quality analysis
 - ⚡ **Enhanced Responsiveness** - Asynchronous completion handling prevents UI freezing during test results
+- 🐛 **Critical Bug Fixes** - Race condition resolution, cancellation logic fix, ES module integration
 
 ### v1.64.0
 - 🚀 **Production-Grade Architecture** - Web Workers implementation for smooth 60fps UI during speed tests

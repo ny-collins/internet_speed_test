@@ -27,7 +27,7 @@
     <link rel="manifest" href="/site.webmanifest">
     
     <!-- Shared Stylesheet -->
-    <link rel="stylesheet" href="/main.css?v=1.63.0">
+    <link rel="stylesheet" href="/main.css?v=1.65.0">
     
     <title>Learn - Internet Speed Test</title>
     
@@ -111,43 +111,77 @@
     <main class="app-container">
         <nav class="toc-nav" aria-label="Table of contents">
             <div class="toc-content">
-                <h2>Contents</h2>
+                <h2>Learn Sections</h2>
                 <ul class="toc-list">
-                    <li><a href="#understanding">Understanding Speed Testing</a></li>
-                    <li><a href="#fixed-duration">Fixed Duration Standard</a></li>
-                    <li><a href="#amsterdam">Why Amsterdam?</a></li>
-                    <li><a href="#latency">Understanding Latency</a></li>
-                    <li><a href="#bandwidth-units">Mbps vs MB/s</a></li>
-                    <li><a href="#factors">Factors Affecting Results</a></li>
-                    <li><a href="#interpreting">Interpreting Results</a></li>
-                    <li><a href="#future">Future of Speed Testing</a></li>
+                    <li><a href="learn/basics.html">📚 Speed Test Basics</a></li>
+                    <li><a href="learn/methodology.html">🔬 Testing Methodology</a></li>
+                    <li><a href="learn/technical.html">⚙️ Technical Concepts</a></li>
+                    <li><a href="learn/troubleshooting.html">🔧 Troubleshooting Guide</a></li>
+                    <li><a href="learn/future.html">🚀 Future of Speed Testing</a></li>
                 </ul>
+                <div class="toc-note">
+                    <p>Choose a topic above to dive deeper into internet speed testing concepts.</p>
+                </div>
             </div>
         </nav>
 
         <article class="article-content">
             <header class="article-header">
-                <h1>The Truth About Internet Speed</h1>
-                <p class="article-subtitle">Why "fast" connections feel slow, and how we measure the difference.</p>
+                <h1>Internet Speed Testing Guide</h1>
+                <p class="article-subtitle">Master the fundamentals of internet speed measurement and optimization.</p>
             </header>
 
             <div class="article-body">
-                <section class="article-section" id="understanding">
-                    <h2>Understanding Internet Speed Testing</h2>
-                    <p>Internet speed tests have become an essential tool for diagnosing connectivity issues and verifying service quality. However, not all speed tests are created equal. The methodology, server location, and measurement techniques can dramatically affect the results you see—and their relevance to your actual internet experience.</p>
-                    
-                    <p>This guide explains how SpeedCheck approaches internet speed measurement, why our methodology differs from conventional tests, and what your results truly mean for real-world usage.</p>
+                <section class="article-section">
+                    <h2>Welcome to SpeedCheck Learning Center</h2>
+                    <p>Understanding internet speed testing goes beyond just running a quick test. Our comprehensive learning center breaks down complex networking concepts into digestible sections, helping you make informed decisions about your internet connection.</p>
+
+                    <div class="learning-paths">
+                        <div class="path-card">
+                            <h3>📚 Speed Test Basics</h3>
+                            <p>What speed tests measure, why they matter, and how to interpret results.</p>
+                            <a href="learn/basics.html" class="path-link">Start Learning →</a>
+                        </div>
+
+                        <div class="path-card">
+                            <h3>🔬 Testing Methodology</h3>
+                            <p>Why we test from Amsterdam, fixed-duration standards, and measurement accuracy.</p>
+                            <a href="learn/methodology.html" class="path-link">Explore Methods →</a>
+                        </div>
+
+                        <div class="path-card">
+                            <h3>⚙️ Technical Concepts</h3>
+                            <p>Latency, bandwidth units (Mbps vs MB/s), and network fundamentals.</p>
+                            <a href="learn/technical.html" class="path-link">Technical Deep Dive →</a>
+                        </div>
+
+                        <div class="path-card">
+                            <h3>🔧 Troubleshooting Guide</h3>
+                            <p>Factors affecting results and how to optimize your connection.</p>
+                            <a href="learn/troubleshooting.html" class="path-link">Solve Issues →</a>
+                        </div>
+
+                        <div class="path-card">
+                            <h3>🚀 Future of Speed Testing</h3>
+                            <p>Emerging technologies and the evolution of internet measurement.</p>
+                            <a href="learn/future.html" class="path-link">See the Future →</a>
+                        </div>
+                    </div>
                 </section>
 
-                <section class="article-section" id="fixed-duration">
-                    <h2>The Fixed Duration Standard</h2>
-                    <p>Traditional speed tests operate by downloading or uploading files of predetermined sizes and measuring how long the transfer takes. While straightforward, this approach introduces significant variability and potential inaccuracies:</p>
-                    
-                    <ul>
-                        <li><strong>Duration Inconsistency:</strong> Slow connections may require several minutes to complete the test, while gigabit connections finish in seconds.</li>
-                        <li><strong>TCP Warm-Up Issues:</strong> Fast connections may complete the test before TCP congestion control algorithms have time to ramp up to full speed.</li>
-                        <li><strong>User Experience Mismatch:</strong> Brief tests do not reflect sustained throughput capabilities needed for extended activities like video streaming or large file transfers.</li>
-                    </ul>
+                <section class="article-section">
+                    <h2>Quick Start Guide</h2>
+                    <p>Not sure where to begin? Here's a recommended learning path:</p>
+
+                    <ol class="learning-steps">
+                        <li><strong>New to Speed Testing?</strong> Start with <a href="learn/basics.html">Speed Test Basics</a></li>
+                        <li><strong>Curious About Our Methods?</strong> Check out <a href="learn/methodology.html">Testing Methodology</a></li>
+                        <li><strong>Technical User?</strong> Dive into <a href="learn/technical.html">Technical Concepts</a></li>
+                        <li><strong>Having Issues?</strong> Visit our <a href="learn/troubleshooting.html">Troubleshooting Guide</a></li>
+                    </ol>
+                </section>
+            </div>
+        </article>
 
                     <p><strong>SpeedCheck employs a fixed-duration methodology.</strong> Each measurement phase—download and upload—runs for precisely <strong>10 seconds</strong>, regardless of connection speed. This approach aligns with modern network engineering best practices and provides several critical advantages:</p>
                     
@@ -357,17 +391,17 @@
                     <ul>
                         <li><a href="/">Speed Test</a></li>
                         <li><a href="/learn">Learn</a></li>
-                        <li><a href="#understanding">Understanding Tests</a></li>
-                        <li><a href="#factors">Best Practices</a></li>
+                        <li><a href="learn/basics.html">Speed Test Basics</a></li>
+                        <li><a href="learn/troubleshooting.html">Best Practices</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Technical</h4>
                     <ul>
-                        <li><a href="#fixed-duration">Fixed Duration Testing</a></li>
-                        <li><a href="#amsterdam">Amsterdam Server</a></li>
-                        <li><a href="#latency">Latency Measurement</a></li>
-                        <li><a href="#bandwidth-units">Mbps vs MB/s</a></li>
+                        <li><a href="learn/methodology.html">Testing Methodology</a></li>
+                        <li><a href="learn/technical.html">Technical Concepts</a></li>
+                        <li><a href="learn/technical.html">Latency & Bandwidth</a></li>
+                        <li><a href="learn/future.html">Future of Testing</a></li>
                     </ul>
                 </div>
             </div>
@@ -400,6 +434,6 @@
         });
     </script>
 
-    <script type="module" src="/main.js?v=1.63.0"></script>
+    <script type="module" src="/main.js?v=1.65.0"></script>
 </body>
 </html>

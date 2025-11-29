@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deep dive into technical concepts of internet speed testing. Learn about TCP/IP, HTTP protocols, network architecture, and performance metrics.">
+    <meta name="keywords" content="TCP/IP, HTTP protocols, network architecture, bandwidth, throughput, latency, jitter, packet loss, internet protocols">
+    <meta name="author" content="Speed Test App">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://speed-test.up.railway.app/learn/technical.html">
+    <meta property="og:title" content="Technical Concepts - Deep Dive into Internet Speed Testing">
+    <meta property="og:description" content="Explore the technical fundamentals behind internet speed testing, protocols, and network performance metrics.">
+    <meta property="og:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://speed-test.up.railway.app/learn/technical.html">
+    <meta property="twitter:title" content="Technical Concepts - Deep Dive into Internet Speed Testing">
+    <meta property="twitter:description" content="Explore the technical fundamentals behind internet speed testing, protocols, and network performance metrics.">
+    <meta property="twitter:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="/main.css?v=1.65.0">
+    <link rel="stylesheet" href="/learn-shared.css?v=1.65.0">
+    <link rel="stylesheet" href="technical.css?v=1.65.0">
+
+    <title>Technical Concepts - Learn</title>
+</head>
+</head>
+<body>
+    <div class="page-loader">
+        <i data-lucide="cpu" class="loader-icon" style="width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 1rem;"></i>
+        <div class="loader-text">Loading technical documentation...</div>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo" style="text-decoration: none;">
+                <i data-lucide="zap" class="logo-icon"></i>
+                <h1 class="logo-text">SpeedCheck</h1>
+            </a>
+            <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
+                <i data-lucide="moon" class="theme-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <nav class="toc-nav" aria-label="Table of contents">
+            <div class="toc-content">
+                <h2>Contents</h2>
+                <ul class="toc-list">
+                    <li><a href="#network-stack">Network Protocol Stack</a></li>
+                    <li><a href="#tcp-optimization">TCP Optimization</a></li>
+                    <li><a href="#performance-metrics">Performance Metrics</a></li>
+                    <li><a href="#congestion-control">Congestion Control</a></li>
+                    <li><a href="#web-apis">Web APIs & Workers</a></li>
+                    <li><a href="#measurement-theory">Measurement Theory</a></li>
+                </ul>
+                <div class="toc-note">
+                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+                </div>
+            </div>
+        </nav>
+
+        <article class="article-content">
+            <header class="article-header">
+                <nav class="breadcrumb">
+                    <a href="/learn.html">Learn</a>
+                    <span>/</span>
+                    <span>Technical Concepts</span>
+                </nav>
+                <h1>Technical Concepts</h1>
+                <p class="article-subtitle">Deep dive into the technical fundamentals behind internet speed testing.</p>
+            </header>
+
+            <div class="article-body">
+                <section class="article-section" id="network-stack">
+                    <h2>Network Protocol Stack</h2>
+                    <p>Internet speed testing relies on multiple layers of network protocols working together. Understanding this stack helps explain how measurements are taken and what they represent.</p>
+
+                    <div class="protocol-stack">
+                        <div class="protocol-layer">
+                            <span class="layer-name">Application Layer (HTTP/2, WebSocket)</span>
+                            <span class="layer-desc">Handles high-level protocols for web communication and data transfer</span>
+                        </div>
+                        <div class="protocol-layer">
+                            <span class="layer-name">Transport Layer (TCP/UDP)</span>
+                            <span class="layer-desc">Manages reliable data delivery, flow control, and congestion control</span>
+                        </div>
+                        <div class="protocol-layer">
+                            <span class="layer-name">Network Layer (IP)</span>
+                            <span class="layer-desc">Routes data packets across networks using IP addresses</span>
+                        </div>
+                        <div class="protocol-layer">
+                            <span class="layer-name">Data Link Layer (Ethernet, Wi-Fi)</span>
+                            <span class="layer-desc">Handles physical transmission and error detection on local networks</span>
+                        </div>
+                        <div class="protocol-layer">
+                            <span class="layer-name">Physical Layer (Cables, Radio Waves)</span>
+                            <span class="layer-desc">Converts digital data into physical signals for transmission</span>
+                        </div>
+                    </div>
+
+                    <p>Each layer adds overhead and capabilities that affect the final speed measurements. Speed tests primarily measure performance at the transport and network layers.</p>
+                </section>
+
+                <section class="article-section" id="tcp-optimization">
+                    <h2>TCP Optimization</h2>
+                    <p>TCP (Transmission Control Protocol) is the backbone of internet data transfer. Understanding TCP mechanics is crucial for interpreting speed test results.</p>
+
+                    <h3>TCP Connection Establishment</h3>
+                    <p>Every TCP connection begins with a three-way handshake:</p>
+                    <ol>
+                        <li><strong>SYN:</strong> Client sends synchronization request</li>
+                        <li><strong>SYN-ACK:</strong> Server acknowledges and sends its own synchronization</li>
+                        <li><strong>ACK:</strong> Client acknowledges server's synchronization</li>
+                    </ol>
+
+                    <h3>Congestion Window</h3>
+                    <p>TCP uses a congestion window to control how much data can be sent before receiving acknowledgments. This window size directly affects achievable speeds.</p>
+
+                    <div class="code-example">
+                        <pre>// Simplified TCP congestion window growth
+initial_window = 1 MSS (Maximum Segment Size)
+for each successful ACK:
+    if (slow_start_phase):
+        window = window * 2  // Exponential growth
+    else:
+        window = window + 1  // Linear growth (congestion avoidance)</pre>
+                    </div>
+
+                    <h3>TCP Fast Open</h3>
+                    <p>Modern TCP implementations use TCP Fast Open (TFO) to eliminate the handshake delay for subsequent connections to the same server.</p>
+                </section>
+
+                <section class="article-section" id="performance-metrics">
+                    <h2>Performance Metrics</h2>
+                    <p>Beyond basic speed measurements, several key metrics provide a complete picture of network performance.</p>
+
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <h4>Bandwidth</h4>
+                            <div class="metric-value">Maximum Capacity</div>
+                            <div class="metric-unit">Bits per second (bps)</div>
+                            <p>The theoretical maximum data transfer rate of a connection.</p>
+                        </div>
+
+                        <div class="metric-card">
+                            <h4>Throughput</h4>
+                            <div class="metric-value">Actual Performance</div>
+                            <div class="metric-unit">Bits per second (bps)</div>
+                            <p>The actual data transfer rate achieved under real conditions.</p>
+                        </div>
+
+                        <div class="metric-card">
+                            <h4>Latency</h4>
+                            <div class="metric-value">Round-trip Time</div>
+                            <div class="metric-unit">Milliseconds (ms)</div>
+                            <p>Time for a packet to travel to server and back.</p>
+                        </div>
+
+                        <div class="metric-card">
+                            <h4>Jitter</h4>
+                            <div class="metric-value">Latency Variation</div>
+                            <div class="metric-unit">Milliseconds (ms)</div>
+                            <p>Variation in latency over time, affecting real-time applications.</p>
+                        </div>
+
+                        <div class="metric-card">
+                            <h4>Packet Loss</h4>
+                            <div class="metric-value">Lost Packets</div>
+                            <div class="metric-unit">Percentage (%)</div>
+                            <p>Percentage of packets that fail to reach their destination.</p>
+                        </div>
+
+                        <div class="metric-card">
+                            <h4>Buffer Bloat</h4>
+                            <div class="metric-value">Latency Increase</div>
+                            <div class="metric-unit">Milliseconds (ms)</div>
+                            <p>Increase in latency due to router buffer management issues.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="article-section" id="congestion-control">
+                    <h2>Congestion Control</h2>
+                    <p>Congestion control algorithms prevent network collapse by adapting to available bandwidth and managing data flow.</p>
+
+                    <h3>TCP Congestion Control Algorithms</h3>
+                    <ul>
+                        <li><strong>Reno:</strong> Classic algorithm with slow start and congestion avoidance</li>
+                        <li><strong>Cubic:</strong> Default in Linux, optimized for high-speed networks</li>
+                        <li><strong>BBR:</strong> Google-developed algorithm focusing on bottleneck bandwidth and latency</li>
+                        <li><strong>BBRv2:</strong> Improved version with better fairness and convergence</li>
+                    </ul>
+
+                    <h3>Active Queue Management</h3>
+                    <p>Modern routers use AQM (Active Queue Management) to prevent buffer bloat:</p>
+                    <ul>
+                        <li><strong>CoDel:</strong> Controlled Delay algorithm that manages queue length</li>
+                        <li><strong>FQ-CoDel:</strong> Flow Queue CoDel for fair bandwidth sharing</li>
+                        <li><strong>CAKE:</strong> Common Applications Kept Enhanced with advanced features</li>
+                    </ul>
+
+                    <div class="callout-box">
+                        <h3>Why Congestion Control Matters</h3>
+                        <p>Without proper congestion control, networks would collapse under high load. Speed tests must work within these constraints to provide realistic measurements.</p>
+                    </div>
+                </section>
+
+                <section class="article-section" id="web-apis">
+                    <h2>Web APIs & Web Workers</h2>
+                    <p>Modern speed tests leverage browser APIs and Web Workers for accurate, non-blocking measurements.</p>
+
+                    <h3>Web Workers</h3>
+                    <p>Web Workers run JavaScript in background threads, preventing UI blocking during intensive speed tests.</p>
+
+                    <div class="code-example">
+                        <pre>// Creating a Web Worker for speed testing
+const worker = new Worker('download-worker.js', { type: 'module' });
+
+// Send test parameters
+worker.postMessage({
+    url: 'https://test.server/download',
+    duration: 10000,
+    threads: 4
+});
+
+// Receive progress updates
+worker.onmessage = (event) => {
+    const { type, data } = event.data;
+    if (type === 'progress') {
+        updateProgress(data.speed);
+    }
+};</pre>
+                    </div>
+
+                    <h3>Fetch API & HTTP/2</h3>
+                    <p>The Fetch API provides modern HTTP capabilities with support for:</p>
+                    <ul>
+                        <li>HTTP/2 multiplexing for parallel requests</li>
+                        <li>Server push for optimized loading</li>
+                        <li>Request/response streaming</li>
+                        <li>Advanced caching controls</li>
+                    </ul>
+
+                    <h3>Performance APIs</h3>
+                    <p>Browser Performance APIs provide detailed timing information:</p>
+                    <ul>
+                        <li><strong>Performance.now():</strong> High-resolution timestamps</li>
+                        <li><strong>Resource Timing API:</strong> Detailed request metrics</li>
+                        <li><strong>Navigation Timing API:</strong> Page load performance</li>
+                    </ul>
+                </section>
+
+                <section class="article-section" id="measurement-theory">
+                    <h2>Measurement Theory</h2>
+                    <p>Accurate speed measurement requires understanding statistical principles and potential sources of error.</p>
+
+                    <h3>Statistical Considerations</h3>
+                    <p>Speed measurements follow statistical distributions. Multiple samples provide more reliable results:</p>
+                    <ul>
+                        <li><strong>Central Tendency:</strong> Mean, median, and mode calculations</li>
+                        <li><strong>Variance Analysis:</strong> Understanding measurement spread</li>
+                        <li><strong>Confidence Intervals:</strong> Range of likely true values</li>
+                        <li><strong>Outlier Detection:</strong> Filtering anomalous measurements</li>
+                    </ul>
+
+                    <h3>Sources of Measurement Error</h3>
+                    <div class="callout-box">
+                        <h3>Common Error Sources</h3>
+                        <ul>
+                            <li><strong>Server Limitations:</strong> Test server capacity constraints</li>
+                            <li><strong>Network Asymmetry:</strong> Different upload/download capacities</li>
+                            <li><strong>Cross-traffic:</strong> Other network activity affecting measurements</li>
+                            <li><strong>Protocol Overhead:</strong> TCP/IP headers and control packets</li>
+                            <li><strong>Measurement Timing:</strong> Clock synchronization issues</li>
+                            <li><strong>Compression Effects:</strong> Data compression altering transfer rates</li>
+                        </ul>
+                    </div>
+
+                    <h3>Calibration & Validation</h3>
+                    <p>Professional speed test services regularly calibrate their systems against known standards and reference measurements to ensure accuracy.</p>
+                </section>
+
+                <section class="article-section">
+                    <h2>Next Steps</h2>
+                    <p>Ready to put this knowledge into practice?</p>
+
+                    <div class="next-steps">
+                        <a href="troubleshooting.html" class="btn-primary">Troubleshoot Issues →</a>
+                        <a href="future.html" class="btn-secondary">Future Developments →</a>
+                    </div>
+                </section>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>SpeedCheck</h3>
+                    <p>Accurate international internet speed testing from Amsterdam, Netherlands.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Learn More</h4>
+                    <ul>
+                        <li><a href="/learn.html">Learning Center</a></li>
+                        <li><a href="basics.html">Speed Test Basics</a></li>
+                        <li><a href="methodology.html">Testing Methodology</a></li>
+                        <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Tools</h4>
+                    <ul>
+                        <li><a href="/">Speed Test</a></li>
+                        <li><a href="https://github.com/ny-collins/internet_speed_test">Source Code</a></li>
+                        <li><a href="https://speed-test.up.railway.app/">Live Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="/main.js?v=1.65.0"></script>
+</body>
+</html>

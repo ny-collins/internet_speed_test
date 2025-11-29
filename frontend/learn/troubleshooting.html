@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Troubleshoot internet speed test issues and connection problems. Learn how to diagnose and fix common speed testing problems.">
+    <meta name="keywords" content="speed test troubleshooting, connection problems, speed test errors, network diagnostics, internet issues, speed test fixes">
+    <meta name="author" content="Speed Test App">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://speed-test.up.railway.app/learn/troubleshooting.html">
+    <meta property="og:title" content="Troubleshooting - Fix Speed Test Issues">
+    <meta property="og:description" content="Learn how to diagnose and fix common internet speed test problems and connection issues.">
+    <meta property="og:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://speed-test.up.railway.app/learn/troubleshooting.html">
+    <meta property="twitter:title" content="Troubleshooting - Fix Speed Test Issues">
+    <meta property="twitter:description" content="Learn how to diagnose and fix common internet speed test problems and connection issues.">
+    <meta property="twitter:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="/main.css?v=1.65.0">
+    <link rel="stylesheet" href="/learn-shared.css?v=1.65.0">
+    <link rel="stylesheet" href="troubleshooting.css?v=1.65.0">
+
+    <title>Troubleshooting - Learn</title>
+</head>
+</head>
+<body>
+    <div class="page-loader">
+        <i data-lucide="wrench" class="loader-icon" style="width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 1rem;"></i>
+        <div class="loader-text">Loading troubleshooting guide...</div>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo" style="text-decoration: none;">
+                <i data-lucide="zap" class="logo-icon"></i>
+                <h1 class="logo-text">SpeedCheck</h1>
+            </a>
+            <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
+                <i data-lucide="moon" class="theme-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <nav class="toc-nav" aria-label="Table of contents">
+            <div class="toc-content">
+                <h2>Contents</h2>
+                <ul class="toc-list">
+                    <li><a href="#common-issues">Common Issues</a></li>
+                    <li><a href="#quick-fixes">Quick Fixes</a></li>
+                    <li><a href="#diagnostic-tools">Diagnostic Tools</a></li>
+                    <li><a href="#connection-problems">Connection Problems</a></li>
+                    <li><a href="#inconsistent-results">Inconsistent Results</a></li>
+                    <li><a href="#advanced-troubleshooting">Advanced Troubleshooting</a></li>
+                </ul>
+                <div class="toc-note">
+                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+                </div>
+            </div>
+        </nav>
+
+        <article class="article-content">
+            <header class="article-header">
+                <nav class="breadcrumb">
+                    <a href="/learn.html">Learn</a>
+                    <span>/</span>
+                    <span>Troubleshooting</span>
+                </nav>
+                <h1>Troubleshooting</h1>
+                <p class="article-subtitle">Diagnose and fix common internet speed test issues and connection problems.</p>
+            </header>
+
+            <div class="article-body">
+                <section class="article-section" id="common-issues">
+                    <h2>Common Issues</h2>
+                    <p>Most speed test problems fall into a few categories. Here's how to identify and resolve them.</p>
+
+                    <div class="troubleshoot-grid">
+                        <div class="troubleshoot-card">
+                            <span class="issue-type">VERY COMMON</span>
+                            <h4>0 Mbps Results</h4>
+                            <p>Test shows zero speed for download, upload, or both. Usually indicates a connection or configuration issue.</p>
+                        </div>
+
+                        <div class="troubleshoot-card">
+                            <span class="issue-type">COMMON</span>
+                            <h4>Slower Than Expected</h4>
+                            <p>Results are significantly lower than your ISP's advertised speeds. May indicate network congestion or configuration issues.</p>
+                        </div>
+
+                        <div class="troubleshoot-card">
+                            <span class="issue-type">COMMON</span>
+                            <h4>Test Won't Start</h4>
+                            <p>Clicking start doesn't begin the test or shows an error message. Often related to browser settings or network restrictions.</p>
+                        </div>
+
+                        <div class="troubleshoot-card">
+                            <span class="issue-type">OCCASIONAL</span>
+                            <h4>Inconsistent Results</h4>
+                            <p>Speeds vary significantly between tests. May indicate network instability or measurement timing issues.</p>
+                        </div>
+
+                        <div class="troubleshoot-card">
+                            <span class="issue-type">RARE</span>
+                            <h4>Test Times Out</h4>
+                            <p>Test starts but never completes, showing timeout errors. Usually indicates severe connectivity issues.</p>
+                        </div>
+
+                        <div class="troubleshoot-card">
+                            <span class="issue-type">RARE</span>
+                            <h4>Browser Errors</h4>
+                            <p>JavaScript errors or Web Worker failures. May indicate browser compatibility issues or security restrictions.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="article-section" id="quick-fixes">
+                    <h2>Quick Fixes</h2>
+                    <p>Try these simple solutions first before diving into detailed troubleshooting.</p>
+
+                    <div class="quick-fixes">
+                        <div class="quick-fix">
+                            <h4>🔄 Restart Your Router</h4>
+                            <p>Unplug your router for 30 seconds, then plug it back in. Wait 2 minutes for it to fully restart.</p>
+                        </div>
+
+                        <div class="quick-fix">
+                            <h4>🌐 Use Ethernet</h4>
+                            <p>Connect your device directly to the router with an Ethernet cable instead of Wi-Fi.</p>
+                        </div>
+
+                        <div class="quick-fix">
+                            <h4>🖥️ Try Different Browser</h4>
+                            <p>Test in a different browser (Chrome, Firefox, Edge) to rule out browser-specific issues.</p>
+                        </div>
+
+                        <div class="quick-fix">
+                            <h4>📱 Test on Different Device</h4>
+                            <p>Try the speed test on a different device to isolate device-specific problems.</p>
+                        </div>
+
+                        <div class="quick-fix">
+                            <h4>⏰ Test at Different Times</h4>
+                            <p>Network congestion can affect results. Test during off-peak hours (early morning, late night).</p>
+                        </div>
+
+                        <div class="quick-fix">
+                            <h4>🛑 Close Other Apps</h4>
+                            <p>Close bandwidth-intensive applications (streaming, downloads, video calls) during testing.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="article-section" id="diagnostic-tools">
+                    <h2>Diagnostic Tools</h2>
+                    <p>Use these tools to gather information about your connection and identify issues.</p>
+
+                    <div class="diagnostic-tool">
+                        <h4>Check Network Connection</h4>
+                        <p>Test basic connectivity to our servers:</p>
+                        <div class="tool-command">ping speed-test.up.railway.app</div>
+                        <p><strong>Expected:</strong> < 100ms latency, 0% packet loss</p>
+                    </div>
+
+                    <div class="diagnostic-tool">
+                        <h4>Test DNS Resolution</h4>
+                        <p>Verify DNS is working correctly:</p>
+                        <div class="tool-command">nslookup speed-test.up.railway.app</div>
+                        <p><strong>Expected:</strong> Returns valid IP addresses</p>
+                    </div>
+
+                    <div class="diagnostic-tool">
+                        <h4>Check Port Availability</h4>
+                        <p>Test if HTTPS port 443 is accessible:</p>
+                        <div class="tool-command">telnet speed-test.up.railway.app 443</div>
+                        <p><strong>Expected:</strong> Connection established message</p>
+                    </div>
+
+                    <div class="diagnostic-tool">
+                        <h4>Browser Developer Tools</h4>
+                        <p>Check for JavaScript errors:</p>
+                        <ul>
+                            <li>Press F12 to open developer tools</li>
+                            <li>Look for errors in Console tab</li>
+                            <li>Check Network tab for failed requests</li>
+                        </ul>
+                    </div>
+
+                    <div class="diagnostic-tool">
+                        <h4>Speed Test Alternatives</h4>
+                        <p>Compare results with other speed test services:</p>
+                        <ul>
+                            <li>Fast.com (Netflix)</li>
+                            <li>Speedtest.net (Ookla)</li>
+                            <li>Google Speed Test</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="article-section" id="connection-problems">
+                    <h2>Connection Problems</h2>
+                    <p>Step-by-step solutions for connection-related issues.</p>
+
+                    <h3>Problem: Test Shows 0 Mbps</h3>
+                    <div class="solution-steps">
+                        <ol>
+                            <li><strong>Check Internet Connection:</strong> Verify other websites load and you can browse normally</li>
+                            <li><strong>Disable VPN/Security Software:</strong> Temporarily disable VPNs, firewalls, or antivirus software</li>
+                            <li><strong>Try Incognito Mode:</strong> Test in a private/incognito browser window</li>
+                            <li><strong>Check Browser Extensions:</strong> Disable ad blockers and privacy extensions</li>
+                            <li><strong>Update Browser:</strong> Ensure you're using the latest browser version</li>
+                            <li><strong>Restart Device:</strong> Reboot your computer or mobile device</li>
+                        </ol>
+                    </div>
+
+                    <h3>Problem: Test Won't Start</h3>
+                    <div class="solution-steps">
+                        <ol>
+                            <li><strong>Enable JavaScript:</strong> Ensure JavaScript is enabled in browser settings</li>
+                            <li><strong>Allow Pop-ups:</strong> Make sure pop-up blockers aren't interfering</li>
+                            <li><strong>Check Web Workers:</strong> Ensure browser supports Web Workers (all modern browsers do)</li>
+                            <li><strong>Clear Browser Cache:</strong> Clear cache and cookies for the site</li>
+                            <li><strong>Disable Content Blockers:</strong> Temporarily disable uBlock Origin, AdBlock, etc.</li>
+                        </ol>
+                    </div>
+
+                    <h3>Problem: Extremely Slow Results</h3>
+                    <div class="solution-steps">
+                        <ol>
+                            <li><strong>Check Other Devices:</strong> Test speed on other devices on the same network</li>
+                            <li><strong>Router Proximity:</strong> Move closer to router or use Ethernet connection</li>
+                            <li><strong>Restart Router:</strong> Power cycle your router and modem</li>
+                            <li><strong>Check for Interference:</strong> Move away from microwaves, cordless phones, and other electronics</li>
+                            <li><strong>Update Router Firmware:</strong> Check for and install router firmware updates</li>
+                            <li><strong>Contact ISP:</strong> Results consistently below plan speed? Contact your ISP</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <section class="article-section" id="inconsistent-results">
+                    <h2>Inconsistent Results</h2>
+                    <p>Why speeds vary and how to get more reliable measurements.</p>
+
+                    <h3>Causes of Inconsistent Results</h3>
+                    <ul>
+                        <li><strong>Network Congestion:</strong> Peak usage times slow down shared connections</li>
+                        <li><strong>Wireless Interference:</strong> Neighboring Wi-Fi networks or electronic devices</li>
+                        <li><strong>Background Activity:</strong> Other devices or applications using bandwidth</li>
+                        <li><strong>Server Load:</strong> Test server temporarily overloaded</li>
+                        <li><strong>Measurement Timing:</strong> TCP slow-start phase affecting initial measurements</li>
+                        <li><strong>Route Changes:</strong> Internet routing changes between tests</li>
+                    </ul>
+
+                    <h3>Getting Consistent Results</h3>
+                    <div class="solution-steps">
+                        <ol>
+                            <li><strong>Test Multiple Times:</strong> Run 3-5 tests and average the results</li>
+                            <li><strong>Consistent Timing:</strong> Test at the same time of day</li>
+                            <li><strong>Minimize Interference:</strong> Close all other applications and devices</li>
+                            <li><strong>Use Ethernet:</strong> Wired connections provide more consistent results</li>
+                            <li><strong>Choose Same Server:</strong> Use the same test server for comparison</li>
+                            <li><strong>Avoid Peak Hours:</strong> Test during off-peak times (2-6 AM local time)</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <section class="article-section" id="advanced-troubleshooting">
+                    <h2>Advanced Troubleshooting</h2>
+                    <p>For persistent issues that basic troubleshooting doesn't resolve.</p>
+
+                    <h3>Network Analysis</h3>
+                    <p>Use advanced tools to analyze your network:</p>
+                    <ul>
+                        <li><strong>Wireshark:</strong> Packet analyzer for detailed network inspection</li>
+                        <li><strong>iperf:</strong> Command-line tool for bandwidth testing between devices</li>
+                        <li><strong>tracert/traceroute:</strong> Trace the path packets take to our servers</li>
+                        <li><strong>ping -t:</strong> Continuous ping to monitor connection stability</li>
+                    </ul>
+
+                    <h3>ISP-Level Issues</h3>
+                    <p>If you suspect ISP throttling or other provider issues:</p>
+                    <ul>
+                        <li>Contact your ISP's technical support</li>
+                        <li>Request a line quality test from your ISP</li>
+                        <li>Ask about any known outages or maintenance</li>
+                        <li>Inquire about data caps or throttling policies</li>
+                        <li>Consider testing with a different ISP temporarily</li>
+                    </ul>
+
+                    <h3>Hardware Diagnostics</h3>
+                    <p>Test and replace networking hardware:</p>
+                    <ul>
+                        <li><strong>Router:</strong> Try a different router if possible</li>
+                        <li><strong>Cables:</strong> Test with known good Ethernet cables</li>
+                        <li><strong>Network Card:</strong> Test with USB Ethernet adapter</li>
+                        <li><strong>Power Supply:</strong> Ensure router has adequate power</li>
+                    </ul>
+
+                    <div class="callout-box">
+                        <h3>When to Seek Professional Help</h3>
+                        <p>If you've tried all troubleshooting steps and still experience issues, consider consulting:</p>
+                        <ul>
+                            <li>Professional network technician</li>
+                            <li>Your ISP's advanced technical support</li>
+                            <li>Computer repair specialist</li>
+                            <li>Network engineering consultant</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="article-section">
+                    <h2>Next Steps</h2>
+                    <p>Still having issues or want to learn about future developments?</p>
+
+                    <div class="next-steps">
+                        <a href="future.html" class="btn-primary">Future Developments →</a>
+                        <a href="basics.html" class="btn-secondary">Back to Basics ←</a>
+                    </div>
+                </section>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>SpeedCheck</h3>
+                    <p>Accurate international internet speed testing from Amsterdam, Netherlands.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Learn More</h4>
+                    <ul>
+                        <li><a href="/learn.html">Learning Center</a></li>
+                        <li><a href="basics.html">Speed Test Basics</a></li>
+                        <li><a href="methodology.html">Testing Methodology</a></li>
+                        <li><a href="technical.html">Technical Concepts</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Tools</h4>
+                    <ul>
+                        <li><a href="/">Speed Test</a></li>
+                        <li><a href="https://github.com/ny-collins/internet_speed_test">Source Code</a></li>
+                        <li><a href="https://speed-test.up.railway.app/">Live Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="/main.js?v=1.65.0"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
-import { sleep, scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
+import { scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
 import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 export async function measureDownload() {
@@ -29,10 +29,9 @@ export async function measureDownload() {
         };
 
         // Create Web Worker
-        const worker = new Worker('./js/download-worker.js');
+        const worker = new Worker('./js/download-worker.js', { type: 'module' });
 
         let idleTaskId = null;
-        let lastProgressUpdate = 0;
         let smoothedSpeed = 0;
         let lastUiUpdate = 0;
         const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
@@ -54,7 +53,7 @@ export async function measureDownload() {
 
             switch (type) {
             case 'progress_update': {
-                const { elapsed, totalBytes, currentSpeed, speedSamples } = data;
+                const { currentSpeed } = data;
                 const now = performance.now();
 
                 // Update smoothed speed using exponential moving average
@@ -89,7 +88,6 @@ export async function measureDownload() {
                     downloadCard.style.setProperty('--progress', progress.toFixed(2));
                 }
 
-                lastProgressUpdate = elapsed;
                 break;
             }
 

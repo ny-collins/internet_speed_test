@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn the fundamentals of internet speed testing. Understand what speed tests measure and why they matter for your internet connection.">
+    <meta name="keywords" content="internet speed test basics, speed test explained, download speed, upload speed, internet measurement">
+    <meta name="author" content="Speed Test App">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://speed-test.up.railway.app/learn/basics.html">
+    <meta property="og:title" content="Speed Test Basics - Understanding Internet Speed Testing">
+    <meta property="og:description" content="Learn what internet speed tests measure and why they matter for your connection.">
+    <meta property="og:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://speed-test.up.railway.app/learn/basics.html">
+    <meta property="twitter:title" content="Speed Test Basics - Understanding Internet Speed Testing">
+    <meta property="twitter:description" content="Learn what internet speed tests measure and why they matter for your connection.">
+    <meta property="twitter:image" content="https://speed-test.up.railway.app/learn_page.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Shared Stylesheet -->
+    <link rel="stylesheet" href="/main.css?v=1.65.0">
+    <link rel="stylesheet" href="/learn-shared.css?v=1.65.0">
+
+    <title>Speed Test Basics - Learn</title>
+</head>
+</head>
+<body>
+    <div class="page-loader">
+        <i data-lucide="book-open" class="loader-icon" style="width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 1rem;"></i>
+        <div class="loader-text">Loading educational content...</div>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo" style="text-decoration: none;">
+                <i data-lucide="zap" class="logo-icon"></i>
+                <h1 class="logo-text">SpeedCheck</h1>
+            </a>
+            <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
+                <i data-lucide="moon" class="theme-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <nav class="toc-nav" aria-label="Table of contents">
+            <div class="toc-content">
+                <h2>Contents</h2>
+                <ul class="toc-list">
+                    <li><a href="#what-is-speed">What is Internet Speed?</a></li>
+                    <li><a href="#why-test">Why Test Your Speed?</a></li>
+                    <li><a href="#download-upload">Download vs Upload</a></li>
+                    <li><a href="#interpreting-results">Interpreting Results</a></li>
+                    <li><a href="#common-misconceptions">Common Misconceptions</a></li>
+                </ul>
+                <div class="toc-note">
+                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+                </div>
+            </div>
+        </nav>
+
+        <article class="article-content">
+            <header class="article-header">
+                <nav class="breadcrumb">
+                    <a href="/learn.html">Learn</a>
+                    <span>/</span>
+                    <span>Speed Test Basics</span>
+                </nav>
+                <h1>Speed Test Basics</h1>
+                <p class="article-subtitle">Understanding what internet speed tests measure and why they matter.</p>
+            </header>
+
+            <div class="article-body">
+                <section class="article-section" id="what-is-speed">
+                    <h2>What is Internet Speed?</h2>
+                    <p>Internet speed refers to how quickly data can be transmitted between your device and servers on the internet. It's typically measured in <strong>Megabits per second (Mbps)</strong> or <strong>Gigabits per second (Gbps)</strong>.</p>
+
+                    <p>Think of it like water flowing through a pipe: the wider the pipe and the stronger the water pressure, the more water can flow through per second. Similarly, your internet speed determines how much data can flow between your device and the internet.</p>
+
+                    <div class="callout-box">
+                        <h3>Key Speed Metrics</h3>
+                        <ul>
+                            <li><strong>Download Speed:</strong> How fast you can receive data from the internet</li>
+                            <li><strong>Upload Speed:</strong> How fast you can send data to the internet</li>
+                            <li><strong>Latency (Ping):</strong> How quickly your device gets a response from a server</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="article-section" id="why-test">
+                    <h2>Why Test Your Internet Speed?</h2>
+                    <p>Regular speed testing helps you:</p>
+
+                    <ul>
+                        <li><strong>Verify ISP Claims:</strong> Ensure you're getting the speeds you pay for</li>
+                        <li><strong>Diagnose Issues:</strong> Identify when your connection is slower than expected</li>
+                        <li><strong>Compare Services:</strong> Make informed decisions when choosing or switching ISPs</li>
+                        <li><strong>Optimize Setup:</strong> Determine if router placement or other factors affect performance</li>
+                        <li><strong>Monitor Quality:</strong> Track connection stability over time</li>
+                    </ul>
+
+                    <p>Speed tests are particularly important for activities that require consistent bandwidth, such as video streaming, online gaming, video conferencing, and large file transfers.</p>
+                </section>
+
+                <section class="article-section" id="download-upload">
+                    <h2>Download vs Upload Speed</h2>
+                    <p>Most internet plans advertise download speeds prominently, but upload speeds are equally important for many users.</p>
+
+                    <h3>Download Speed</h3>
+                    <p>Download speed measures how quickly you can receive data from the internet. This affects:</p>
+                    <ul>
+                        <li>Streaming videos and music</li>
+                        <li>Downloading files and software</li>
+                        <li>Loading web pages</li>
+                        <li>Video calls (receiving video from others)</li>
+                    </ul>
+
+                    <h3>Upload Speed</h3>
+                    <p>Upload speed measures how quickly you can send data to the internet. This affects:</p>
+                    <ul>
+                        <li>Video calls (sending your video)</li>
+                        <li>Uploading photos and videos to social media</li>
+                        <li>Cloud backups</li>
+                        <li>Live streaming</li>
+                        <li>Online gaming (sending game data)</li>
+                    </ul>
+
+                    <div class="callout-box">
+                        <h3>Upload Speed Guidelines</h3>
+                        <ul>
+                            <li><strong>HD Video Calling:</strong> 1.5-3 Mbps upload</li>
+                            <li><strong>4K Video Calling:</strong> 4-6 Mbps upload</li>
+                            <li><strong>Live Streaming (720p):</strong> 3-6 Mbps upload</li>
+                            <li><strong>Live Streaming (1080p):</strong> 6-8 Mbps upload</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="article-section" id="interpreting-results">
+                    <h2>Interpreting Your Results</h2>
+                    <p>Understanding what your speed test results mean helps you determine if your connection meets your needs.</p>
+
+                    <h3>Speed Categories</h3>
+                    <ul>
+                        <li><strong>25-50 Mbps:</strong> Good for light browsing, email, and SD streaming</li>
+                        <li><strong>50-100 Mbps:</strong> Suitable for HD streaming and multiple devices</li>
+                        <li><strong>100-500 Mbps:</strong> Excellent for 4K streaming and heavy usage</li>
+                        <li><strong>500+ Mbps:</strong> Future-proof for multiple 4K streams and gaming</li>
+                    </ul>
+
+                    <h3>Factors Affecting Results</h3>
+                    <p>Several factors can influence your speed test results:</p>
+                    <ul>
+                        <li><strong>Network Congestion:</strong> Peak usage times can slow speeds</li>
+                        <li><strong>Device Limitations:</strong> Older devices or Wi-Fi adapters may bottleneck speeds</li>
+                        <li><strong>Distance from Router:</strong> Wi-Fi signal strength decreases with distance</li>
+                        <li><strong>Background Activity:</strong> Other devices using bandwidth during the test</li>
+                        <li><strong>Server Location:</strong> Geographic distance affects latency and potential speeds</li>
+                    </ul>
+                </section>
+
+                <section class="article-section" id="common-misconceptions">
+                    <h2>Common Misconceptions</h2>
+
+                    <h3>Myth: "Faster is Always Better"</h3>
+                    <p>While higher speeds are generally better, they may not be necessary for basic internet usage. Choose a plan that matches your actual needs rather than the fastest available option.</p>
+
+                    <h3>Myth: "I Need Gigabit for 4K Streaming"</h3>
+                    <p>4K streaming typically requires only 7-10 Mbps. Gigabit speeds are overkill for most household activities but provide future-proofing and support for multiple simultaneous high-bandwidth activities.</p>
+
+                    <h3>Myth: "Wi-Fi is Always Slower Than Ethernet"</h3>
+                    <p>Modern Wi-Fi 6 and Wi-Fi 6E can achieve speeds comparable to Ethernet when conditions are optimal. The difference is often negligible for most users.</p>
+
+                    <h3>Myth: "Speed Tests Are Inaccurate"</h3>
+                    <p>Well-designed speed tests are highly accurate when run under proper conditions. Multiple tests at different times provide the most reliable results.</p>
+                </section>
+
+                <section class="article-section">
+                    <h2>Next Steps</h2>
+                    <p>Now that you understand the basics of internet speed testing, you might want to explore:</p>
+
+                    <div class="next-steps">
+                        <a href="methodology.html" class="btn-primary">Learn About Testing Methodology →</a>
+                        <a href="troubleshooting.html" class="btn-secondary">Troubleshoot Connection Issues →</a>
+                    </div>
+                </section>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>SpeedCheck</h3>
+                    <p>Accurate international internet speed testing from Amsterdam, Netherlands.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Learn More</h4>
+                    <ul>
+                        <li><a href="/learn.html">Learning Center</a></li>
+                        <li><a href="methodology.html">Testing Methodology</a></li>
+                        <li><a href="technical.html">Technical Concepts</a></li>
+                        <li><a href="troubleshooting.html">Troubleshooting</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Tools</h4>
+                    <ul>
+                        <li><a href="/">Speed Test</a></li>
+                        <li><a href="https://github.com/ny-collins/internet_speed_test">Source Code</a></li>
+                        <li><a href="https://speed-test.up.railway.app/">Live Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="/main.js?v=1.65.0"></script>
+</body>
+</html>

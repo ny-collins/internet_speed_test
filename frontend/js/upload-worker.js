@@ -3,7 +3,7 @@
 // Handles heavy upload processing off the main thread
 // ========================================
 
-import { monitorLoop, calculateFinalResults } from './worker-utils.js';
+import { monitorLoop } from './worker-utils.js';
 
 // Worker message types
 const MESSAGE_TYPES = {
@@ -139,7 +139,7 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
     const lastBytesRef = { value: lastBytes };
     const lastIntervalSpeedRef = { value: lastIntervalSpeed };
 
-    await monitorLoop(config, 'upload', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability);
+    await monitorLoop(config, 'upload', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortController.signal);
 
     // Update local variables from refs
     isRunning = isRunningRef.value;

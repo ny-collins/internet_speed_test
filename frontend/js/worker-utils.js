@@ -4,23 +4,23 @@
 // ========================================
 
 // Shared monitor loop function for both download and upload workers
-export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability) {
+export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortSignal) {
     const maxDuration = config.duration[testType].max * 1000;
     const minDuration = config.duration[testType].min * 1000;
     const warmupDuration = config.warmupDuration * 1000;
     warmupPeriodEndRef.value = startTime + warmupDuration;
 
-    while (isRunningRef.value) {
+    while (isRunningRef.value && !abortSignal.aborted) {
         await new Promise(resolve => setTimeout(resolve, config.updateInterval));
 
         const elapsed = performance.now() - startTime;
         const currentTotalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-        
+
         // Track bytes transferred during warm-up period
         if (elapsed <= warmupDuration) {
             warmupBytesRef.value = currentTotalBytes;
         }
-        
+
         totalBytesRef.value = currentTotalBytes;
 
         // Use the most recent interval speed for current display
