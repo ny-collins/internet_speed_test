@@ -98,10 +98,3 @@ MIT License - see [LICENSE](LICENSE) for details.
 ### v1.62.0
 - 🛡️ **Security Hardening** - XSS prevention, rate limiting, error handling
 - ⚡ **Fixed-Duration Testing** - Consistent 10-second tests, better accuracy
-
-## 🤝 Contributing
-
-We welcome contributions! See [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-## 📄 License
-
