@@ -46,6 +46,19 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# --- TARGETS ---
+# Frontend 1: The original deployment (Netherlands)
+FE1_URL="https://speed-test.up.railway.app"
+FE1_HOST="speed-test.up.railway.app"
+
+# Frontend 2: The optimized deployment (Nairobi/Cloudflare)
+FE2_URL="https://speed-test-ahc.pages.dev"
+FE2_HOST="speed-test-ahc.pages.dev"
+
+# Backend: The API (Netherlands)
+BACKEND_URL="https://speed-test-backend.up.railway.app"
+EVIL_ORIGIN="http://evil-hacker.com"
+
 # --- HELPER FUNCTIONS ---
 print_header() {
     echo -e "\n${BOLD}${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
@@ -69,7 +82,38 @@ check_status() {
 safe_curl() {
     local url="$1"
     local options="$2"
-    local timeout="${3:-10}"  # Default 10 second timeout
+    local timeout="${3:-10}"
+    
+    if [[ "$NO_WAIT" == "true" ]]; then
+        timeout="$((timeout / 2))"  # Shorter timeout when not waiting
+    fi
+    
+    # Try curl with timeout, capture both output and exit code
+    local output
+    local exit_code
+    output=$(curl --max-time "$timeout" --connect-timeout "$((timeout / 2))" -s -w "HTTPSTATUS:%{http_code};" $options "$url" 2>/dev/null)
+    exit_code=$?
+    
+    # If curl failed completely, return 000 status
+    if [[ $exit_code -ne 0 ]]; then
+        echo "000"
+        return
+    fi
+    
+    # Extract status code, default to 000 if not found
+    local status_code=$(echo "$output" | grep -o "HTTPSTATUS:[0-9]*" | cut -d: -f2)
+    if [[ -z "$status_code" ]]; then
+        echo "000"
+    else
+        echo "$status_code"
+    fi
+}
+
+# Safe curl wrapper that returns full response
+safe_curl_response() {
+    local url="$1"
+    local options="$2"
+    local timeout="${3:-10}"
     
     if [[ "$NO_WAIT" == "true" ]]; then
         timeout="$((timeout / 2))"  # Shorter timeout when not waiting
@@ -95,8 +139,10 @@ print_header "PHASE 1: GEOGRAPHICAL LATENCY (User Perspective)"
 
 # 1. Test Nairobi Frontend
 echo -n "Target: Frontend 2 (Nairobi) ...... "
-PING_FE2=$(ping -c 3 $FE2_HOST | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
-if (( $(echo "$PING_FE2 < 30" | bc -l) )); then
+PING_FE2=$(ping -c 3 $FE2_HOST 2>/dev/null | tail -1 | awk '{print $4}' | cut -d '/' -f 2 2>/dev/null || echo "N/A")
+if [[ "$PING_FE2" == "N/A" ]]; then
+    echo -e "${RED}N/A${NC} (ping failed)"
+elif (( $(echo "$PING_FE2 < 30" | bc -l 2>/dev/null || echo "1") )); then
     echo -e "${GREEN}${PING_FE2} ms${NC} (Excellent - Local Peer)"
 else
     echo -e "${YELLOW}${PING_FE2} ms${NC} (routed via Joburg?)"
@@ -104,13 +150,21 @@ fi
 
 # 2. Test Netherlands Frontend
 echo -n "Target: Frontend 1 (Netherlands) .. "
-PING_FE1=$(ping -c 3 $FE1_HOST | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
-echo -e "${CYAN}${PING_FE1} ms${NC} (Expected - Cross Continent)"
+PING_FE1=$(ping -c 3 $FE1_HOST 2>/dev/null | tail -1 | awk '{print $4}' | cut -d '/' -f 2 2>/dev/null || echo "N/A")
+if [[ "$PING_FE1" == "N/A" ]]; then
+    echo -e "${RED}N/A${NC} (ping failed)"
+else
+    echo -e "${CYAN}${PING_FE1} ms${NC} (Expected - Cross Continent)"
+fi
 
 # 3. Test Backend
 echo -n "Target: Backend API (Netherlands) . "
-PING_BE=$(ping -c 3 speed-test-backend.up.railway.app | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
-echo -e "${CYAN}${PING_BE} ms${NC} (Expected - Cross Continent)"
+PING_BE=$(ping -c 3 $BACKEND_URL 2>/dev/null | tail -1 | awk '{print $4}' | cut -d '/' -f 2 2>/dev/null || echo "N/A")
+if [[ "$PING_BE" == "N/A" ]]; then
+    echo -e "${RED}N/A${NC} (ping failed)"
+else
+    echo -e "${CYAN}${PING_BE} ms${NC} (Expected - Cross Continent)"
+fi
 
 
 # ---------------------------------------------------------
@@ -119,7 +173,7 @@ echo -e "${CYAN}${PING_BE} ms${NC} (Expected - Cross Continent)"
 print_header "PHASE 2: INFRASTRUCTURE FORENSICS"
 
 echo "Verifying Frontend 2 is actually in Nairobi..."
-CF_RESPONSE=$(safe_curl "$FE2_URL" "-I")
+CF_RESPONSE=$(safe_curl_response "$FE2_URL" "-I")
 CF_HEADER=$(echo "$CF_RESPONSE" | grep -i "cf-ray" | tr -d '\r')
 LOCATION_TAG=$(echo $CF_HEADER | awk -F'-' '{print $NF}')
 
@@ -138,7 +192,7 @@ fi
 print_header "PHASE 3: BACKEND HANDSHAKE ANALYSIS"
 
 echo "Measuring Connection Overhead..."
-HANDSHAKE_OUTPUT=$(safe_curl "$BACKEND_URL/api/ping" "-w '  - DNS Lookup:    %{time_namelookup}s\n  - TCP Connect:   %{time_connect}s\n  - TLS Handshake: %{time_appconnect}s\n  - TTFB (Wait):   %{time_starttransfer}s\n  - ${BOLD}Total:         %{time_total}s${NC}\n' -o /dev/null -s" 15)
+HANDSHAKE_OUTPUT=$(safe_curl_response "$BACKEND_URL/api/ping" "-w '  - DNS Lookup:    %{time_namelookup}s\n  - TCP Connect:   %{time_connect}s\n  - TLS Handshake: %{time_appconnect}s\n  - TTFB (Wait):   %{time_starttransfer}s\n  - ${BOLD}Total:         %{time_total}s${NC}\n' -o /dev/null -s" 15)
 if [[ -n "$HANDSHAKE_OUTPUT" ]]; then
     echo "$HANDSHAKE_OUTPUT"
 else
@@ -157,7 +211,7 @@ print_header "PHASE 4: SECURITY & CORS COMPLIANCE"
 
 # TEST A: Frontend 1 (Netherlands) -> Backend
 echo -e "${BOLD}Test A: Frontend 1 (Netherlands) -> Backend${NC}"
-CORS_RESPONSE_A=$(safe_curl "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $FE1_URL' -H 'Access-Control-Request-Method: GET'")
+CORS_RESPONSE_A=$(safe_curl_response "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $FE1_URL' -H 'Access-Control-Request-Method: GET'")
 HTTP_CODE_A=$(echo "$CORS_RESPONSE_A" | grep -E "^HTTP/" | awk '{print $2}' | tail -1)
 if [[ "$HTTP_CODE_A" == "204" || "$HTTP_CODE_A" == "200" ]]; then
     check_status "PASS" "Access Granted (Status: $HTTP_CODE_A)"
@@ -167,7 +221,7 @@ fi
 
 # TEST B: Frontend 2 (Nairobi) -> Backend
 echo -e "\n${BOLD}Test B: Frontend 2 (Nairobi) -> Backend${NC}"
-CORS_RESPONSE_B=$(safe_curl "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $FE2_URL' -H 'Access-Control-Request-Method: GET'")
+CORS_RESPONSE_B=$(safe_curl_response "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $FE2_URL' -H 'Access-Control-Request-Method: GET'")
 HTTP_CODE_B=$(echo "$CORS_RESPONSE_B" | grep -E "^HTTP/" | awk '{print $2}' | tail -1)
 if [[ "$HTTP_CODE_B" == "204" || "$HTTP_CODE_B" == "200" ]]; then
     check_status "PASS" "Access Granted (Status: $HTTP_CODE_B)"
@@ -177,7 +231,7 @@ fi
 
 # TEST C: The Hacker -> Backend
 echo -e "\n${BOLD}Test C: The Hacker (Malicious Origin) -> Backend${NC}"
-CORS_RESPONSE_C=$(safe_curl "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $EVIL_ORIGIN' -H 'Access-Control-Request-Method: GET'")
+CORS_RESPONSE_C=$(safe_curl_response "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $EVIL_ORIGIN' -H 'Access-Control-Request-Method: GET'")
 HTTP_CODE_C=$(echo "$CORS_RESPONSE_C" | grep -E "^HTTP/" | awk '{print $2}' | tail -1)
 if [[ "$HTTP_CODE_C" == "403" ]]; then
     check_status "PASS" "Access Blocked (Status: 403 Forbidden)"
@@ -194,7 +248,7 @@ fi
 print_header "PHASE 5: CACHE OPTIMIZATION"
 
 echo -n "Checking Preflight Cache Duration... "
-CACHE_RESPONSE=$(safe_curl "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $FE2_URL' -H 'Access-Control-Request-Method: GET'")
+CACHE_RESPONSE=$(safe_curl_response "$BACKEND_URL/" "-I -X OPTIONS -H 'Origin: $FE2_URL' -H 'Access-Control-Request-Method: GET'")
 CACHE_HEADER=$(echo "$CACHE_RESPONSE" | grep -i "Access-Control-Max-Age" | tr -d '\r')
 
 if [[ -n "$CACHE_HEADER" ]]; then
@@ -219,8 +273,9 @@ echo "Testing Response Time Consistency (5 requests)..."
 echo "Request | Time | Status"
 echo "--------|------|--------"
 for i in {1..5}; do
-    RESULT=$(safe_curl "$BACKEND_URL/api/ping" "-s -o /dev/null -w '%{time_total}|%{http_code}'" 5)
-    TIME=$(echo $RESULT | cut -d'|' -f1)
+    RESULT=$(safe_curl_response "$BACKEND_URL/api/ping" "-s -o /dev/null -w '%{time_total}|%{http_code}'" 5)
+    RESULT=$(echo "$RESULT" | tr -d "'")  # Remove any quotes
+    TIME=$(echo $RESULT | cut -d'|' -f1 | sed 's/s//')
     STATUS=$(echo $RESULT | cut -d'|' -f2)
     printf "%7d | %.3fs | %s\n" $i $TIME $STATUS
     sleep 0.5
@@ -234,8 +289,10 @@ else
     echo -n "Waiting 5 minutes for cold start... "
     sleep 300
     echo "Testing post-cold-start performance..."
-    COLD_START_TIME=$(safe_curl "$BACKEND_URL/api/ping" "-s -o /dev/null -w '%{time_total}'" 15)
-    if (( $(echo "$COLD_START_TIME > 10" | bc -l) )); then
+    COLD_START_TIME=$(safe_curl_response "$BACKEND_URL/api/ping" "-s -o /dev/null -w '%{time_total}'" 15)
+    COLD_START_TIME=$(echo "$COLD_START_TIME" | tr -d "'")  # Remove any quotes
+    COLD_START_NUM=$(echo "$COLD_START_TIME" | sed 's/s//')
+    if (( $(echo "$COLD_START_NUM > 10" | bc -l) )); then
         check_status "WARN" "Cold start detected (${COLD_START_TIME}s) - Expected for serverless"
     else
         check_status "PASS" "Fast recovery (${COLD_START_TIME}s)"
@@ -249,7 +306,7 @@ fi
 print_header "PHASE 7: SECURITY HEADERS & SSL"
 
 echo "Security Headers Check:"
-HEADERS=$(safe_curl "$BACKEND_URL/api/ping" "-I" | tr -d '\r')
+HEADERS=$(safe_curl_response "$BACKEND_URL/api/ping" "-I" | tr -d '\r')
 
 # Check each security header
 echo -n "Strict-Transport-Security: "
@@ -280,14 +337,14 @@ fi
 print_header "PHASE 8: NETWORK & PROTOCOL TESTS"
 
 echo -n "IPv6 Support: "
-if safe_curl "$BACKEND_URL/api/ping" "-6" 5 > /dev/null 2>&1; then
+if [[ $(safe_curl "$BACKEND_URL/api/ping" "-6" 5) != "000" ]]; then
     check_status "PASS" "IPv6 connectivity available"
 else
     check_status "WARN" "IPv6 not supported (common for IPv4-only deployments)"
 fi
 
 echo -n "HTTP/2 Support: "
-HTTP2_RESPONSE=$(safe_curl "$BACKEND_URL/api/ping" "-I --http2" 5)
+HTTP2_RESPONSE=$(safe_curl_response "$BACKEND_URL/api/ping" "-I --http2" 5)
 HTTP_VERSION=$(echo "$HTTP2_RESPONSE" | head -1 | cut -d' ' -f1)
 if [[ "$HTTP_VERSION" == "HTTP/2" ]]; then
     check_status "PASS" "HTTP/2 enabled"
@@ -296,7 +353,7 @@ else
 fi
 
 echo -n "Compression: "
-COMPRESSED_DATA=$(safe_curl "$BACKEND_URL/api/ping" "-H 'Accept-Encoding: gzip'" 5)
+COMPRESSED_DATA=$(safe_curl_response "$BACKEND_URL/api/ping" "-H 'Accept-Encoding: gzip'" 5)
 COMPRESSED=$(echo "$COMPRESSED_DATA" | head -c 2 | hexdump -C 2>/dev/null | head -1 | grep -q "1f8b" && echo "yes" || echo "no")
 if [[ "$COMPRESSED" == "yes" ]]; then
     check_status "PASS" "Gzip compression working"
@@ -334,7 +391,7 @@ echo -e "\nRate Limiting Test (10 rapid requests)..."
 FAILED_COUNT=0
 SUCCESS_COUNT=0
 for i in {1..10}; do
-    STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-s -o /dev/null -w '%{http_code}'" 3)
+    STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-s -o /dev/null" 3)
     if [[ "$STATUS" == "200" ]]; then
         ((SUCCESS_COUNT++))
     else
@@ -359,7 +416,7 @@ print_header "PHASE 10: ERROR HANDLING & EDGE CASES"
 echo "Testing Error Scenarios..."
 
 # Invalid endpoint
-INVALID_STATUS=$(safe_curl "$BACKEND_URL/api/invalid-endpoint" "-s -o /dev/null -w '%{http_code}'" 5)
+INVALID_STATUS=$(safe_curl "$BACKEND_URL/api/invalid-endpoint" "-s -o /dev/null" 5)
 if [[ "$INVALID_STATUS" == "404" ]]; then
     check_status "PASS" "404 handling correct"
 else
@@ -367,7 +424,7 @@ else
 fi
 
 # Wrong HTTP method
-METHOD_STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-X PUT -s -o /dev/null -w '%{http_code}'" 5)
+METHOD_STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-X PUT -s -o /dev/null" 5)
 if [[ "$METHOD_STATUS" == "404" ]]; then
     check_status "PASS" "Method not allowed handling correct"
 else
@@ -375,7 +432,7 @@ else
 fi
 
 # Large payload
-LARGE_PAYLOAD_STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-X POST -H 'Content-Length: 1000000' -s -o /dev/null -w '%{http_code}'" 5)
+LARGE_PAYLOAD_STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-X POST -H 'Content-Length: 1000000' -s -o /dev/null" 5)
 if [[ "$LARGE_PAYLOAD_STATUS" == "404" ]]; then
     check_status "PASS" "Large payload handling correct"
 else
@@ -383,7 +440,7 @@ else
 fi
 
 # Timeout test
-TIMEOUT_STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-s -o /dev/null -w '%{http_code}'" 1)
+TIMEOUT_STATUS=$(safe_curl "$BACKEND_URL/api/ping" "-s -o /dev/null" 1)
 if [[ -n "$TIMEOUT_STATUS" && "$TIMEOUT_STATUS" != "000" ]]; then
     check_status "PASS" "Timeout handling works"
 else
@@ -399,7 +456,7 @@ print_header "PHASE 11: FRONTEND SPECIFIC TESTS"
 echo "Testing Frontend Assets..."
 
 # Robots.txt
-ROBOTS_STATUS=$(safe_curl "$FE2_URL/robots.txt" "-s -o /dev/null -w '%{http_code}'" 5)
+ROBOTS_STATUS=$(safe_curl "$FE2_URL/robots.txt" "-s -o /dev/null" 5)
 if [[ "$ROBOTS_STATUS" == "200" ]]; then
     check_status "PASS" "Robots.txt available"
 else
@@ -407,7 +464,7 @@ else
 fi
 
 # Sitemap
-SITEMAP_STATUS=$(safe_curl "$FE2_URL/sitemap.xml" "-s -o /dev/null -w '%{http_code}'" 5)
+SITEMAP_STATUS=$(safe_curl "$FE2_URL/sitemap.xml" "-s -o /dev/null" 5)
 if [[ "$SITEMAP_STATUS" == "200" ]]; then
     check_status "PASS" "Sitemap available"
 else

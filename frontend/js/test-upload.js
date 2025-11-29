@@ -35,7 +35,7 @@ export async function measureUpload() {
         let lastProgressUpdate = 0;
         let smoothedSpeed = 0;
         let lastUiUpdate = 0;
-        const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
+        const UI_UPDATE_INTERVAL = 100;
 
         // Start the upload test
         worker.postMessage({
