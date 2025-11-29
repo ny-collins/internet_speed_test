@@ -15,6 +15,19 @@ export async function measureDownload() {
     announceToScreenReader(`Starting download test with ${threadCount} threads`);
 
     return new Promise((resolve, reject) => {
+        // Create abort controller for this test
+        const abortController = new AbortController();
+        const controllerIndex = STATE.abortControllers.push(abortController) - 1;
+        let cleanupDone = false;
+
+        const cleanup = () => {
+            if (cleanupDone) return;
+            cleanupDone = true;
+            if (controllerIndex !== -1 && STATE.abortControllers[controllerIndex] === abortController) {
+                STATE.abortControllers.splice(controllerIndex, 1);
+            }
+        };
+
         // Create Web Worker
         const worker = new Worker('./js/download-worker.js');
 
@@ -32,7 +45,7 @@ export async function measureDownload() {
         });
 
         // Start loaded latency measurement concurrently
-        const loadedLatencyPromise = measureLoadedLatency(CONFIG, STATE.abortControllers[STATE.abortControllers.length - 1], maxDuration);
+        const loadedLatencyPromise = measureLoadedLatency(CONFIG, abortController, maxDuration);
 
         // Handle worker messages
         worker.onmessage = async function(e) {
@@ -84,6 +97,7 @@ export async function measureDownload() {
                     const loadedLatency = await loadedLatencyPromise;
 
                     // Cleanup
+                    cleanup();
                     if (idleTaskId) {
                         cancelIdleTask(idleTaskId);
                         idleTaskId = null;
@@ -113,6 +127,7 @@ export async function measureDownload() {
 
                 case 'download_error':
                     console.error('[Download] Worker error:', data.error);
+                    cleanup();
                     if (idleTaskId) {
                         cancelIdleTask(idleTaskId);
                         idleTaskId = null;
@@ -125,6 +140,7 @@ export async function measureDownload() {
 
         worker.onerror = function(error) {
             console.error('[Download] Worker error:', error);
+            cleanup();
             if (idleTaskId) {
                 cancelIdleTask(idleTaskId);
                 idleTaskId = null;
@@ -137,6 +153,7 @@ export async function measureDownload() {
         const checkCancellation = () => {
             if (STATE.cancelling) {
                 worker.postMessage({ type: 'abort' });
+                cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
                     idleTaskId = null;

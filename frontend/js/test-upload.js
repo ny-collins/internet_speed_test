@@ -15,6 +15,19 @@ export async function measureUpload() {
     announceToScreenReader(`Starting upload test with ${threadCount} threads`);
 
     return new Promise((resolve, reject) => {
+        // Create abort controller for this test
+        const abortController = new AbortController();
+        const controllerIndex = STATE.abortControllers.push(abortController) - 1;
+        let cleanupDone = false;
+
+        const cleanup = () => {
+            if (cleanupDone) return;
+            cleanupDone = true;
+            if (controllerIndex !== -1 && STATE.abortControllers[controllerIndex] === abortController) {
+                STATE.abortControllers.splice(controllerIndex, 1);
+            }
+        };
+
         // Create Web Worker
         const worker = new Worker('./js/upload-worker.js');
 
@@ -32,7 +45,7 @@ export async function measureUpload() {
         });
 
         // Start loaded latency measurement concurrently
-        const loadedLatencyPromise = measureLoadedLatency(CONFIG, STATE.abortControllers[STATE.abortControllers.length - 1], maxDuration);
+        const loadedLatencyPromise = measureLoadedLatency(CONFIG, abortController, maxDuration);
 
         // Handle worker messages
         worker.onmessage = async function(e) {
@@ -85,6 +98,7 @@ export async function measureUpload() {
                 const loadedLatency = await loadedLatencyPromise;
 
                 // Cleanup
+                cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
                     idleTaskId = null;
@@ -114,6 +128,7 @@ export async function measureUpload() {
 
             case 'upload_error': {
                 console.error('[Upload] Worker error:', data.error);
+                cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
                     idleTaskId = null;
@@ -127,6 +142,7 @@ export async function measureUpload() {
 
         worker.onerror = function(error) {
             console.error('[Upload] Worker error:', error);
+            cleanup();
             if (idleTaskId) {
                 cancelIdleTask(idleTaskId);
                 idleTaskId = null;
@@ -139,6 +155,7 @@ export async function measureUpload() {
         const checkCancellation = () => {
             if (STATE.cancelling) {
                 worker.postMessage({ type: 'abort' });
+                cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
                     idleTaskId = null;
