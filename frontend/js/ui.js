@@ -401,6 +401,12 @@ export function drawSparkline(data) {
     const path = svg.querySelector('path');
     if (!path) return;
 
+    // Don't draw sparkline if we don't have enough data points
+    if (!data || data.length < 2) {
+        svg.parentElement.hidden = true;
+        return;
+    }
+
     svg.parentElement.hidden = false;
 
     const width = 100;
