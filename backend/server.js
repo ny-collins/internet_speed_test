@@ -266,7 +266,7 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 
     const remainingBytes = sizeInBytes - sent;
     const currentChunkSize = Math.min(chunkSize, remainingBytes);
-    
+
     // Use pre-generated buffer instead of blocking crypto.randomBytes()
     const chunk = RANDOM_BUFFER.slice(0, currentChunkSize);
 
