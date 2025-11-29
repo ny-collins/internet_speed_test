@@ -15,6 +15,7 @@
 }
 
 .btn-primary, .cta-button {
+    background: var(--color-primary); /* Fallback for gradient support */
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: white !important;
 }
@@ -94,8 +95,8 @@
 }
 
 .btn-icon-small {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border: 1px solid var(--color-border);
     background: var(--color-bg-elevated);
     color: var(--color-text-secondary);
@@ -195,6 +196,12 @@
     animation: shimmer 1.5s infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-gauge {
+        animation: none;
+    }
+}
+
 .skeleton-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -214,6 +221,12 @@
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-card {
+        animation: none;
+    }
 }
 
 @keyframes shimmer {
@@ -248,6 +261,7 @@
     position: fixed;
     inset: 0;
     background: var(--color-bg-overlay);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -263,6 +277,7 @@
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     box-shadow: var(--shadow-xl);
 }
 
@@ -306,6 +321,7 @@
     position: fixed;
     inset: 0;
     background: var(--color-bg-overlay);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -57,6 +57,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cleaned up linting issues for production-ready codebase
   - Optimized memory usage in worker message handling
 
+**🎨 Accessibility & User Experience Enhancements:**
+- **Reduced Motion Support**: Added `@media (prefers-reduced-motion: reduce)` for all animations
+  - Disables shimmer skeleton animations for users with motion sensitivity
+  - Respects system accessibility preferences for 404 page animations
+  - Improves usability for users with vestibular disorders
+
+- **Touch Target Optimization**: Increased minimum touch targets to 44px (WCAG/Apple guidelines)
+  - Updated `.btn-icon-small` from 40px to 44px for better mobile accessibility
+  - Ensures comfortable tapping on touch devices without accidental activation
+
+- **Gradient Contrast Fallbacks**: Added solid color fallbacks for gradient text and buttons
+  - `.logo-text` and `.btn-primary` now have fallback colors when gradients fail
+  - Maintains readability for users with visual impairments or unsupported browsers
+
+- **Mobile UX Improvements**: Enhanced scrolling behavior and text wrapping
+  - Added `overscroll-behavior: contain` to settings panel and help modal
+  - Prevents unwanted page scrolling when reaching modal content boundaries
+  - Added `word-break: break-word` and `hyphens: auto` to footer text for narrow screens
+
+- **Visual Consistency**: Unified empty state indicators across the application
+  - Changed gauge reset from "0" to "—" to match other empty states
+  - Provides clearer distinction between "no data" and actual zero measurements
+
+- **Layout Stability**: Fixed Cumulative Layout Shift (CLS) in sparkline rendering
+  - Changed from `display: none` to `visibility: hidden` for sparkline container
+  - Prevents layout jumps when sparkline appears/disappears during tests
+
+- **Modal Aesthetics**: Added backdrop blur effects for modern visual appeal
+  - Applied `backdrop-filter: blur(4px)` to all modal overlays
+  - Enhances focus and depth perception in modal interfaces
+
 ## [1.64.0] - 2025-11-29
 
 ### Added

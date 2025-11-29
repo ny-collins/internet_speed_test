@@ -38,6 +38,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: var(--color-primary); /* Fallback for gradient support */
     letter-spacing: -0.02em;
 }
 
@@ -60,6 +61,7 @@
     transform: translateX(100%);
     transition: transform var(--transition-base);
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .settings-panel[data-open="true"] {
@@ -123,6 +125,7 @@
         position: fixed;
         inset: 0;
         background: var(--color-bg-overlay);
+        backdrop-filter: blur(4px);
         z-index: -1;
         opacity: 0;
         transition: opacity var(--transition-base);

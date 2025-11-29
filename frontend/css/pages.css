@@ -308,6 +308,13 @@ body.page-learn {
     animation: float-404 3s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .page-404 .error-code,
+    .page-404 .error-icon {
+        animation: none;
+    }
+}
+
 @keyframes float-404 {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
@@ -628,6 +635,8 @@ body.page-learn {
     color: var(--color-text-secondary);
     line-height: 1.6;
     margin-bottom: 1rem;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .footer-section ul {

@@ -105,7 +105,7 @@ export function updateMatrixCardLive(phase, speed) {
 }
 
 export function resetGauge() {
-    if (DOM.gaugeValue) DOM.gaugeValue.textContent = '0';
+    if (DOM.gaugeValue) DOM.gaugeValue.textContent = '—';
     if (DOM.gaugePhase) DOM.gaugePhase.textContent = 'Ready';
 
     if (DOM.gaugeProgress) {
@@ -403,11 +403,11 @@ export function drawSparkline(data) {
 
     // Don't draw sparkline if we don't have enough data points
     if (!data || data.length < 2) {
-        svg.parentElement.hidden = true;
+        svg.parentElement.style.visibility = 'hidden';
         return;
     }
 
-    svg.parentElement.hidden = false;
+    svg.parentElement.style.visibility = 'visible';
 
     const width = 100;
     const height = 30;
