@@ -664,6 +664,16 @@ body.page-learn {
     color: var(--color-text-tertiary);
 }
 
+/* PWA Update Banner Animation */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+#update-btn:hover, #dismiss-btn:hover {
+    transform: scale(1.05);
+}
+
 @media (max-width: 768px) {
     .toc-nav {
         display: none; /* Hide TOC on mobile for better readability */

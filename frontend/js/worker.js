@@ -74,75 +74,17 @@ export function registerServiceWorker() {
 }
 
 function showUpdatePrompt() {
-    const banner = document.createElement('div');
-    banner.id = 'update-banner';
-    banner.innerHTML = `
-        <div style="
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            max-width: 90%;
-            animation: slideDown 0.3s ease-out;
-        ">
-            <span style="flex: 1; font-weight: 500;">
-                🎉 New version available! Update now for the latest features.
-            </span>
-            <button id="update-btn" style="
-                background: white;
-                color: #667eea;
-                border: none;
-                padding: 8px 20px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: transform 0.2s;
-            ">
-                Update Now
-            </button>
-            <button id="dismiss-btn" style="
-                background: transparent;
-                color: white;
-                border: 2px solid white;
-                padding: 8px 16px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: transform 0.2s;
-            ">
-                Later
-            </button>
-        </div>
-    `;
-
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        #update-btn:hover, #dismiss-btn:hover { transform: scale(1.05); }
-    `;
-    document.head.appendChild(style);
-    document.body.appendChild(banner);
+    const banner = document.getElementById('update-banner');
+    banner.hidden = false;
 
     document.getElementById('update-btn').addEventListener('click', () => {
-        banner.remove();
+        banner.hidden = true;
         if (STATE.pwa.newWorker) {
             STATE.pwa.newWorker.postMessage({ type: 'SKIP_WAITING' });
         }
     });
 
     document.getElementById('dismiss-btn').addEventListener('click', () => {
-        banner.remove();
+        banner.hidden = true;
     });
 }
