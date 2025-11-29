@@ -21,6 +21,11 @@ const logger = pino({
   } : undefined
 });
 
+// Pre-generate a large random buffer for download tests to avoid CPU blocking
+const RANDOM_BUFFER_SIZE = 1024 * 1024; // 1MB
+const RANDOM_BUFFER = crypto.randomBytes(RANDOM_BUFFER_SIZE);
+logger.info({ bufferSize: RANDOM_BUFFER_SIZE }, 'Pre-generated random buffer for download tests');
+
 const httpLogger = pinoHttp({
   logger,
   customLogLevel: (req, res, _err) => {
@@ -261,7 +266,9 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 
     const remainingBytes = sizeInBytes - sent;
     const currentChunkSize = Math.min(chunkSize, remainingBytes);
-    const chunk = crypto.randomBytes(currentChunkSize);
+    
+    // Use pre-generated buffer instead of blocking crypto.randomBytes()
+    const chunk = RANDOM_BUFFER.slice(0, currentChunkSize);
 
     const canContinue = res.write(chunk);
     sent += currentChunkSize;
