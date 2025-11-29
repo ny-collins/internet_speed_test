@@ -16,10 +16,12 @@ let isRunning = false;
 let abortController = null;
 let startTime = 0;
 let totalBytes = 0;
+let warmupBytes = 0; // Track bytes transferred during warm-up period
 let speedSamples = [];
 let lastSampleTime = 0;
 let lastBytes = 0;
 let lastIntervalSpeed = 0;
+let warmupPeriodEnd = 0; // When warm-up period ends
 
 // Configuration (passed from main thread)
 let config = {};
@@ -85,12 +87,21 @@ async function downloadThread(threadId, byteCounter) {
 async function monitorLoop(threadCount, byteCounters) {
     const maxDuration = config.duration.download.max * 1000;
     const minDuration = config.duration.download.min * 1000;
+    const warmupDuration = 2.0 * 1000; // 2 seconds warm-up
+    warmupPeriodEnd = startTime + warmupDuration;
 
     while (isRunning) {
         await new Promise(resolve => setTimeout(resolve, config.updateInterval));
 
         const elapsed = performance.now() - startTime;
-        totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+        const currentTotalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+        
+        // Track bytes transferred during warm-up period
+        if (elapsed <= warmupDuration) {
+            warmupBytes = currentTotalBytes;
+        }
+        
+        totalBytes = currentTotalBytes;
 
         // Use the most recent interval speed for current display
         const currentSpeed = lastIntervalSpeed;
@@ -138,18 +149,21 @@ async function monitorLoop(threadCount, byteCounters) {
     // Calculate final results (excluding warm-up period)
     const totalDuration = (performance.now() - startTime) / 1000;
     const warmUpPeriod = 2.0; // Exclude first 2 seconds to avoid TCP slow start penalty
+    
+    // Use only bytes transferred after warm-up period
+    const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
     const effectiveDuration = Math.max(totalDuration - warmUpPeriod, 1.0); // Minimum 1 second
+    
+    // Calculate speed based on post-warmup performance only
+    const speedMbps = postWarmupBytes > 0 ? (postWarmupBytes * 8) / effectiveDuration / 1_000_000 : 0;
 
-    const bytesTransferred = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-    const speedMbps = bytesTransferred > 0 ? (bytesTransferred * 8) / effectiveDuration / 1_000_000 : 0;
-
-    console.log(`[Download Worker] Final: ${speedMbps.toFixed(2)} Mbps (${bytesTransferred} bytes in ${totalDuration.toFixed(1)}s, effective: ${effectiveDuration.toFixed(1)}s)`);
+    console.log(`[Download Worker] Final: ${speedMbps.toFixed(2)} Mbps (${postWarmupBytes.toLocaleString()} bytes post-warmup in ${effectiveDuration.toFixed(1)}s effective duration, ${warmupBytes.toLocaleString()} bytes during warmup)`);
 
     // Send completion message
     self.postMessage({
         type: MESSAGE_TYPES.DOWNLOAD_COMPLETE,
         speed: speedMbps,
-        bytesTransferred,
+        bytesTransferred: postWarmupBytes, // Use post-warmup bytes for accuracy
         duration: totalDuration,
         effectiveDuration,
         stability: calculateStability(speedSamples)
