@@ -64,11 +64,28 @@ export function getFriendlyError(errorMessage) {
         'The user aborted a request': 'Test was cancelled.',
         'Timeout': 'Test took too long. Your connection may be very slow or unstable.',
         'Load failed': 'Failed to connect to server. Please try again.',
-        'Type error': 'An unexpected error occurred. Please refresh the page and try again.'
+        'Type error': 'An unexpected error occurred. Please refresh the page and try again.',
+        'Invalid download measurement': 'Download test produced invalid results. This may indicate network issues.',
+        'Invalid upload measurement': 'Upload test produced invalid results. This may indicate network issues.',
+        'CORS': 'Cross-origin request blocked. Please check your browser settings.',
+        '403': 'Access forbidden. The test server may be temporarily unavailable.',
+        '404': 'Test endpoint not found. The service may be under maintenance.',
+        '500': 'Server error. Please try again in a few moments.',
+        '502': 'Bad gateway. The test server is temporarily unavailable.',
+        '503': 'Service temporarily overloaded. Please try again later.',
+        'Circuit breaker': 'Server is temporarily busy. Please wait a moment and try again.'
     };
 
+    // Check for HTTP status codes in the message
+    const statusMatch = errorMessage.match(/Status (\d+)/);
+    if (statusMatch) {
+        const statusCode = statusMatch[1];
+        const statusError = errors[statusCode];
+        if (statusError) return statusError;
+    }
+
     for (const [key, message] of Object.entries(errors)) {
-        if (errorMessage.includes(key)) {
+        if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
             return message;
         }
     }

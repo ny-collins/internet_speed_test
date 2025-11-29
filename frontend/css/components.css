@@ -42,6 +42,17 @@
     border-color: var(--color-danger);
 }
 
+.btn-retry {
+    background: var(--color-warning);
+    color: var(--color-text-on-warning);
+    border-color: var(--color-warning);
+}
+
+.btn-retry:hover {
+    background: var(--color-warning-hover);
+    border-color: var(--color-warning-hover);
+}
+
 .btn-icon {
     width: 1.25rem;
     height: 1.25rem;

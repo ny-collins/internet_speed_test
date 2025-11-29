@@ -11,12 +11,14 @@ import { showStatus, announceToScreenReader } from './ui.js';
 // because they depend on the test logic modules (circular dependency avoidance)
 let startTestFn;
 let cancelTestFn;
+let retryTestFn;
 let clearHistoryFn;
 let exportHistoryFn;
 
-export function registerTestFunctions(start, cancel, clear, exportHist) {
+export function registerTestFunctions(start, cancel, retry, clear, exportHist) {
     startTestFn = start;
     cancelTestFn = cancel;
+    retryTestFn = retry;
     clearHistoryFn = clear;
     exportHistoryFn = exportHist;
 }
@@ -51,6 +53,7 @@ export function initializeEventListeners() {
     // Test Controls
     DOM.startTest?.addEventListener('click', () => startTestFn());
     DOM.cancelTest?.addEventListener('click', () => cancelTestFn());
+    DOM.retryTest?.addEventListener('click', () => retryTestFn());
     DOM.gaugeStartButton?.addEventListener('click', () => startTestFn());
 
     // History Actions

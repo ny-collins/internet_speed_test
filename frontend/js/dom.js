@@ -19,6 +19,7 @@ export const DOM = {
     // Test controls
     startTest: null,
     cancelTest: null,
+    retryTest: null,
     gaugeStartButton: null,
 
     // Gauge elements
@@ -70,6 +71,7 @@ export function queryDOMElements() {
     // Test controls
     DOM.startTest = document.getElementById('startTest');
     DOM.cancelTest = document.getElementById('cancelTest');
+    DOM.retryTest = document.getElementById('retryTest');
     DOM.gaugeStartButton = document.getElementById('gaugeStartButton');
 
     // Gauge elements

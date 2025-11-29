@@ -49,7 +49,7 @@ async function initializeApp() {
     }
     
     // 4. Register Test Functions (so events.js can call them without circular deps)
-    registerTestFunctions(startTest, cancelTest, clearHistory, exportHistory);
+    registerTestFunctions(startTest, cancelTest, retryTest, clearHistory, exportHistory);
     
     // 5. Setup Interaction Listeners (after DOM is queried)
     initializeEventListeners();
@@ -101,6 +101,10 @@ async function startTest() {
     STATE.cancelling = false;
     STATE.abortControllers = [];
     
+    // Hide retry button when starting a new test
+    const { DOM } = await import('./js/dom.js');
+    if (DOM.retryTest) DOM.retryTest.hidden = true;
+    
     // Reset Results
     STATE.testResults = { download: null, upload: null, latency: null, jitter: null };
     
@@ -138,13 +142,18 @@ async function startTest() {
     } catch (error) {
         console.error('[Test] Error:', error);
         const { getFriendlyError } = await import('./js/utils.js');
+        const { DOM } = await import('./js/dom.js');
+        
         showStatus(getFriendlyError(error.message), 'error');
+        
+        // Show retry button for failed tests
+        if (DOM.retryTest) DOM.retryTest.hidden = false;
     } finally {
         cleanupTest();
     }
 }
 
-async function runPhase(name, testFn) {
+async function runPhase(name, testFn, maxRetries = 2) {
     STATE.currentPhase = name;
     const ui = await import('./js/ui.js');
     ui.updatePhaseUI(name, 'active');
@@ -153,17 +162,46 @@ async function runPhase(name, testFn) {
     const duration = name === 'latency' ? 3 : 10;
     ui.startCountdown(duration);
     
-    console.log(`[Test] Starting ${name}...`);
-    const result = await testFn();
-    
-    // Hide countdown timer
-    ui.hideCountdown();
-    
-    if (!STATE.cancelling) {
-        STATE.testResults[name] = result;
-        ui.updatePhaseUI(name, 'complete');
-        ui.updateResultCard(name, result);
+    let lastError;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`[Test] Starting ${name} (attempt ${attempt + 1}/${maxRetries + 1})`);
+            const result = await testFn();
+            
+            // Hide countdown timer
+            ui.hideCountdown();
+            
+            if (!STATE.cancelling) {
+                STATE.testResults[name] = result;
+                ui.updatePhaseUI(name, 'complete');
+                ui.updateResultCard(name, result);
+            }
+            return; // Success, exit retry loop
+            
+        } catch (error) {
+            lastError = error;
+            console.warn(`[Test] ${name} attempt ${attempt + 1} failed:`, error.message);
+            
+            // Don't retry on user cancellation or certain errors
+            if (STATE.cancelling || 
+                error.message.includes('cancelled') || 
+                error.message.includes('Invalid') ||
+                error.message.includes('aborted')) {
+                break;
+            }
+            
+            // Wait before retry (exponential backoff)
+            if (attempt < maxRetries) {
+                const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s...
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+        }
     }
+    
+    // All retries failed
+    ui.hideCountdown();
+    throw lastError;
 }
 
 function cancelTest() {
@@ -181,6 +219,20 @@ function cancelTest() {
     
     showStatus('Test cancelled', 'info');
     cleanupTest();
+}
+
+async function retryTest() {
+    console.log('[Test] Retrying...');
+    
+    // Hide retry button
+    const { DOM } = await import('./js/dom.js');
+    if (DOM.retryTest) DOM.retryTest.hidden = true;
+    
+    // Clear any error status and start fresh
+    showStatus('Retrying speed test...', 'info');
+    
+    // Start a new test
+    startTest();
 }
 
 async function completeTest() {
