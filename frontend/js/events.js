@@ -33,6 +33,20 @@ export function initializeEventListeners() {
     DOM.settingsToggle?.addEventListener('click', toggleSettings);
     DOM.settingsClose?.addEventListener('click', toggleSettings);
 
+    // Click outside settings panel to close
+    DOM.settingsPanel?.addEventListener('click', (e) => {
+        if (e.target === DOM.settingsPanel) {
+            toggleSettings();
+        }
+    });
+
+    // ESC key to close settings panel
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && DOM.settingsPanel?.getAttribute('data-open') === 'true') {
+            toggleSettings();
+        }
+    });
+
     // Settings Controls
     if (DOM.downloadThreads) {
         DOM.downloadThreads.addEventListener('input', (e) => {
@@ -203,8 +217,11 @@ function toggleSettings() {
     DOM.settingsPanel.setAttribute('data-open', !isOpen);
     DOM.settingsToggle.setAttribute('aria-expanded', !isOpen);
 
+    // Prevent body scrolling when settings panel is open
+    document.body.style.overflow = !isOpen ? 'hidden' : '';
+
     if (!isOpen) {
-        setTimeout(() => DOM.downloadThreads?.focus(), 300);
+        // Remove auto-focus on downloadThreads to prevent autoscrolling
         announceToScreenReader('Settings panel opened');
     } else {
         DOM.settingsToggle?.focus();

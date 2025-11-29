@@ -126,6 +126,7 @@
         z-index: -1;
         opacity: 0;
         transition: opacity var(--transition-base);
+        pointer-events: auto;
     }
     
     .settings-panel[data-open="true"]::before {
