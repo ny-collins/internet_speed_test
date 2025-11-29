@@ -33,11 +33,18 @@ export function initializeEventListeners() {
     DOM.settingsToggle?.addEventListener('click', toggleSettings);
     DOM.settingsClose?.addEventListener('click', toggleSettings);
 
-    // Click outside settings panel to close
-    DOM.settingsPanel?.addEventListener('click', (e) => {
-        if (e.target === DOM.settingsPanel) {
+    // Click outside settings panel content to close
+    document.addEventListener('click', (e) => {
+        const isOpen = DOM.settingsPanel?.getAttribute('data-open') === 'true';
+        const settingsContent = DOM.settingsPanel?.querySelector('.settings-content');
+        if (isOpen && settingsContent && !settingsContent.contains(e.target) && !DOM.settingsToggle?.contains(e.target)) {
             toggleSettings();
         }
+    });
+
+    // Prevent clicks inside settings content from triggering document click
+    DOM.settingsPanel?.querySelector('.settings-content')?.addEventListener('click', (e) => {
+        e.stopPropagation();
     });
 
     // ESC key to close settings panel
