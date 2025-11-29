@@ -27,7 +27,7 @@ describe('CONFIG', () => {
         expect(CONFIG.stability).toBeDefined();
         expect(CONFIG.stability.sampleCount).toBe(5);
         expect(CONFIG.stability.checkWindow).toBe(10);
-        expect(CONFIG.stability.varianceThreshold).toBe(0.05);
+        expect(CONFIG.stability.varianceThreshold).toBe(0.15); // Updated from 0.05 to 0.15 for more realistic stability detection
     });
 
     test('has correct performance configuration', () => {

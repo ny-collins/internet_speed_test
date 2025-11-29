@@ -121,6 +121,13 @@ export async function measureUpload() {
     }
 
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
+    
+    // Validate result - prevent impossible measurements
+    if (speedMbps > 10000 || speedMbps < 0 || !isFinite(speedMbps)) {
+        console.warn('[Upload] Invalid speed measurement:', speedMbps);
+        throw new Error('Invalid upload measurement result');
+    }
+    
     console.log(`[Upload] Final: ${speedMbps.toFixed(2)} Mbps`);
     announceToScreenReader(`Upload speed: ${speedMbps.toFixed(1)} megabits per second`);
 

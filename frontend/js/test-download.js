@@ -116,6 +116,13 @@ export async function measureDownload() {
     }
 
     const speedMbps = (totalBytes * 8) / duration / 1_000_000;
+    
+    // Validate result - prevent impossible measurements
+    if (speedMbps > 10000 || speedMbps < 0 || !isFinite(speedMbps)) {
+        console.warn('[Download] Invalid speed measurement:', speedMbps);
+        throw new Error('Invalid download measurement result');
+    }
+    
     console.log(`[Download] Final: ${speedMbps.toFixed(2)} Mbps`);
     announceToScreenReader(`Download speed: ${speedMbps.toFixed(1)} megabits per second`);
 

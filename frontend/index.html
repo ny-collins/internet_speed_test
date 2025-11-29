@@ -93,7 +93,13 @@
             if (CURRENT_DOMAIN === EDGE_DOMAIN) return;
 
             const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const isLikelyAfrica = /Africa|Nairobi|Johannesburg|Lagos|Cairo|Algiers|Casablanca|Accra/.test(timeZone);
+            // More comprehensive Africa detection - check for African timezone patterns
+            const africanTimezones = [
+                'Africa/', 'WAT', 'CAT', 'EAT', 'CET', // Common African timezone patterns
+                'West Africa', 'Central Africa', 'East Africa', 'South Africa' // Additional patterns
+            ];
+            const isLikelyAfrica = africanTimezones.some(tz => timeZone.includes(tz)) || 
+                                   /Africa|Nairobi|Johannesburg|Lagos|Cairo|Algiers|Casablanca|Accra|Addis|Ababa|Khartoum|Tunis|Tripoli|Rabat|Nouakchott|Bamako|Ouagadougou|Niamey|Ndjamena|Bangui|Kinshasa|Brazzaville|Libreville|Sao|Tome|Malabo|Yaounde|Luanda|Windhoek|Gaborone|Harare|Lusaka|Maputo|Pretoria|Maseru|Mbabane|Antananarivo|Moroni|Victoria|Port|Louis|Saint|Denis|Jamestown|Praia|Dakar|Bissau|Conakry|Freetown|Monrovia|Accra|Lome|Cotonou|Porto|Novo|Abidjan|Yamoussoukro|Ouagadougou|Niamey|Ndjamena|Bangui|Kinshasa|Brazzaville|Libreville|Sao|Tome|Malabo|Yaounde|Luanda|Windhoek|Gaborone|Harare|Lusaka|Maputo|Pretoria|Maseru|Mbabane|Antananarivo|Moroni|Victoria|Port|Louis|Saint|Denis|Jamestown/.test(timeZone);
 
             const isDismissed = localStorage.getItem('hideAfricaBanner');
 

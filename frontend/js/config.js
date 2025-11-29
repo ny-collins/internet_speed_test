@@ -25,7 +25,7 @@ export const CONFIG = {
     stability: {
         sampleCount: 5,          // Minimum samples required before checking stability
         checkWindow: 10,         // Analyze last 10 samples for more reliable detection
-        varianceThreshold: 0.05
+        varianceThreshold: 0.15  // Increased from 0.05 (5%) to 0.15 (15%) for more realistic stability detection
     },
     // Performance
     updateInterval: 100, // ms between gauge updates
