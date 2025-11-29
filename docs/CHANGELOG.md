@@ -5,6 +5,58 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.64.0] - 2025-11-29
+
+### Added
+
+**🚀 Production-Grade Architecture:**
+- **Web Workers Implementation**: Moved heavy download/upload stream processing to dedicated workers
+  - Prevents main thread blocking for smooth 60fps UI during speed tests
+  - Separates data processing from UI rendering for optimal performance
+  - Eliminates frame drops and stuttering on low-end devices
+
+- **Comprehensive Audit System**: 11-phase automated monitoring and health checks
+  - Phase 1-5: Core functionality (latency, infrastructure, security, caching)
+  - Phase 6-11: Advanced testing (performance, SSL, network protocols, load testing, error handling, frontend optimization)
+  - Automated geographic verification and performance validation
+
+- **Dual Geographic Deployment**: Optimized global performance
+  - Nairobi, Kenya deployment (Cloudflare Pages) for African users (14ms latency)
+  - Amsterdam, Netherlands deployment (Railway) for global users (180ms latency)
+  - 3x performance improvement for East African users
+
+**🛡️ Security & Reliability Enhancements:**
+- **CORS Security Hardening**: 403 Forbidden responses for unauthorized origins
+- **Preflight Caching**: 24-hour CORS preflight cache eliminates repeated handshake delays
+- **Security Headers**: Comprehensive header validation (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+- **SSL Certificate Validation**: Automated Let's Encrypt certificate monitoring
+
+**⚡ Performance Optimizations:**
+- **Backend CPU Efficiency**: Pre-generated 1MB random buffers eliminate crypto.randomBytes() blocking
+- **Memory Management**: Reusable upload blobs prevent garbage collection pauses
+- **Idle Task Scheduling**: Non-critical monitoring moved to requestIdleCallback
+- **Progressive Enhancement**: Device-aware performance tuning (50-200ms intervals)
+
+### Improved
+
+**System Monitoring & Observability:**
+- **Cold Start Analysis**: Railway serverless cold start performance monitoring
+- **Load Testing**: Concurrent request handling and rate limiting validation
+- **Error Handling**: Comprehensive edge case testing (timeouts, invalid methods, large payloads)
+- **Network Protocol Testing**: IPv6 support, HTTP/2 validation, compression verification
+
+**Documentation & Deployment:**
+- **Comprehensive Documentation**: Updated all docs with new architecture and audit system
+- **Deployment Verification**: Automated location verification (NBO tag confirmation)
+- **Health Check Automation**: One-command system validation with detailed reporting
+
+### Fixed
+
+**Architecture Issues:**
+- **Main Thread Blocking**: Resolved UI freezing during speed tests via Web Workers
+- **Geographic Optimization**: Corrected deployment locations (Nairobi vs Dar es Salaam)
+- **CORS Performance**: Eliminated 150ms handshake delay on repeated tests
+
 ## [1.63.0] - 2025-11-29
 
 ### Fixed

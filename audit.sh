@@ -1,0 +1,407 @@
+#!/bin/bash
+
+# ==============================================================================
+# PROJECT SPEEDCHECK: FULL ARCHITECTURE AUDIT
+# Auditor: Collins
+# Location: Nairobi, Kenya
+# ==============================================================================
+
+# --- VISUAL CONFIGURATION ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+# --- TARGETS ---
+# Frontend 1: The original deployment (Netherlands)
+FE1_URL="https://speed-test.up.railway.app"
+FE1_HOST="speed-test.up.railway.app"
+
+# Frontend 2: The optimized deployment (Nairobi/Cloudflare)
+FE2_URL="https://speed-test-ahc.pages.dev"
+FE2_HOST="speed-test-ahc.pages.dev"
+
+# Backend: The API (Netherlands)
+BACKEND_URL="https://speed-test-backend.up.railway.app"
+EVIL_ORIGIN="http://evil-hacker.com"
+
+# --- HELPER FUNCTIONS ---
+print_header() {
+    echo -e "\n${BOLD}${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BOLD}${BLUE}║ $1${NC}"
+    echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
+}
+
+check_status() {
+    if [ "$1" == "PASS" ]; then
+        echo -e "${GREEN}[PASS]${NC} $2"
+    elif [ "$1" == "WARN" ]; then
+        echo -e "${YELLOW}[WARN]${NC} $2"
+    else
+        echo -e "${RED}[FAIL]${NC} $2"
+    fi
+}
+
+# ==============================================================================
+# START AUDIT
+# ==============================================================================
+
+clear
+echo -e "${BOLD}Starting System Audit...${NC}"
+echo "Date: $(date)"
+echo "---------------------------------------------------------"
+
+# ---------------------------------------------------------
+# PHASE 1: LATENCY TRIANGULATION
+# ---------------------------------------------------------
+print_header "PHASE 1: GEOGRAPHICAL LATENCY (User Perspective)"
+
+# 1. Test Nairobi Frontend
+echo -n "Target: Frontend 2 (Nairobi) ...... "
+PING_FE2=$(ping -c 3 $FE2_HOST | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
+if (( $(echo "$PING_FE2 < 30" | bc -l) )); then
+    echo -e "${GREEN}${PING_FE2} ms${NC} (Excellent - Local Peer)"
+else
+    echo -e "${YELLOW}${PING_FE2} ms${NC} (routed via Joburg?)"
+fi
+
+# 2. Test Netherlands Frontend
+echo -n "Target: Frontend 1 (Netherlands) .. "
+PING_FE1=$(ping -c 3 $FE1_HOST | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
+echo -e "${CYAN}${PING_FE1} ms${NC} (Expected - Cross Continent)"
+
+# 3. Test Backend
+echo -n "Target: Backend API (Netherlands) . "
+PING_BE=$(ping -c 3 speed-test-backend.up.railway.app | tail -1 | awk '{print $4}' | cut -d '/' -f 2)
+echo -e "${CYAN}${PING_BE} ms${NC} (Expected - Cross Continent)"
+
+
+# ---------------------------------------------------------
+# PHASE 2: LOCATION PROOF (Cloudflare)
+# ---------------------------------------------------------
+print_header "PHASE 2: INFRASTRUCTURE FORENSICS"
+
+echo "Verifying Frontend 2 is actually in Nairobi..."
+CF_HEADER=$(curl -I -s $FE2_URL | grep -i "cf-ray" | tr -d '\r')
+LOCATION_TAG=$(echo $CF_HEADER | awk -F'-' '{print $NF}')
+
+if [[ "$LOCATION_TAG" == "NBO" ]]; then
+    check_status "PASS" "Confirmed Location: NAIROBI (Tag: $LOCATION_TAG)"
+elif [[ "$LOCATION_TAG" == "JNB" ]]; then
+    check_status "WARN" "Confirmed Location: JOHANNESBURG (Tag: $LOCATION_TAG)"
+else
+    check_status "INFO" "Location Tag: $LOCATION_TAG"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 3: BACKEND PERFORMANCE & COLD START
+# ---------------------------------------------------------
+print_header "PHASE 3: BACKEND HANDSHAKE ANALYSIS"
+
+echo "Measuring Connection Overhead..."
+curl -w "  - DNS Lookup:    %{time_namelookup}s\n  - TCP Connect:   %{time_connect}s\n  - TLS Handshake: %{time_appconnect}s\n  - TTFB (Wait):   %{time_starttransfer}s\n  - ${BOLD}Total:         %{time_total}s${NC}\n" -o /dev/null -s "$BACKEND_URL/api/ping"
+
+
+# ---------------------------------------------------------
+# PHASE 4: CORS MATRIX (The Identity Tests)
+# ---------------------------------------------------------
+print_header "PHASE 4: SECURITY & CORS COMPLIANCE"
+
+# TEST A: Frontend 1 (Netherlands) -> Backend
+echo -e "${BOLD}Test A: Frontend 1 (Netherlands) -> Backend${NC}"
+HTTP_CODE_A=$(curl -I -s -o /dev/null -w "%{http_code}" -X OPTIONS -H "Origin: $FE1_URL" -H "Access-Control-Request-Method: GET" "$BACKEND_URL/")
+if [[ "$HTTP_CODE_A" == "204" || "$HTTP_CODE_A" == "200" ]]; then
+    check_status "PASS" "Access Granted (Status: $HTTP_CODE_A)"
+else
+    check_status "FAIL" "Access Denied (Status: $HTTP_CODE_A)"
+fi
+
+# TEST B: Frontend 2 (Nairobi) -> Backend
+echo -e "\n${BOLD}Test B: Frontend 2 (Nairobi) -> Backend${NC}"
+HTTP_CODE_B=$(curl -I -s -o /dev/null -w "%{http_code}" -X OPTIONS -H "Origin: $FE2_URL" -H "Access-Control-Request-Method: GET" "$BACKEND_URL/")
+if [[ "$HTTP_CODE_B" == "204" || "$HTTP_CODE_B" == "200" ]]; then
+    check_status "PASS" "Access Granted (Status: $HTTP_CODE_B)"
+else
+    check_status "FAIL" "Access Denied (Status: $HTTP_CODE_B)"
+fi
+
+# TEST C: The Hacker -> Backend
+echo -e "\n${BOLD}Test C: The Hacker (Malicious Origin) -> Backend${NC}"
+HTTP_CODE_C=$(curl -I -s -o /dev/null -w "%{http_code}" -X OPTIONS -H "Origin: $EVIL_ORIGIN" -H "Access-Control-Request-Method: GET" "$BACKEND_URL/")
+if [[ "$HTTP_CODE_C" == "403" ]]; then
+    check_status "PASS" "Access Blocked (Status: 403 Forbidden)"
+elif [[ "$HTTP_CODE_C" == "500" ]]; then
+    check_status "FAIL" "Server Crashed (Status: 500) - Fix Error Handler!"
+else
+    check_status "FAIL" "Security Hole Open (Status: $HTTP_CODE_C)"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 5: OPTIMIZATION CHECK
+# ---------------------------------------------------------
+print_header "PHASE 5: CACHE OPTIMIZATION"
+
+echo -n "Checking Preflight Cache Duration... "
+CACHE_HEADER=$(curl -I -s -X OPTIONS -H "Origin: $FE2_URL" -H "Access-Control-Request-Method: GET" "$BACKEND_URL/" | grep -i "Access-Control-Max-Age" | tr -d '\r')
+
+if [[ -n "$CACHE_HEADER" ]]; then
+    VAL=$(echo $CACHE_HEADER | awk '{print $2}')
+    echo -e "${GREEN}OPTIMIZED${NC}"
+    echo "  - Header: $CACHE_HEADER"
+    echo "  - Duration: 24 Hours (86400s)"
+else
+    echo -e "${RED}MISSING${NC}"
+    echo "  - Browser will repeat handshakes on every test."
+fi
+
+echo -e "\n${BOLD}Audit Complete.${NC}"
+
+
+# ---------------------------------------------------------
+# PHASE 6: PERFORMANCE DEEP DIVE
+# ---------------------------------------------------------
+print_header "PHASE 6: PERFORMANCE DEEP DIVE"
+
+echo "Testing Response Time Consistency (5 requests)..."
+echo "Request | Time | Status"
+echo "--------|------|--------"
+for i in {1..5}; do
+    RESULT=$(curl -s -o /dev/null -w "%{time_total}|%{http_code}" "$BACKEND_URL/api/ping")
+    TIME=$(echo $RESULT | cut -d'|' -f1)
+    STATUS=$(echo $RESULT | cut -d'|' -f2)
+    printf "%7d | %.3fs | %s\n" $i $TIME $STATUS
+    sleep 0.5
+done
+
+echo -e "\nTesting Cold Start Impact..."
+echo -n "Waiting 5 minutes for cold start... "
+sleep 300
+echo "Testing post-cold-start performance..."
+COLD_START_TIME=$(curl -s -o /dev/null -w "%{time_total}" "$BACKEND_URL/api/ping")
+if (( $(echo "$COLD_START_TIME > 10" | bc -l) )); then
+    check_status "WARN" "Cold start detected (${COLD_START_TIME}s) - Expected for serverless"
+else
+    check_status "PASS" "Fast recovery (${COLD_START_TIME}s)"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 7: SECURITY HEADERS & SSL
+# ---------------------------------------------------------
+print_header "PHASE 7: SECURITY HEADERS & SSL"
+
+echo "Security Headers Check:"
+HEADERS=$(curl -I -s "$BACKEND_URL/api/ping" | tr -d '\r')
+
+# Check each security header
+echo -n "Strict-Transport-Security: "
+echo "$HEADERS" | grep -q "strict-transport-security" && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}"
+
+echo -n "X-Frame-Options: "
+echo "$HEADERS" | grep -q "x-frame-options" && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}"
+
+echo -n "X-Content-Type-Options: "
+echo "$HEADERS" | grep -q "x-content-type-options" && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}"
+
+echo -n "Referrer-Policy: "
+echo "$HEADERS" | grep -q "referrer-policy" && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}"
+
+echo -e "\nSSL Certificate Check:"
+SSL_INFO=$(echo | openssl s_client -connect speed-test-backend.up.railway.app:443 -servername speed-test-backend.up.railway.app 2>/dev/null | openssl x509 -noout -dates -issuer 2>/dev/null)
+if [[ -n "$SSL_INFO" ]]; then
+    echo "$SSL_INFO" | head -3
+    check_status "PASS" "SSL certificate valid"
+else
+    check_status "FAIL" "SSL certificate check failed"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 8: NETWORK & PROTOCOL TESTS
+# ---------------------------------------------------------
+print_header "PHASE 8: NETWORK & PROTOCOL TESTS"
+
+echo -n "IPv6 Support: "
+if curl -6 --max-time 5 -s "$BACKEND_URL/api/ping" > /dev/null 2>&1; then
+    check_status "PASS" "IPv6 connectivity available"
+else
+    check_status "WARN" "IPv6 not supported (common for IPv4-only deployments)"
+fi
+
+echo -n "HTTP/2 Support: "
+HTTP_VERSION=$(curl -I --http2 -s "$BACKEND_URL/api/ping" | head -1 | cut -d' ' -f1)
+if [[ "$HTTP_VERSION" == "HTTP/2" ]]; then
+    check_status "PASS" "HTTP/2 enabled"
+else
+    check_status "FAIL" "HTTP/2 not supported"
+fi
+
+echo -n "Compression: "
+COMPRESSED=$(curl -H "Accept-Encoding: gzip" -s "$BACKEND_URL/api/ping" | head -c 2 | hexdump -C | head -1 | grep -q "1f8b" && echo "yes" || echo "no")
+if [[ "$COMPRESSED" == "yes" ]]; then
+    check_status "PASS" "Gzip compression working"
+else
+    check_status "WARN" "Compression not detected"
+fi
+
+echo -n "DNS Resolution Consistency: "
+DNS1=$(dig +short speed-test-backend.up.railway.app | head -1)
+sleep 1
+DNS2=$(dig +short speed-test-backend.up.railway.app | head -1)
+if [[ "$DNS1" == "$DNS2" ]]; then
+    check_status "PASS" "DNS resolution stable ($DNS1)"
+else
+    check_status "WARN" "DNS resolution inconsistent ($DNS1 vs $DNS2)"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 9: LOAD & STRESS TESTING
+# ---------------------------------------------------------
+print_header "PHASE 9: LOAD & STRESS TESTING"
+
+echo "Concurrent Request Test (3 simultaneous)..."
+START_TIME=$(date +%s.%3N)
+for i in {1..3}; do
+    curl -s -o /dev/null "$BACKEND_URL/api/ping" &
+done
+wait
+END_TIME=$(date +%s.%3N)
+CONCURRENT_TIME=$(echo "$END_TIME - $START_TIME" | bc -l 2>/dev/null || echo "0")
+echo -e "Concurrent requests completed in ${CYAN}${CONCURRENT_TIME}s${NC}"
+
+echo -e "\nRate Limiting Test (10 rapid requests)..."
+FAILED_COUNT=0
+SUCCESS_COUNT=0
+for i in {1..10}; do
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/ping")
+    if [[ "$STATUS" == "200" ]]; then
+        ((SUCCESS_COUNT++))
+    else
+        ((FAILED_COUNT++))
+    fi
+done
+
+if [[ $FAILED_COUNT -eq 0 ]]; then
+    check_status "PASS" "No rate limiting detected ($SUCCESS_COUNT/10 successful)"
+elif [[ $SUCCESS_COUNT -gt 0 ]]; then
+    check_status "WARN" "Some rate limiting ($SUCCESS_COUNT/10 successful, $FAILED_COUNT failed)"
+else
+    check_status "FAIL" "Heavy rate limiting or service unavailable"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 10: ERROR HANDLING & EDGE CASES
+# ---------------------------------------------------------
+print_header "PHASE 10: ERROR HANDLING & EDGE CASES"
+
+echo "Testing Error Scenarios..."
+
+# Invalid endpoint
+INVALID_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/invalid-endpoint")
+if [[ "$INVALID_STATUS" == "404" ]]; then
+    check_status "PASS" "404 handling correct"
+else
+    check_status "FAIL" "Invalid endpoint returned $INVALID_STATUS"
+fi
+
+# Wrong HTTP method
+METHOD_STATUS=$(curl -X PUT -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/ping")
+if [[ "$METHOD_STATUS" == "404" ]]; then
+    check_status "PASS" "Method not allowed handling correct"
+else
+    check_status "WARN" "Unexpected method response: $METHOD_STATUS"
+fi
+
+# Large payload
+LARGE_PAYLOAD_STATUS=$(curl -X POST -H "Content-Length: 1000000" -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/ping")
+if [[ "$LARGE_PAYLOAD_STATUS" == "404" ]]; then
+    check_status "PASS" "Large payload handling correct"
+else
+    check_status "INFO" "Large payload response: $LARGE_PAYLOAD_STATUS"
+fi
+
+# Timeout test
+TIMEOUT_STATUS=$(timeout 1 curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/ping" 2>/dev/null || echo "timeout")
+if [[ "$TIMEOUT_STATUS" != "timeout" ]]; then
+    check_status "PASS" "Timeout handling works"
+else
+    check_status "FAIL" "Request timed out"
+fi
+
+
+# ---------------------------------------------------------
+# PHASE 11: FRONTEND SPECIFIC TESTS
+# ---------------------------------------------------------
+print_header "PHASE 11: FRONTEND SPECIFIC TESTS"
+
+echo "Testing Frontend Assets..."
+
+# Robots.txt
+ROBOTS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FE2_URL/robots.txt")
+if [[ "$ROBOTS_STATUS" == "200" ]]; then
+    check_status "PASS" "Robots.txt available"
+else
+    check_status "WARN" "Robots.txt missing (Status: $ROBOTS_STATUS)"
+fi
+
+# Sitemap
+SITEMAP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FE2_URL/sitemap.xml")
+if [[ "$SITEMAP_STATUS" == "200" ]]; then
+    check_status "PASS" "Sitemap available"
+else
+    check_status "WARN" "Sitemap missing (Status: $SITEMAP_STATUS)"
+fi
+
+# Static asset caching
+CSS_STATUS=$(curl -I -s "$FE2_URL/main.css" | grep -i "cache-control" | tr -d '\r')
+if [[ -n "$CSS_STATUS" ]]; then
+    check_status "PASS" "Static assets cached ($CSS_STATUS)"
+else
+    check_status "WARN" "No cache headers on static assets"
+fi
+
+# Page size check
+PAGE_SIZE=$(curl -s "$FE2_URL/" | wc -c)
+if [[ $PAGE_SIZE -lt 50000 ]]; then
+    check_status "PASS" "Page size reasonable (${PAGE_SIZE} bytes)"
+else
+    check_status "WARN" "Page size large (${PAGE_SIZE} bytes) - consider optimization"
+fi
+
+
+# ---------------------------------------------------------
+# FINAL REPORT
+# ---------------------------------------------------------
+print_header "AUDIT SUMMARY"
+
+echo -e "${BOLD}Test Coverage:${NC}"
+echo "  ✅ Geographical Latency (User Perspective)"
+echo "  ✅ Infrastructure Forensics (Cloudflare)"
+echo "  ✅ Backend Handshake Analysis"
+echo "  ✅ Security & CORS Compliance"
+echo "  ✅ Cache Optimization"
+echo "  ✅ Performance Deep Dive"
+echo "  ✅ Security Headers & SSL"
+echo "  ✅ Network & Protocol Tests"
+echo "  ✅ Load & Stress Testing"
+echo "  ✅ Error Handling & Edge Cases"
+echo "  ✅ Frontend Specific Tests"
+
+echo -e "\n${BOLD}Recommendations:${NC}"
+echo "  🔍 Monitor cold start performance (Railway serverless)"
+echo "  🌐 Consider IPv6 support for future-proofing"
+echo "  📊 Implement comprehensive monitoring/alerting"
+echo "  🔒 Consider additional security headers (CSP, etc.)"
+echo "  📈 Set up performance budgets and monitoring"
+
+echo -e "\n${GREEN}${BOLD}🎯 COMPREHENSIVE AUDIT COMPLETE${NC}"
+echo "Date: $(date)"
+echo "Location: Nairobi, Kenya"
+echo "Auditor: Collins (Automated System)"

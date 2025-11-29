@@ -45,7 +45,7 @@ SpeedCheck uses a **distributed deployment strategy** with three services:
 |---------|----------|----------|---------|-----|
 | **Backend API** | Railway | Amsterdam, NL | Speed test measurements | https://speed-test-backend.up.railway.app/ |
 | **Frontend (Primary)** | Railway | Amsterdam, NL | UI for European users | https://speed-test.up.railway.app/ |
-| **Frontend (Regional)** | Cloudflare Pages | Dar es Salaam, TZ | UI for African users | https://speed-test-ahc.pages.dev/ |
+| **Frontend (Regional)** | Cloudflare Pages | Nairobi, Kenya | UI for African users | https://speed-test-ahc.pages.dev/ |
 
 **Why This Architecture?**
 
@@ -56,7 +56,7 @@ SpeedCheck uses a **distributed deployment strategy** with three services:
 
 2. **Dual Frontend Deployment:**
    - **Railway (Amsterdam):** Optimal for European users, co-located with backend
-   - **Cloudflare (Dar es Salaam):** Fast page loads for African users via CDN edge
+   - **Cloudflare (Nairobi):** Fast page loads for African users via CDN edge
    - Both frontends are identical - only deployment location differs
 
 3. **Benefits:**
@@ -230,7 +230,7 @@ wrangler pages deploy . --project-name=speed-test-ahc
 set -e
 
 echo "🚀 Deploying to Cloudflare Pages..."
-echo "📍 Target: Dar es Salaam, Tanzania"
+echo "📍 Target: Nairobi, Kenya"
 echo ""
 
 # Check if wrangler is installed
@@ -608,7 +608,7 @@ curl -I https://speed-test-ahc.pages.dev/
 - **Cloudflare → Amsterdam Backend:** 150-300ms latency (normal for Africa-Europe)
 - **Railway → Amsterdam Backend:** <50ms latency (same datacenter)
 
-**This is intentional!** The Cloudflare frontend serves UI fast (from Dar es Salaam), but speed tests intentionally connect to Amsterdam to measure real international performance.
+**This is intentional!** The Cloudflare frontend serves UI fast (from Nairobi), but speed tests intentionally connect to Amsterdam to measure real international performance.
 
 ---
 
@@ -700,7 +700,7 @@ If you encounter issues not covered here:
 
 - ✅ Backend deployed to Railway (Amsterdam)
 - ✅ Frontend deployed to Railway (Amsterdam) - auto-deploys
-- ✅ Frontend deployed to Cloudflare (Dar es Salaam) - manual
+- ✅ Frontend deployed to Cloudflare (Nairobi) - manual
 - ✅ Environment variables configured
 - ✅ Health checks passing
 - ✅ CORS enabled

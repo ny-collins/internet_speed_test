@@ -7,6 +7,7 @@ This document explains how SpeedCheck works internally - the architecture, measu
 - [System Architecture](#system-architecture)
 - [Test Flow](#test-flow)
 - [Measurement Components](#measurement-components)
+- [Web Workers Architecture](#web-workers-architecture)
 - [Progressive Web App (PWA)](#progressive-web-app-pwa)
 - [API Endpoints](#api-endpoints)
 
@@ -68,11 +69,11 @@ SpeedCheck uses a **tri-service architecture** with geographic distribution:
 - **Deployment:** Automatic on git push to main branch
 - **Features:** Custom 404 page, clean URL routing, PWA support
 
-**3. Frontend - Regional (Dar es Salaam, Tanzania - Cloudflare Pages)**
+**3. Frontend - Regional (Nairobi, Kenya - Cloudflare Pages)**
 - **URL:** https://speed-test-ahc.pages.dev/
 - **Purpose:** Optimized UI delivery for African users
 - **Type:** Static site hosting on Cloudflare's CDN edge network
-- **Location:** Deployed to Dar es Salaam edge location
+- **Location:** Deployed to Nairobi edge location
 - **Deployment:** Manual via `wrangler pages deploy` or `./deploy-cloudflare.sh`
 - **Benefits:**
   - Faster initial page load for African users (reduced TTFB)
@@ -87,7 +88,7 @@ SpeedCheck uses a **tri-service architecture** with geographic distribution:
 - Poor perceived performance despite fast internet connection
 
 **Solution:** Deploy identical frontend to Cloudflare Pages with African edge location:
-- **UI Loading:** Served from Dar es Salaam (fast, <50ms TTFB)
+- **UI Loading:** Served from Nairobi (fast, <50ms TTFB)
 - **Speed Testing:** Still connects to Amsterdam backend (accurate international measurements)
 - **Result:** Fast page load + Real-world speed test
 
@@ -307,6 +308,117 @@ Speed = (10,485,760 × 8) / 10 / 1,000,000
 - Faster tests on stable connections
 - No need to wait full 10s if speed stabilized at 5s
 - Improves UX without sacrificing accuracy
+
+---
+
+## Web Workers Architecture
+
+### Problem Solved
+
+**Main Thread Blocking**: Heavy computation during speed tests (downloading/uploading large files, real-time calculations) was blocking the UI thread, causing:
+- Unresponsive interface during tests
+- Frozen progress bars and gauges
+- Unable to cancel tests mid-execution
+- Poor user experience on slower devices
+
+### Solution: Dedicated Web Workers
+
+**Architecture Overview**:
+```
+Main Thread (UI)                    Web Workers (Computation)
+├── User interactions              ├── download-worker.js
+├── UI updates                     ├── upload-worker.js
+├── Test orchestration             └── Shared utilities
+└── Worker message handling
+```
+
+**Worker Communication**:
+```javascript
+// Main thread → Worker
+worker.postMessage({
+    action: 'start-download',
+    config: { threads: 4, duration: 10000 }
+});
+
+// Worker → Main thread
+worker.postMessage({
+    type: 'progress',
+    data: { bytesReceived: 10485760, speedMbps: 8.39 }
+});
+```
+
+### Download Worker (`js/worker.js`)
+
+**Responsibilities**:
+- Manage 4 parallel download threads
+- Stream processing and byte counting
+- Real-time speed calculations
+- Progress reporting every 100ms
+
+**Key Features**:
+```javascript
+// Pre-allocated buffer for efficiency
+const buffer = new ArrayBuffer(512 * 1024); // 512KB chunks
+
+// Stream processing loop
+while (!aborted && performance.now() - startTime < duration) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    bytesReceived += value.length;
+    // Report progress to main thread
+}
+```
+
+### Upload Worker (`js/worker.js`)
+
+**Responsibilities**:
+- Manage 4 parallel upload threads
+- XMLHttpRequest progress tracking
+- Byte counting and speed calculations
+- Error handling and recovery
+
+**Key Features**:
+```javascript
+// Reusable blob creation (10MB)
+const blob = new Blob([buffer], { type: 'application/octet-stream' });
+
+// Progress tracking
+xhr.upload.onprogress = (event) => {
+    bytesSent = event.loaded;
+    // Report to main thread
+};
+```
+
+### Performance Benefits
+
+**Before Web Workers**:
+- UI thread blocked during 20+ second tests
+- Unable to interact with interface
+- Progress updates delayed by computation
+
+**After Web Workers**:
+- UI remains responsive throughout tests
+- Real-time progress updates
+- Ability to cancel tests immediately
+- Smooth animations and interactions
+
+### Implementation Details
+
+**Worker Lifecycle**:
+```javascript
+1. Create worker: new Worker('js/worker.js')
+2. Send config: postMessage({ action: 'configure', ... })
+3. Start test: postMessage({ action: 'start-download' })
+4. Receive progress: onmessage = handleProgress
+5. Stop test: postMessage({ action: 'stop' })
+6. Terminate: worker.terminate()
+```
+
+**Error Handling**:
+- Workers catch and report errors to main thread
+- Automatic cleanup on test completion
+- Graceful degradation if workers unavailable
 
 ---
 

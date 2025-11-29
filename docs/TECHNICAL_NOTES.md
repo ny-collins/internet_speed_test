@@ -4,7 +4,38 @@
 
 This document explains the technical choices, trade-offs, and architectural decisions made during the development of SpeedCheck.
 
-## Performance Optimizations (v1.63.0)
+## Performance Optimizations (v1.64.0)
+
+### Web Workers Architecture
+
+**Problem:** Heavy stream processing for download/upload tests was blocking the main thread, causing UI freezing and frame drops during speed measurements.
+
+**Solution:** Implemented dedicated Web Workers for computational intensive tasks:
+
+```javascript
+// download-worker.js - Handles stream processing off main thread
+// - Reads response.body.getReader() chunks
+// - Calculates speed metrics in real-time
+// - Sends progress updates to main thread via postMessage
+// - Prevents main thread blocking for smooth 60fps UI
+
+// Main thread integration
+const worker = new Worker('./js/download-worker.js');
+worker.postMessage({ type: 'start_download', config: CONFIG, threadCount: 4 });
+
+// Worker responds with progress updates, main thread updates UI
+worker.onmessage = (e) => {
+  if (e.data.type === 'progress_update') {
+    updateGauge(e.data.currentSpeed, 'download');
+  }
+};
+```
+
+**Benefits:**
+- **Main Thread Protection**: UI remains responsive during speed tests
+- **Accurate Measurements**: Eliminates timing interference from UI updates
+- **Cross-Device Performance**: Works on low-end devices without frame drops
+- **Scalability**: Can handle multiple concurrent tests without UI degradation
 
 ### Progressive Enhancement Strategy
 
@@ -199,16 +230,57 @@ function showUpdateBanner() {
 - Error rate tracking
 - User interaction latency
 
+---
+
+## Audit System Architecture
+
+SpeedCheck includes a comprehensive **11-phase automated audit system** (`audit.sh`) for production monitoring and validation:
+
+### Audit Phases Overview
+
+1. **Geographical Latency** - User perspective performance testing
+2. **Infrastructure Forensics** - Cloudflare location verification via CF-RAY headers
+3. **Backend Handshake Analysis** - DNS, TCP, TLS, and TTFB measurements
+4. **Security & CORS Compliance** - Access control and authorization testing
+5. **Cache Optimization** - Preflight caching and static asset validation
+6. **Performance Deep Dive** - Response consistency and cold start analysis
+7. **Security Headers & SSL** - Certificate validation and security header checks
+8. **Network & Protocol Tests** - IPv6, HTTP/2, compression, and DNS stability
+9. **Load & Stress Testing** - Concurrent requests and rate limiting validation
+10. **Error Handling & Edge Cases** - 404s, invalid methods, timeouts, large payloads
+11. **Frontend Specific Tests** - SEO files, caching headers, page size optimization
+
+### Automated Validation
+
+The audit system automatically validates:
+- **Performance**: Response times, cold starts, geographic optimization
+- **Security**: CORS policies, SSL certificates, security headers
+- **Reliability**: Error handling, load capacity, network protocols
+- **SEO**: Robots.txt, sitemap.xml, meta tags
+- **Compliance**: HTTP standards, accessibility, progressive enhancement
+
+### Usage
+
+```bash
+# Run complete system audit
+./audit.sh
+
+# Automated health checks for production monitoring
+# Validates all 11 phases with PASS/WARN/FAIL status
+# Generates comprehensive performance and security reports
+```
+
 ## Future Considerations
 
-### Web Workers Evaluation
-**Decision:** Not implemented due to complexity vs benefit ratio.
+### Web Workers Implementation ✅ COMPLETED
+**Status:** ✅ **Implemented in v1.64.0**
 
-**Analysis:**
-- **Benefits:** True background processing, main thread isolation
-- **Costs:** Complex inter-thread communication, increased bundle size
-- **Current Solution:** requestIdleCallback provides 80% of benefits with 20% complexity
-- **Recommendation:** Re-evaluate if performance monitoring shows persistent main thread blocking
+**Architecture:**
+- **Download Worker** (`download-worker.js`): Handles stream processing and speed calculations
+- **Upload Worker** (`upload-worker.js`): Manages monitoring logic off main thread
+- **Main Thread Protection**: UI rendering (60fps gauges) never blocked during tests
+- **Performance Impact**: Eliminates frame drops, ensures smooth user experience
+- **Result**: Production-grade threading architecture for optimal performance
 
 ### Service Worker Optimization
 **Current:** Basic caching of static assets
