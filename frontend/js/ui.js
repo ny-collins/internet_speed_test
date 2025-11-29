@@ -188,7 +188,15 @@ export function updateResultCard(type, result) {
 
         if (matrixCard) {
             const matrixNumber = matrixCard.querySelector('.matrix-number');
-            if (matrixNumber) matrixNumber.textContent = speed;
+            if (matrixNumber) {
+                matrixNumber.textContent = speed;
+                matrixNumber.id = `${type}-value`; // Update ID for accessibility
+            }
+
+            const matrixUnit = matrixCard.querySelector('.matrix-unit');
+            if (matrixUnit) {
+                matrixUnit.id = `${type}-unit`; // Update ID for accessibility
+            }
 
             // Add quality badge
             const quality = getSpeedQuality(result.speed, type);
@@ -202,10 +210,11 @@ export function updateResultCard(type, result) {
             badge.className = `quality-badge ${quality.toLowerCase()}`;
 
             // Add quality context
-            let context = matrixCard.querySelector('.quality-context');
+            let context = matrixCard.querySelector('.matrix-context');
             if (!context) {
                 context = document.createElement('div');
-                context.className = 'quality-context';
+                context.className = 'matrix-context';
+                context.id = `${type}-context`; // Update ID for accessibility
                 matrixCard.querySelector('.matrix-content').appendChild(context);
             }
             context.innerHTML = getSpeedContext(result.speed, type);
@@ -238,7 +247,15 @@ export function updateResultCard(type, result) {
 
         if (matrixCard) {
             const matrixNumber = matrixCard.querySelector('.matrix-number');
-            if (matrixNumber) matrixNumber.textContent = latency;
+            if (matrixNumber) {
+                matrixNumber.textContent = latency;
+                matrixNumber.id = 'latency-value'; // Update ID for accessibility
+            }
+
+            const matrixUnit = matrixCard.querySelector('.matrix-unit');
+            if (matrixUnit) {
+                matrixUnit.id = 'latency-unit'; // Update ID for accessibility
+            }
         }
 
         if (resultCard) {
@@ -267,7 +284,15 @@ export function updateResultCard(type, result) {
 
         if (matrixCard) {
             const matrixNumber = matrixCard.querySelector('.matrix-number');
-            if (matrixNumber) matrixNumber.textContent = jitterValue;
+            if (matrixNumber) {
+                matrixNumber.textContent = jitterValue;
+                matrixNumber.id = 'jitter-value'; // Update ID for accessibility
+            }
+
+            const matrixUnit = matrixCard.querySelector('.matrix-unit');
+            if (matrixUnit) {
+                matrixUnit.id = 'jitter-unit'; // Update ID for accessibility
+            }
         }
 
         if (resultCard) {
@@ -313,6 +338,11 @@ export function clearResultsDisplay() {
 export function setProgress(percent) {
     if (DOM.progressBar) {
         DOM.progressBar.style.width = `${percent}%`;
+        // Update ARIA attributes for accessibility
+        const progressContainer = document.getElementById('progressContainer');
+        if (progressContainer) {
+            progressContainer.setAttribute('aria-valuenow', percent.toString());
+        }
     }
 }
 

@@ -76,6 +76,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="page-home">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <div id="africa-banner" class="smart-banner">
         <div class="smart-banner-content">
@@ -213,7 +214,7 @@
             </div>
         </div>
 
-        <main class="test-section">
+        <main class="test-section" id="main-content">
             <div class="test-display">
                 <div class="gauge-container" id="gaugeContainer" aria-label="Speed gauge">
                     <div class="gauge-wrapper">
@@ -226,74 +227,74 @@
                             <div class="gauge-progress" id="gaugeProgress"></div>
                         </div>
                         
-                        <div class="gauge-inner" id="gaugeInner" hidden>
-                            <div class="gauge-value-live" id="gaugeValue">0</div>
-                            <div class="gauge-unit" id="gaugeUnit">Mbps</div>
-                            <div class="gauge-phase-label" id="gaugePhase">Ready</div>
+                        <div class="gauge-inner" id="gaugeInner" hidden aria-live="polite" aria-atomic="true">
+                            <div class="gauge-value-live" id="gaugeValue" aria-label="Current speed measurement">0</div>
+                            <div class="gauge-unit" id="gaugeUnit" aria-label="Speed unit">Mbps</div>
+                            <div class="gauge-phase-label" id="gaugePhase" aria-label="Current test phase">Ready</div>
                         </div>
                     </div>
-                    <div class="test-timer" id="testTimer" hidden>
-                        <span class="timer-text">Time remaining: <strong id="timerValue">10s</strong></span>
+                    <div class="test-timer" id="testTimer" hidden aria-live="polite" aria-atomic="true">
+                        <span class="timer-text">Time remaining: <strong id="timerValue" aria-label="Time remaining">10s</strong></span>
                     </div>
                 </div>
 
-                <div class="results-matrix" id="resultsMatrix">
-                    <div class="matrix-card" data-metric="download">
+                <div class="results-matrix" id="resultsMatrix" role="region" aria-label="Test results">
+                    <div class="matrix-card" data-metric="download" role="group" aria-labelledby="download-label">
                         <div class="matrix-icon">
-                            <i data-lucide="arrow-down-circle"></i>
+                            <i data-lucide="arrow-down-circle" aria-hidden="true"></i>
                         </div>
                         <div class="matrix-content">
-                            <div class="matrix-label">Download</div>
-                            <div class="matrix-value">
-                                <span class="matrix-number">—</span>
-                                <span class="matrix-unit">Mbps</span>
+                            <div class="matrix-label" id="download-label">Download</div>
+                            <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                <span class="matrix-number" id="download-value">—</span>
+                                <span class="matrix-unit" id="download-unit">Mbps</span>
                             </div>
-                            <div class="matrix-context" style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 4px;"></div>
+                            <div class="matrix-context" id="download-context" style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 4px;"></div>
                         </div>
-                        <button class="btn-icon-small" style="position: absolute; top: 8px; right: 8px; opacity: 0;" id="shareDownload" title="Share result">
-                            <i data-lucide="share-2"></i>
+                        <button class="btn-icon-small" style="position: absolute; top: 8px; right: 8px; opacity: 0;" id="shareDownload" title="Share result" aria-label="Share download result">
+                            <i data-lucide="share-2" aria-hidden="true"></i>
                         </button>
                     </div>
 
-                    <div class="matrix-card" data-metric="upload">
+                    <div class="matrix-card" data-metric="upload" role="group" aria-labelledby="upload-label">
                         <div class="matrix-icon">
-                            <i data-lucide="arrow-up-circle"></i>
+                            <i data-lucide="arrow-up-circle" aria-hidden="true"></i>
                         </div>
                         <div class="matrix-content">
-                            <div class="matrix-label">Upload</div>
-                            <div class="matrix-value">
-                                <span class="matrix-number">—</span>
-                                <span class="matrix-unit">Mbps</span>
+                            <div class="matrix-label" id="upload-label">Upload</div>
+                            <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                <span class="matrix-number" id="upload-value">—</span>
+                                <span class="matrix-unit" id="upload-unit">Mbps</span>
                             </div>
-                            <div class="matrix-context" style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 4px;"></div>
+                            <div class="matrix-context" id="upload-context" style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 4px;"></div>
                         </div>
                     </div>
 
-                    <div class="matrix-card" data-metric="latency">
+                    <div class="matrix-card" data-metric="latency" role="group" aria-labelledby="latency-label">
                         <div class="matrix-icon">
-                            <i data-lucide="activity"></i>
+                            <i data-lucide="activity" aria-hidden="true"></i>
                         </div>
                         <div class="matrix-content">
-                            <div class="matrix-label">Ping (Latency)</div>
-                            <div class="matrix-value">
-                                <span class="matrix-number">—</span>
-                                <span class="matrix-unit">ms</span>
+                            <div class="matrix-label" id="latency-label">Ping (Latency)</div>
+                            <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                <span class="matrix-number" id="latency-value">—</span>
+                                <span class="matrix-unit" id="latency-unit">ms</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="matrix-card" data-metric="jitter">
+                    <div class="matrix-card" data-metric="jitter" role="group" aria-labelledby="jitter-label">
                         <div class="matrix-icon">
-                            <i data-lucide="radio"></i>
+                            <i data-lucide="radio" aria-hidden="true"></i>
                         </div>
                         <div class="matrix-content">
-                            <div class="matrix-label">Jitter</div>
-                            <div class="matrix-value">
-                                <span class="matrix-number">—</span>
-                                <span class="matrix-unit">ms</span>
+                            <div class="matrix-label" id="jitter-label">Jitter</div>
+                            <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                <span class="matrix-number" id="jitter-value">—</span>
+                                <span class="matrix-unit" id="jitter-unit">ms</span>
                             </div>
-                            <div class="sparkline-container" id="jitterSparkline" hidden>
-                                <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none">
+                            <div class="sparkline-container" id="jitterSparkline" hidden aria-label="Jitter variation chart">
+                                <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-labelledby="jitter-label">
                                     <path class="sparkline-path" d="" fill="none" stroke="currentColor" stroke-width="2"></path>
                                 </svg>
                             </div>
@@ -317,20 +318,20 @@
                 </button>
             </div>
 
-            <div class="progress-container" id="progressContainer" hidden>
-                <div class="progress-bar">
+            <div class="progress-container" id="progressContainer" hidden role="region" aria-label="Test progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Overall test progress">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div class="progress-phases">
-                    <div class="phase" data-phase="latency">
+                <div class="progress-phases" role="list" aria-label="Test phases">
+                    <div class="phase" data-phase="latency" role="listitem" aria-label="Latency test phase">
                         <div class="phase-dot"></div>
                         <span class="phase-label">Latency</span>
                     </div>
-                    <div class="phase" data-phase="download">
+                    <div class="phase" data-phase="download" role="listitem" aria-label="Download test phase">
                         <div class="phase-dot"></div>
                         <span class="phase-label">Download</span>
                     </div>
-                    <div class="phase" data-phase="upload">
+                    <div class="phase" data-phase="upload" role="listitem" aria-label="Upload test phase">
                         <div class="phase-dot"></div>
                         <span class="phase-label">Upload</span>
                     </div>
