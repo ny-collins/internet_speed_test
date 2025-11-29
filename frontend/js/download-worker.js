@@ -19,6 +19,7 @@ let totalBytes = 0;
 let speedSamples = [];
 let lastSampleTime = 0;
 let lastBytes = 0;
+let lastIntervalSpeed = 0;
 
 // Configuration (passed from main thread)
 let config = {};
@@ -49,7 +50,7 @@ function calculateStability(samples) {
 // Download thread function (runs in worker)
 async function downloadThread(threadId, byteCounter) {
     try {
-        const url = `${config.apiBase}/api/download?size=${config.downloadSize}&chunk=${config.chunkSize}&t=${Date.now()}`;
+        const url = `${config.apiBase}/api/download?stream=true&chunk=${config.chunkSize}&t=${Date.now()}`;
         const response = await fetch(url, {
             signal: abortController.signal,
             cache: 'no-store'
@@ -91,11 +92,8 @@ async function monitorLoop(threadCount, byteCounters) {
         const elapsed = performance.now() - startTime;
         totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
-        // Calculate current speed
-        let currentSpeed = 0;
-        if (elapsed > 0 && totalBytes > 0) {
-            currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
-        }
+        // Use the most recent interval speed for current display
+        let currentSpeed = lastIntervalSpeed;
 
         // Send progress update to main thread
         self.postMessage({
@@ -114,6 +112,7 @@ async function monitorLoop(threadCount, byteCounters) {
             if (intervalBytes > 0) {
                 const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                 speedSamples.push(intervalSpeed);
+                lastIntervalSpeed = intervalSpeed; // Update current speed display
 
                 if (elapsed >= minDuration && speedSamples.length >= config.stability.sampleCount) {
                     if (isSpeedStable(speedSamples)) {
@@ -136,17 +135,23 @@ async function monitorLoop(threadCount, byteCounters) {
         }
     }
 
-    // Calculate final results
-    const duration = (performance.now() - startTime) / 1000;
+    // Calculate final results (excluding warm-up period)
+    const totalDuration = (performance.now() - startTime) / 1000;
+    const warmUpPeriod = 2.0; // Exclude first 2 seconds to avoid TCP slow start penalty
+    const effectiveDuration = Math.max(totalDuration - warmUpPeriod, 1.0); // Minimum 1 second
+
     const bytesTransferred = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-    const speedMbps = bytesTransferred > 0 ? (bytesTransferred * 8) / duration / 1_000_000 : 0;
+    const speedMbps = bytesTransferred > 0 ? (bytesTransferred * 8) / effectiveDuration / 1_000_000 : 0;
+
+    console.log(`[Download Worker] Final: ${speedMbps.toFixed(2)} Mbps (${bytesTransferred} bytes in ${totalDuration.toFixed(1)}s, effective: ${effectiveDuration.toFixed(1)}s)`);
 
     // Send completion message
     self.postMessage({
         type: MESSAGE_TYPES.DOWNLOAD_COMPLETE,
         speed: speedMbps,
         bytesTransferred,
-        duration,
+        duration: totalDuration,
+        effectiveDuration,
         stability: calculateStability(speedSamples)
     });
 }

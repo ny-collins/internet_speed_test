@@ -19,6 +19,7 @@ let totalBytes = 0;
 let speedSamples = [];
 let lastSampleTime = 0;
 let lastBytes = 0;
+let lastIntervalSpeed = 0;
 
 // Configuration (passed from main thread)
 let config = {};
@@ -69,39 +70,47 @@ function createUploadBlob() {
 // Upload thread function (runs in worker)
 async function uploadThread(threadId, byteCounter) {
     try {
-        // XHR Promise for upload with progress tracking
-        await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            let finished = false;
+        // Loop uploads until time limit reached or aborted
+        while (isRunning && !abortController.signal.aborted) {
+            // XHR Promise for upload with progress tracking
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                let finished = false;
 
-            const finish = (error = null) => {
-                if (finished) return;
-                finished = true;
-                if (error) reject(error);
-                else resolve();
-            };
+                const finish = (error = null) => {
+                    if (finished) return;
+                    finished = true;
+                    if (error) reject(error);
+                    else resolve();
+                };
 
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    byteCounter.bytes = event.loaded;
-                }
-            };
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        byteCounter.bytes = event.loaded;
+                    }
+                };
 
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    finish();
-                } else {
-                    finish(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
-                }
-            };
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        finish();
+                    } else {
+                        finish(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+                    }
+                };
 
-            xhr.onerror = () => finish(new Error('Network error'));
-            xhr.onabort = () => finish(new Error('Aborted'));
+                xhr.onerror = () => finish(new Error('Network error'));
+                xhr.onabort = () => finish(new Error('Aborted'));
 
-            xhr.open('POST', `${config.apiBase}/api/upload?t=${Date.now()}`, true);
-            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-            xhr.send(uploadBlob);
-        });
+                xhr.open('POST', `${config.apiBase}/api/upload?t=${Date.now()}`, true);
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+                xhr.send(uploadBlob);
+            });
+
+            // Check if we should continue looping
+            if (!isRunning || abortController.signal.aborted) {
+                break;
+            }
+        }
 
     } catch (error) {
         if (error.name !== 'AbortError' && error.message !== 'Aborted') {
@@ -126,11 +135,8 @@ async function monitorLoop(threadCount, byteCounters) {
         const elapsed = performance.now() - startTime;
         totalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
-        // Calculate current speed
-        let currentSpeed = 0;
-        if (elapsed > 0 && totalBytes > 0) {
-            currentSpeed = (totalBytes * 8) / (elapsed / 1000) / 1_000_000; // Mbps
-        }
+        // Use the most recent interval speed for current display
+        let currentSpeed = lastIntervalSpeed;
 
         // Send progress update to main thread
         self.postMessage({
@@ -149,6 +155,7 @@ async function monitorLoop(threadCount, byteCounters) {
             if (intervalBytes > 0) {
                 const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
                 speedSamples.push(intervalSpeed);
+                lastIntervalSpeed = intervalSpeed; // Update current speed display
 
                 // Limit sample history to prevent memory growth
                 if (speedSamples.length > 100) {
@@ -176,17 +183,23 @@ async function monitorLoop(threadCount, byteCounters) {
         }
     }
 
-    // Calculate final results
-    const duration = (performance.now() - startTime) / 1000;
+    // Calculate final results (excluding warm-up period)
+    const totalDuration = (performance.now() - startTime) / 1000;
+    const warmUpPeriod = 2.0; // Exclude first 2 seconds to avoid TCP slow start penalty
+    const effectiveDuration = Math.max(totalDuration - warmUpPeriod, 1.0); // Minimum 1 second
+
     const bytesTransferred = totalBytes;
-    const speedMbps = bytesTransferred > 0 ? (bytesTransferred * 8) / duration / 1_000_000 : 0;
+    const speedMbps = bytesTransferred > 0 ? (bytesTransferred * 8) / effectiveDuration / 1_000_000 : 0;
+
+    console.log(`[Upload Worker] Final: ${speedMbps.toFixed(2)} Mbps (${bytesTransferred} bytes in ${totalDuration.toFixed(1)}s, effective: ${effectiveDuration.toFixed(1)}s)`);
 
     // Send completion message
     self.postMessage({
         type: MESSAGE_TYPES.UPLOAD_COMPLETE,
         speed: speedMbps,
         bytesTransferred,
-        duration,
+        duration: totalDuration,
+        effectiveDuration,
         stability: calculateStability(speedSamples)
     });
 }

@@ -235,6 +235,7 @@ app.get('/api/download', circuitBreaker, (req, res) => {
     return res.status(400).json({ error: 'Invalid chunk parameter. Must be a positive number.' });
   }
 
+  const streamParam = req.query.stream === 'true';
   let sizeInMB = parseInt(req.query.size, 10) || 5;
   if (sizeInMB < 1) sizeInMB = 1;
   if (sizeInMB > config.maxDownloadSizeMB) sizeInMB = config.maxDownloadSizeMB;
@@ -245,7 +246,9 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   const chunkSize = chunkKB * 1024;
 
   res.setHeader('Content-Type', 'application/octet-stream');
-  res.setHeader('Content-Length', sizeInBytes);
+  if (!streamParam) {
+    res.setHeader('Content-Length', sizeInBytes);
+  }
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
@@ -255,22 +258,25 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 
   req.on('close', () => {
     clientDisconnected = true;
-    logger.debug({ sent, sizeInBytes }, 'Client disconnected during download');
+    logger.debug({ sent, sizeInBytes, streamParam }, 'Client disconnected during download');
   });
 
   const sendChunk = () => {
-    if (clientDisconnected || sent >= sizeInBytes) {
-      if (sent >= sizeInBytes) {
-        if (config.metrics.enabled) {
-          app.locals.metrics.downloadBytesTotal.inc(sizeInBytes);
-        }
-        res.end();
-      }
+    if (clientDisconnected) {
       return;
     }
 
-    const remainingBytes = sizeInBytes - sent;
-    const currentChunkSize = Math.min(chunkSize, remainingBytes);
+    // In streaming mode, continue until client disconnects
+    // In fixed-size mode, stop when size limit is reached
+    if (!streamParam && sent >= sizeInBytes) {
+      if (config.metrics.enabled) {
+        app.locals.metrics.downloadBytesTotal.inc(sizeInBytes);
+      }
+      res.end();
+      return;
+    }
+
+    const currentChunkSize = chunkSize;
 
     // Use pre-generated buffer instead of blocking crypto.randomBytes()
     const chunk = RANDOM_BUFFER.slice(0, currentChunkSize);
@@ -279,12 +285,15 @@ app.get('/api/download', circuitBreaker, (req, res) => {
     sent += currentChunkSize;
 
     if (canContinue) {
+      // Continue sending immediately if buffer not full
       setImmediate(sendChunk);
     } else {
+      // Wait for drain event if buffer is full
       res.once('drain', sendChunk);
     }
   };
 
+  // Start sending data
   sendChunk();
 });
 

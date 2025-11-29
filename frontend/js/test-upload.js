@@ -4,7 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
-import { scheduleIdleTask, cancelIdleTask, performanceMonitor } from './utils.js';
+import { sleep, scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
 import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 export async function measureUpload() {
@@ -19,6 +19,10 @@ export async function measureUpload() {
         const worker = new Worker('./js/upload-worker.js');
 
         let idleTaskId = null;
+        let lastProgressUpdate = 0;
+        let smoothedSpeed = 0;
+        let lastUiUpdate = 0;
+        const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
 
         // Start the upload test
         worker.postMessage({
@@ -27,29 +31,39 @@ export async function measureUpload() {
             threadCount: threadCount
         });
 
+        // Start loaded latency measurement concurrently
+        const loadedLatencyPromise = measureLoadedLatency(CONFIG, STATE.abortControllers[STATE.abortControllers.length - 1], maxDuration);
+
         // Handle worker messages
-        worker.onmessage = function(e) {
+        worker.onmessage = async function(e) {
             const { type, ...data } = e.data;
 
             switch (type) {
             case 'progress_update': {
-                const { elapsed, currentSpeed, speedSamples } = data;
+                const { elapsed, totalBytes, currentSpeed, speedSamples } = data;
+                const now = performance.now();
 
-                // Update gauge with smoothed speed
-                if (speedSamples.length >= 3) {
-                    const avgSpeed = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
-                    updateGauge(avgSpeed, 'upload');
+                // Update smoothed speed using exponential moving average
+                if (smoothedSpeed === 0) {
+                    smoothedSpeed = currentSpeed;
                 } else {
-                    updateGauge(currentSpeed, 'upload');
+                    // Alpha = 0.3 for responsive but smooth updates
+                    smoothedSpeed = smoothedSpeed * 0.7 + currentSpeed * 0.3;
                 }
 
-                // Schedule memory monitoring as idle task (non-critical)
-                if (idleTaskId) cancelIdleTask(idleTaskId);
-                idleTaskId = scheduleIdleTask(() => {
-                    performanceMonitor.recordMemoryUsage();
-                });
+                // Throttle UI updates for smooth animation
+                if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
+                    updateGauge(smoothedSpeed, 'upload');
+                    lastUiUpdate = now;
 
-                // Update Progress (60% -> 95%)
+                    // Schedule memory monitoring as idle task (non-critical)
+                    if (idleTaskId) cancelIdleTask(idleTaskId);
+                    idleTaskId = scheduleIdleTask(() => {
+                        performanceMonitor.recordMemoryUsage();
+                    });
+                }
+
+                // Update Progress (60% -> 95%) - always update progress for smooth bar
                 const progressPercent = 60 + (elapsed / maxDuration) * 35;
                 setProgress(Math.min(progressPercent, 95));
 
@@ -59,11 +73,16 @@ export async function measureUpload() {
                     const progress = Math.min((elapsed / maxDuration) * 100, 100);
                     uploadCard.style.setProperty('--progress', progress.toFixed(2));
                 }
+
+                lastProgressUpdate = elapsed;
                 break;
             }
 
             case 'upload_complete': {
-                const { speed, bytesTransferred, duration, stability } = data;
+                const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+
+                // Wait for loaded latency measurement to complete
+                const loadedLatency = await loadedLatencyPromise;
 
                 // Cleanup
                 if (idleTaskId) {
@@ -79,14 +98,16 @@ export async function measureUpload() {
                     return;
                 }
 
-                console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps`);
+                console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
                 announceToScreenReader(`Upload speed: ${speed.toFixed(1)} megabits per second`);
 
                 resolve({
                     speed: speed,
                     bytesTransferred: bytesTransferred,
                     duration,
-                    stability
+                    effectiveDuration,
+                    stability,
+                    loadedLatency
                 });
                 break;
             }

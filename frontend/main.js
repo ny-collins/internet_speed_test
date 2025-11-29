@@ -208,20 +208,30 @@ function cancelTest() {
     if (!STATE.testing) return;
     console.log('[Test] Cancelling...');
     STATE.cancelling = true;
-    
-    STATE.abortControllers.forEach(c => c.abort());
+
+    // Abort all active controllers
+    STATE.abortControllers.forEach(c => {
+        try { c.abort(); } catch (e) { /* Ignore errors */ }
+    });
     STATE.abortControllers = [];
-    
+
     if (STATE.rafId) {
         cancelAnimationFrame(STATE.rafId);
         STATE.rafId = null;
     }
-    
-    showStatus('Test cancelled', 'info');
-    cleanupTest();
-}
 
-async function retryTest() {
+    // Force immediate cleanup
+    STATE.testing = false;
+    resetGauge();
+
+    if (DOM.startTest) DOM.startTest.disabled = false;
+    if (DOM.cancelTest) {
+        DOM.cancelTest.disabled = true;
+        DOM.cancelTest.hidden = true;
+    }
+
+    showStatus('Test cancelled', 'info');
+}async function retryTest() {
     console.log('[Test] Retrying...');
     
     // Hide retry button

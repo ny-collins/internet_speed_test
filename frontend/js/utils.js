@@ -81,6 +81,8 @@ export function getFriendlyError(errorMessage) {
         'Network request failed': 'Unable to reach test server. Check if a firewall or VPN is blocking the connection.',
         'NetworkError': 'Network connection interrupted. Please check your connection and retry.',
         'The user aborted a request': 'Test was cancelled.',
+        'Download test cancelled': 'Test was cancelled.',
+        'Upload test cancelled': 'Test was cancelled.',
         'Timeout': 'Test took too long. Your connection may be very slow or unstable.',
         'Load failed': 'Failed to connect to server. Please try again.',
         'Type error': 'An unexpected error occurred. Please refresh the page and try again.',
@@ -131,6 +133,64 @@ export function getConnectionType() {
     };
 
     return types[type] || 'Unknown';
+}
+
+// ========================================
+// LOADED LATENCY MEASUREMENT
+// ========================================
+
+// Measure latency during active network transfers (detects bufferbloat)
+export async function measureLoadedLatency(config, abortController, durationMs = 10000) {
+    const samples = [];
+    const startTime = performance.now();
+    const endTime = startTime + durationMs;
+
+    while (performance.now() < endTime && !abortController.signal.aborted) {
+        try {
+            const pingStart = performance.now();
+            await fetch(`${config.apiBase}/api/ping?t=${Date.now()}`, {
+                signal: abortController.signal,
+                cache: 'no-store',
+                method: 'HEAD' // Use HEAD to minimize data transfer
+            });
+            const pingDuration = performance.now() - pingStart;
+            samples.push(pingDuration);
+
+            // Wait 500ms between pings to avoid overwhelming the connection
+            await sleep(500);
+        } catch (error) {
+            if (error.name === 'AbortError') break;
+            console.warn('[Loaded Latency] Ping failed:', error.message);
+        }
+    }
+
+    if (samples.length === 0) return null;
+
+    const average = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const min = Math.min(...samples);
+    const max = Math.max(...samples);
+    const jitter = calculateJitter(samples);
+
+    return {
+        average,
+        min,
+        max,
+        jitter,
+        sampleCount: samples.length,
+        samples
+    };
+}
+
+// Calculate jitter (variation in latency)
+function calculateJitter(samples) {
+    if (samples.length < 2) return 0;
+
+    let totalJitter = 0;
+    for (let i = 1; i < samples.length; i++) {
+        totalJitter += Math.abs(samples[i] - samples[i - 1]);
+    }
+
+    return totalJitter / (samples.length - 1);
 }
 
 // ========================================

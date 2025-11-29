@@ -4,7 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
-import { sleep, scheduleIdleTask, cancelIdleTask, performanceMonitor } from './utils.js';
+import { sleep, scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
 import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
 
 export async function measureDownload() {
@@ -20,6 +20,9 @@ export async function measureDownload() {
 
         let idleTaskId = null;
         let lastProgressUpdate = 0;
+        let smoothedSpeed = 0;
+        let lastUiUpdate = 0;
+        const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
 
         // Start the download test
         worker.postMessage({
@@ -28,29 +31,39 @@ export async function measureDownload() {
             threadCount: threadCount
         });
 
+        // Start loaded latency measurement concurrently
+        const loadedLatencyPromise = measureLoadedLatency(CONFIG, STATE.abortControllers[STATE.abortControllers.length - 1], maxDuration);
+
         // Handle worker messages
-        worker.onmessage = function(e) {
+        worker.onmessage = async function(e) {
             const { type, ...data } = e.data;
 
             switch (type) {
                 case 'progress_update':
                     const { elapsed, totalBytes, currentSpeed, speedSamples } = data;
+                    const now = performance.now();
 
-                    // Update gauge with smoothed speed
-                    if (speedSamples.length >= 3) {
-                        const avgSpeed = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
-                        updateGauge(avgSpeed, 'download');
+                    // Update smoothed speed using exponential moving average
+                    if (smoothedSpeed === 0) {
+                        smoothedSpeed = currentSpeed;
                     } else {
-                        updateGauge(currentSpeed, 'download');
+                        // Alpha = 0.3 for responsive but smooth updates
+                        smoothedSpeed = smoothedSpeed * 0.7 + currentSpeed * 0.3;
                     }
 
-                    // Schedule memory monitoring as idle task (non-critical)
-                    if (idleTaskId) cancelIdleTask(idleTaskId);
-                    idleTaskId = scheduleIdleTask(() => {
-                        performanceMonitor.recordMemoryUsage();
-                    });
+                    // Throttle UI updates for smooth animation
+                    if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
+                        updateGauge(smoothedSpeed, 'download');
+                        lastUiUpdate = now;
 
-                    // Update Progress (25% -> 60%)
+                        // Schedule memory monitoring as idle task (non-critical)
+                        if (idleTaskId) cancelIdleTask(idleTaskId);
+                        idleTaskId = scheduleIdleTask(() => {
+                            performanceMonitor.recordMemoryUsage();
+                        });
+                    }
+
+                    // Update Progress (25% -> 60%) - always update progress for smooth bar
                     const progressPercent = 25 + (elapsed / maxDuration) * 35;
                     setProgress(Math.min(progressPercent, 60));
 
@@ -64,8 +77,11 @@ export async function measureDownload() {
                     lastProgressUpdate = elapsed;
                     break;
 
-                case 'download_complete':
-                    const { speed, bytesTransferred, duration, stability } = data;
+                case 'download_complete': {
+                    const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+
+                    // Wait for loaded latency measurement to complete
+                    const loadedLatency = await loadedLatencyPromise;
 
                     // Cleanup
                     if (idleTaskId) {
@@ -81,16 +97,19 @@ export async function measureDownload() {
                         return;
                     }
 
-                    console.log(`[Download] Final: ${speed.toFixed(2)} Mbps`);
+                    console.log(`[Download] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
                     announceToScreenReader(`Download speed: ${speed.toFixed(1)} megabits per second`);
 
                     resolve({
                         speed: speed,
                         bytesTransferred: bytesTransferred,
                         duration,
-                        stability
+                        effectiveDuration,
+                        stability,
+                        loadedLatency
                     });
                     break;
+                }
 
                 case 'download_error':
                     console.error('[Download] Worker error:', data.error);
