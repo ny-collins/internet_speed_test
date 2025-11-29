@@ -5,6 +5,35 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.65.0] - 2025-11-29
+
+### Added
+
+**🔬 Professional-Grade Measurement Accuracy:**
+- **TCP Slow Start Compensation**: Implemented scientific warm-up logic using byte tracking instead of time subtraction
+  - Tracks `warmupBytes` during initial 2-second period to accurately exclude TCP slow start penalty
+  - Calculates `postWarmupBytes` for precise speed measurements after network ramp-up
+  - Eliminates artificial speed inflation from connection establishment overhead
+
+- **Bufferbloat Detection**: Added loaded latency measurement during active transfers
+  - `measureLoadedLatency()` function performs concurrent ping testing during download/upload
+  - Measures network buffer congestion under load for comprehensive connection quality analysis
+  - Asynchronous implementation prevents UI blocking during concurrent measurements
+
+**⚡ Performance & Responsiveness:**
+- **Asynchronous Completion Handling**: Prevents UI freezing during test completion
+  - Loaded latency measurement runs concurrently without blocking main thread
+  - Smooth progress indicator animations with proper timing based on test duration
+  - Enhanced user experience with responsive interface during intensive operations
+
+### Improved
+
+**Measurement Engine:**
+- **Byte-Accurate Warm-up Logic**: Scientific approach using actual data transfer tracking
+  - Replaces heuristic time subtraction with precise byte counting during warm-up period
+  - Ensures consistent, professional-grade speed measurements across all network conditions
+  - Maintains accuracy for both short and long test durations
+
 ## [1.64.0] - 2025-11-29
 
 ### Added

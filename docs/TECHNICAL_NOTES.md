@@ -135,6 +135,129 @@ app.get('/api/download', (req, res) => {
 - Consistent sub-millisecond response times
 - Better server responsiveness under load
 
+## Measurement Accuracy (v1.65.0)
+
+### TCP Slow Start Compensation
+
+**Problem:** Traditional speed tests inflate results by including TCP slow start period where connection ramps up from zero to full speed.
+
+**Solution:** Implemented scientific byte tracking for accurate warm-up period exclusion:
+
+```javascript
+// download-worker.js - Byte-accurate warm-up compensation
+let warmupBytes = 0; // Track bytes during initial warm-up
+let warmupPeriodEnd = 0;
+
+async function monitorLoop(threadCount, byteCounters) {
+    const warmupDuration = 2.0 * 1000; // 2 seconds warm-up
+    warmupPeriodEnd = startTime + warmupDuration;
+    
+    while (isRunning) {
+        const elapsed = performance.now() - startTime;
+        const currentTotalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
+        
+        // Track bytes transferred during warm-up period
+        if (elapsed <= warmupDuration) {
+            warmupBytes = currentTotalBytes;
+        }
+        
+        // ... progress updates ...
+    }
+    
+    // Calculate final results (excluding warm-up period)
+    const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
+    const effectiveDuration = Math.max(totalDuration - warmUpPeriod, 1.0);
+    const speedMbps = postWarmupBytes > 0 ? (postWarmupBytes * 8) / effectiveDuration / 1_000_000 : 0;
+}
+```
+
+**Benefits:**
+- **Scientific Accuracy**: Measures actual sustained throughput, not connection ramp-up
+- **Professional Grade**: Matches industry-standard testing methodologies
+- **Consistent Results**: Eliminates artificial speed inflation from TCP slow start
+- **Network Agnostic**: Works accurately across all connection types and ISPs
+
+### Bufferbloat Detection with Loaded Latency
+
+**Problem:** Traditional latency tests only measure idle network conditions, missing bufferbloat issues that occur under load.
+
+**Solution:** Implemented concurrent loaded latency measurement during active transfers:
+
+```javascript
+// utils.js - Loaded latency measurement
+export async function measureLoadedLatency(config, abortController, durationMs = 10000) {
+    const samples = [];
+    const startTime = performance.now();
+    const endTime = startTime + durationMs;
+
+    while (performance.now() < endTime && !abortController.signal.aborted) {
+        const pingStart = performance.now();
+        await fetch(`${config.apiBase}/api/ping?t=${Date.now()}`, {
+            signal: abortController.signal,
+            cache: 'no-store',
+            method: 'HEAD' // Minimize data transfer
+        });
+        const pingDuration = performance.now() - pingStart;
+        samples.push(pingDuration);
+        
+        await sleep(500); // 500ms intervals to avoid overwhelming connection
+    }
+
+    return {
+        average: samples.reduce((a, b) => a + b, 0) / samples.length,
+        min: Math.min(...samples),
+        max: Math.max(...samples),
+        jitter: calculateJitter(samples),
+        sampleCount: samples.length
+    };
+}
+
+// Integration in download test
+const loadedLatencyPromise = measureLoadedLatency(CONFIG, abortController, maxDuration);
+```
+
+**Benefits:**
+- **Bufferbloat Detection**: Identifies network congestion under load
+- **Quality of Service**: Measures real-world performance during active usage
+- **Asynchronous Operation**: Doesn't block main speed measurements
+- **Comprehensive Analysis**: Provides complete network quality assessment
+
+### Asynchronous Completion Handling
+
+**Problem:** Test completion events were blocking the UI thread, causing freezing during result display.
+
+**Solution:** Implemented asynchronous completion handling with proper promise management:
+
+```javascript
+// test-download.js - Asynchronous completion
+case 'download_complete': {
+    const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+
+    // Handle completion asynchronously to prevent UI blocking
+    setTimeout(async () => {
+        // Process loaded latency results concurrently
+        const loadedLatencyResult = await loadedLatencyPromise;
+        
+        // Update UI with results
+        updateResultsDisplay('download', {
+            speed: speed,
+            bytes: bytesTransferred,
+            duration: effectiveDuration,
+            loadedLatency: loadedLatencyResult
+        });
+        
+        resolve({ speed, bytesTransferred, duration: effectiveDuration, stability });
+    }, 0);
+    break;
+}
+```
+
+**Benefits:**
+- **Responsive UI**: No freezing during test completion
+- **Concurrent Processing**: Loaded latency and speed results processed simultaneously
+- **Smooth Animations**: Progress indicators complete smoothly without interruption
+- **Better UX**: Immediate feedback with asynchronous result handling
+
 ## Security Improvements
 
 ### PWA Update Banner Security

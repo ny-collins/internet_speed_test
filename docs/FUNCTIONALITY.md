@@ -309,6 +309,87 @@ Speed = (10,485,760 × 8) / 10 / 1,000,000
 - No need to wait full 10s if speed stabilized at 5s
 - Improves UX without sacrificing accuracy
 
+### 7. TCP Slow Start Compensation (v1.65.0)
+
+**Problem**: TCP connections start at slow speeds and ramp up, artificially inflating speed test results.
+
+**Solution**: Scientific byte tracking during warm-up period:
+
+```javascript
+// download-worker.js - Warm-up byte tracking
+let warmupBytes = 0;
+let warmupPeriodEnd = startTime + 2000; // 2-second warm-up
+
+function monitorLoop() {
+    while (isRunning) {
+        const elapsed = performance.now() - startTime;
+        const currentTotalBytes = getTotalBytesFromAllThreads();
+        
+        // Track bytes during warm-up period
+        if (elapsed <= 2000) {
+            warmupBytes = currentTotalBytes;
+        }
+        
+        // Send progress updates...
+    }
+    
+    // Final calculation excludes warm-up
+    const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
+    const effectiveDuration = Math.max(totalDuration - 2.0, 1.0);
+    const speedMbps = (postWarmupBytes * 8) / effectiveDuration / 1_000_000;
+}
+```
+
+**Benefits**:
+- **Accurate Results**: Measures sustained throughput, not connection ramp-up
+- **Professional Grade**: Matches industry testing standards
+- **Consistent**: Eliminates artificial inflation across all network types
+
+### 8. Loaded Latency Measurement (v1.65.0)
+
+**Problem**: Traditional latency tests only measure idle network conditions, missing bufferbloat.
+
+**Solution**: Concurrent ping testing during active transfers:
+
+```javascript
+// utils.js - measureLoadedLatency function
+export async function measureLoadedLatency(config, abortController, durationMs) {
+    const samples = [];
+    
+    while (performance.now() < endTime && !abortController.signal.aborted) {
+        const pingStart = performance.now();
+        
+        // Ping during active download/upload
+        await fetch(`${config.apiBase}/api/ping`, {
+            method: 'HEAD',
+            cache: 'no-store'
+        });
+        
+        const pingDuration = performance.now() - pingStart;
+        samples.push(pingDuration);
+        
+        await sleep(500); // 500ms intervals
+    }
+    
+    return {
+        average: samples.reduce((a, b) => a + b, 0) / samples.length,
+        min: Math.min(...samples),
+        max: Math.max(...samples),
+        jitter: calculateJitter(samples)
+    };
+}
+
+// Integration in speed test
+const loadedLatencyPromise = measureLoadedLatency(CONFIG, abortController, maxDuration);
+// Runs concurrently with download/upload threads
+```
+
+**Benefits**:
+- **Bufferbloat Detection**: Identifies congestion under load
+- **Real-World Performance**: Measures actual usage conditions
+- **Asynchronous**: Doesn't interfere with speed measurements
+- **Comprehensive**: Complete network quality assessment
+
 ---
 
 ## Web Workers Architecture

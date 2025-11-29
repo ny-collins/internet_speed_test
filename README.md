@@ -30,6 +30,8 @@ SpeedCheck measures your **real-world international connectivity** with a **dist
 - **📊 Comprehensive Audit** - Built-in monitoring system for performance & security validation
 - **🎓 Educational Content** - Learn page explaining internet concepts and performance metrics
 - **♿ Accessibility** - Screen reader support, ARIA labels, keyboard navigation
+- **🔬 Scientific Accuracy** - TCP slow start compensation with byte tracking for professional-grade measurements
+- **📈 Bufferbloat Detection** - Loaded latency measurement during active transfers for network quality analysis
 
 ## 🚀 Quick Start
 
@@ -120,14 +122,20 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 
 ## 📋 Recent Updates
 
-### v1.63.0 (Current)
+### v1.65.0 (Current)
+- 🔬 **Scientific Measurement Accuracy** - TCP slow start compensation with byte tracking for professional-grade results
+- 📈 **Bufferbloat Detection** - Loaded latency measurement during active transfers for network quality analysis
+- ⚡ **Enhanced Responsiveness** - Asynchronous completion handling prevents UI freezing during test results
+
+### v1.64.0
+- 🚀 **Production-Grade Architecture** - Web Workers implementation for smooth 60fps UI during speed tests
+- 📊 **Comprehensive Audit System** - 11-phase automated monitoring and health checks
+- 🌍 **Geographic Optimization** - Dual deployment: Europe (Railway) + Africa (Cloudflare)
+
+### v1.63.0
 - ⚡ **Performance Optimizations** - Progressive enhancement, idle task scheduling, frame monitoring
 - 🛡️ **Security Improvements** - PWA update banner security fix
 - 🔧 **Critical Bug Fixes** - Module imports, speed calculations, sparkline rendering
-
-### v1.62.0
-- 🛡️ **Security Hardening** - XSS prevention, rate limiting, error handling
-- ⚡ **Fixed-Duration Testing** - Consistent 10-second tests, better accuracy
 
 ## 🤝 Contributing
 
