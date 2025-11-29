@@ -115,9 +115,9 @@ async function startTest() {
     STATE.testResults = { download: null, upload: null, latency: null, jitter: null };
     
     // Reset UI
-    ui.showGauge();
-    ui.clearResultsDisplay();
-    ui.setProgress(0);
+    showGauge();
+    clearResultsDisplay();
+    setProgress(0);
     
     if (DOM.startTest) DOM.startTest.disabled = true;
     if (DOM.cancelTest) {
