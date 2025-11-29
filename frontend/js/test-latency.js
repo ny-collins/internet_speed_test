@@ -96,9 +96,12 @@ export async function measureLatency() {
 
 function calculateJitter(samples) {
     if (samples.length < 2) return 0;
-    let sumDifferences = 0;
-    for (let i = 1; i < samples.length; i++) {
-        sumDifferences += Math.abs(samples[i] - samples[i - 1]);
-    }
-    return sumDifferences / (samples.length - 1);
+    
+    // Calculate standard deviation (population standard deviation)
+    const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const squaredDifferences = samples.map(sample => Math.pow(sample - mean, 2));
+    const variance = squaredDifferences.reduce((a, b) => a + b, 0) / samples.length;
+    const standardDeviation = Math.sqrt(variance);
+    
+    return standardDeviation;
 }
