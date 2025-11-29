@@ -3,6 +3,8 @@
 // Handles heavy upload processing off the main thread
 // ========================================
 
+import { monitorLoop, calculateFinalResults } from './worker-utils.js';
+
 // Worker message types
 const MESSAGE_TYPES = {
     START_UPLOAD: 'start_upload',
@@ -127,72 +129,26 @@ async function uploadThread(threadId, byteCounter) {
 }
 
 // Monitor loop (runs in worker)
-async function monitorLoop(threadCount, byteCounters) {
-    const maxDuration = config.duration.upload.max * 1000;
-    const minDuration = config.duration.upload.min * 1000;
-    const warmupDuration = 2.0 * 1000; // 2 seconds warm-up
-    warmupPeriodEnd = startTime + warmupDuration;
+async function monitorLoopWrapper(threadCount, byteCounters) {
+    // Create refs for mutable variables
+    const isRunningRef = { value: isRunning };
+    const totalBytesRef = { value: totalBytes };
+    const warmupBytesRef = { value: warmupBytes };
+    const warmupPeriodEndRef = { value: warmupPeriodEnd };
+    const lastSampleTimeRef = { value: lastSampleTime };
+    const lastBytesRef = { value: lastBytes };
+    const lastIntervalSpeedRef = { value: lastIntervalSpeed };
 
-    while (isRunning) {
-        await new Promise(resolve => setTimeout(resolve, config.updateInterval));
+    await monitorLoop(config, 'upload', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable);
 
-        const elapsed = performance.now() - startTime;
-        const currentTotalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
-        
-        // Track bytes transferred during warm-up period
-        if (elapsed <= warmupDuration) {
-            warmupBytes = currentTotalBytes;
-        }
-        
-        totalBytes = currentTotalBytes;
-
-        // Use the most recent interval speed for current display
-        const currentSpeed = lastIntervalSpeed;
-
-        // Send progress update to main thread
-        self.postMessage({
-            type: MESSAGE_TYPES.PROGRESS_UPDATE,
-            elapsed,
-            totalBytes,
-            currentSpeed,
-            speedSamples: speedSamples.slice(-3) // Send recent samples for smoothing
-        });
-
-        // Stability check
-        if (elapsed - lastSampleTime >= 500) {
-            const intervalBytes = totalBytes - lastBytes;
-            const intervalDuration = (elapsed - lastSampleTime) / 1000;
-
-            if (intervalBytes > 0) {
-                const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
-                speedSamples.push(intervalSpeed);
-                lastIntervalSpeed = intervalSpeed; // Update current speed display
-
-                // Limit sample history to prevent memory growth
-                if (speedSamples.length > 100) {
-                    speedSamples.shift();
-                }
-
-                if (elapsed >= minDuration && speedSamples.length >= config.stability.sampleCount) {
-                    if (isSpeedStable(speedSamples)) {
-                        console.log('[Upload Worker] Speed stabilized, stopping early');
-                        isRunning = false;
-                        break;
-                    }
-                }
-            }
-
-            lastSampleTime = elapsed;
-            lastBytes = totalBytes;
-        }
-
-        // Check duration limits
-        if (elapsed >= maxDuration) {
-            console.log('[Upload Worker] Max duration reached');
-            isRunning = false;
-            break;
-        }
-    }
+    // Update local variables from refs
+    isRunning = isRunningRef.value;
+    totalBytes = totalBytesRef.value;
+    warmupBytes = warmupBytesRef.value;
+    warmupPeriodEnd = warmupPeriodEndRef.value;
+    lastSampleTime = lastSampleTimeRef.value;
+    lastBytes = lastBytesRef.value;
+    lastIntervalSpeed = lastIntervalSpeedRef.value;
 
     // Calculate final results (excluding warm-up period)
     const totalDuration = (performance.now() - startTime) / 1000;
@@ -248,7 +204,20 @@ self.onmessage = function(e) {
         }
 
         // Start monitor loop
-        monitorLoop(threadCount, byteCounters);
+        monitorLoopWrapper(threadCount, byteCounters);
+
+        // Calculate final results using shared utility
+        const finalResults = calculateFinalResults(config, 'upload', totalBytes, warmupBytes, (performance.now() - startTime) / 1000, speedSamples, calculateStability);
+
+        // Send completion message
+        self.postMessage({
+            type: MESSAGE_TYPES.UPLOAD_COMPLETE,
+            speed: finalResults.speed,
+            bytesTransferred: finalResults.bytesTransferred,
+            duration: finalResults.duration,
+            effectiveDuration: finalResults.effectiveDuration,
+            stability: finalResults.stability
+        });
         break;
     }
 

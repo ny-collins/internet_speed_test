@@ -46,6 +46,8 @@ export const CONFIG = {
         checkWindow: 10,         // Analyze last 10 samples for more reliable detection
         varianceThreshold: 0.15  // Increased from 0.05 (5%) to 0.15 (15%) for more realistic stability detection
     },
+    // Measurement accuracy
+    warmupDuration: 2.0,        // Seconds to exclude from final speed calculation (TCP slow start)
     // Performance (dynamically optimized)
     updateInterval: getOptimalUpdateInterval(), // ms between gauge updates
     rafThrottle: 16,     // ~60fps
