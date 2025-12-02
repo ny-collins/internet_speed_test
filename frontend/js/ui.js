@@ -676,9 +676,15 @@ export function resetSpeedCurve() {
 export function showLiveStatus(phase) {
     if (!DOM.liveStatus) return;
     
-    // Hide gauge, show live status
-    if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = true;
-    if (DOM.gaugeInner) DOM.gaugeInner.hidden = true;
+    // Google Fiber approach: Hide entire gauge (circle + inner), show only graph + live numbers
+    if (DOM.gaugeCircle) {
+        DOM.gaugeCircle.hidden = true;
+        DOM.gaugeCircle.style.display = 'none';
+    }
+    if (DOM.gaugeInner) {
+        DOM.gaugeInner.hidden = true;
+        DOM.gaugeInner.style.display = 'none';
+    }
     
     // Update phase name
     if (DOM.livePhaseName) {
@@ -722,9 +728,15 @@ export function hideLiveStatus() {
         DOM.liveStatus.hidden = true;
     }, 300);
     
-    // Show gauge again
-    if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
-    if (DOM.gaugeInner) DOM.gaugeInner.hidden = false;
+    // Restore gauge visibility (only when test completes)
+    if (DOM.gaugeCircle) {
+        DOM.gaugeCircle.hidden = false;
+        DOM.gaugeCircle.style.display = '';
+    }
+    if (DOM.gaugeInner) {
+        DOM.gaugeInner.hidden = false;
+        DOM.gaugeInner.style.display = '';
+    }
 }
 
 // ========================================

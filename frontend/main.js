@@ -386,14 +386,14 @@ async function updateHistoryUI() {
     if (stats) {
         displayHistoryStats(stats);
     }
-        
-        if (STATE.history.length === 0) {
-            DOM.historyList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--color-text-tertiary)">No test history yet</div>';
-            return;
-        }
-        
-        DOM.historyList.innerHTML = '';
-        STATE.history.slice(0, 10).forEach(result => {
+    
+    if (STATE.history.length === 0) {
+        DOM.historyList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--color-text-tertiary)">No test history yet</div>';
+        return;
+    }
+    
+    DOM.historyList.innerHTML = '';
+    STATE.history.slice(0, 10).forEach(result => {
             const item = document.createElement('div');
             item.className = 'history-item';
             item.innerHTML = `
