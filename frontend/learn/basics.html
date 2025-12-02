@@ -196,13 +196,152 @@
                     <h2>Interpreting Your Results</h2>
                     <p>Understanding what your speed test results mean helps you determine if your connection meets your needs.</p>
 
-                    <h3>Speed Categories</h3>
-                    <ul>
-                        <li><strong>25-50 Mbps:</strong> Good for light browsing, email, and SD streaming</li>
-                        <li><strong>50-100 Mbps:</strong> Suitable for HD streaming and multiple devices</li>
-                        <li><strong>100-500 Mbps:</strong> Excellent for 4K streaming and heavy usage</li>
-                        <li><strong>500+ Mbps:</strong> Future-proof for multiple 4K streams and gaming</li>
-                    </ul>
+                    <h3>Speed Requirements by Activity</h3>
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>Minimum Speed</th>
+                                    <th>Recommended Speed</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Web Browsing & Email</td>
+                                    <td>1-5 Mbps</td>
+                                    <td>10+ Mbps</td>
+                                    <td>Basic usage, minimal load</td>
+                                </tr>
+                                <tr>
+                                    <td>SD Video Streaming</td>
+                                    <td>3-4 Mbps</td>
+                                    <td>5-10 Mbps</td>
+                                    <td>480p quality</td>
+                                </tr>
+                                <tr>
+                                    <td>HD Video Streaming (720p)</td>
+                                    <td>5 Mbps</td>
+                                    <td>10-20 Mbps</td>
+                                    <td>1280×720 resolution</td>
+                                </tr>
+                                <tr>
+                                    <td>Full HD Streaming (1080p)</td>
+                                    <td>7-10 Mbps</td>
+                                    <td>20-40 Mbps</td>
+                                    <td>1920×1080 resolution</td>
+                                </tr>
+                                <tr>
+                                    <td>4K/UHD Streaming</td>
+                                    <td>25 Mbps</td>
+                                    <td>50+ Mbps</td>
+                                    <td>3840×2160 resolution</td>
+                                </tr>
+                                <tr>
+                                    <td>Online Gaming</td>
+                                    <td>3-6 Mbps</td>
+                                    <td>15-25 Mbps</td>
+                                    <td>Low latency more important</td>
+                                </tr>
+                                <tr>
+                                    <td>Video Conferencing (HD)</td>
+                                    <td>1.5-3 Mbps</td>
+                                    <td>3-6 Mbps</td>
+                                    <td>Upload speed critical</td>
+                                </tr>
+                                <tr>
+                                    <td>Video Conferencing (4K)</td>
+                                    <td>4-6 Mbps</td>
+                                    <td>10+ Mbps</td>
+                                    <td>Requires good upload</td>
+                                </tr>
+                                <tr>
+                                    <td>Live Streaming (720p)</td>
+                                    <td>3-6 Mbps upload</td>
+                                    <td>6-10 Mbps upload</td>
+                                    <td>Stable upload essential</td>
+                                </tr>
+                                <tr>
+                                    <td>Live Streaming (1080p)</td>
+                                    <td>6-8 Mbps upload</td>
+                                    <td>10-15 Mbps upload</td>
+                                    <td>High upload consistency</td>
+                                </tr>
+                                <tr>
+                                    <td>Large File Downloads</td>
+                                    <td>10+ Mbps</td>
+                                    <td>100+ Mbps</td>
+                                    <td>Speed directly impacts time</td>
+                                </tr>
+                                <tr>
+                                    <td>Smart Home (Multiple Devices)</td>
+                                    <td>25 Mbps</td>
+                                    <td>50+ Mbps</td>
+                                    <td>Per concurrent stream</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Mbps to MB/s Conversion</h3>
+                    <p>Internet speeds are measured in <strong>Megabits per second (Mbps)</strong>, but file sizes and download speeds are often shown in <strong>Megabytes per second (MB/s)</strong>. Here's the conversion:</p>
+                    
+                    <div class="callout-box conversion-callout">
+                        <div class="conversion-formula">
+                            <strong>1 Megabyte (MB) = 8 Megabits (Mb)</strong><br>
+                            <span style="color: var(--color-text-secondary);">MB/s = Mbps ÷ 8</span>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrapper">
+                        <table class="data-table conversion-table">
+                            <thead>
+                                <tr>
+                                    <th>Speed (Mbps)</th>
+                                    <th>Download Rate (MB/s)</th>
+                                    <th>1 GB File Download Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>10 Mbps</td>
+                                    <td>1.25 MB/s</td>
+                                    <td>~13.7 minutes</td>
+                                </tr>
+                                <tr>
+                                    <td>25 Mbps</td>
+                                    <td>3.125 MB/s</td>
+                                    <td>~5.5 minutes</td>
+                                </tr>
+                                <tr>
+                                    <td>50 Mbps</td>
+                                    <td>6.25 MB/s</td>
+                                    <td>~2.7 minutes</td>
+                                </tr>
+                                <tr>
+                                    <td>100 Mbps</td>
+                                    <td>12.5 MB/s</td>
+                                    <td>~1.4 minutes (82 sec)</td>
+                                </tr>
+                                <tr>
+                                    <td>200 Mbps</td>
+                                    <td>25 MB/s</td>
+                                    <td>~41 seconds</td>
+                                </tr>
+                                <tr>
+                                    <td>500 Mbps</td>
+                                    <td>62.5 MB/s</td>
+                                    <td>~16 seconds</td>
+                                </tr>
+                                <tr>
+                                    <td>1 Gbps (1000 Mbps)</td>
+                                    <td>125 MB/s</td>
+                                    <td>~8 seconds</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <h3>Factors Affecting Results</h3>
                     <p>Several factors can influence your speed test results:</p>

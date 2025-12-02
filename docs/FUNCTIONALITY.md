@@ -5,11 +5,13 @@ This document explains how SpeedCheck works internally - the architecture, measu
 ## Table of Contents
 
 - [System Architecture](#system-architecture)
+- [UI Architecture](#ui-architecture)
 - [Test Flow](#test-flow)
 - [Measurement Components](#measurement-components)
 - [Web Workers Architecture](#web-workers-architecture)
 - [Progressive Web App (PWA)](#progressive-web-app-pwa)
 - [API Endpoints](#api-endpoints)
+- [Learn Center](#learn-center)
 
 ---
 
@@ -99,9 +101,128 @@ SpeedCheck uses a **tri-service architecture** with geographic distribution:
 **Frontend (Both Deployments)**:
 - **Static Files**: HTML, CSS, JavaScript
 - **Service Worker**: Offline caching, PWA functionality (`sw.js`)
-- **Main Logic**: Speed test orchestration in `main.js` (2,124 lines)
-- **Modular Architecture**: Separate JS modules (11 files) and CSS files (7 files)
+- **Main Page**: Speed test interface with Stage & Tray layout (`index.html`)
+- **Learn Center**: Article-based educational content with sidebar navigation (`learn.html`, `learn/*.html`)
+- **Modular Architecture**: Separate JS modules (12 files) and CSS files (7 files)
 - **API Detection**: Automatically connects to Amsterdam backend regardless of frontend location
+
+---
+
+## UI Architecture
+
+### Main Speed Test Page
+
+**Stage & Tray Layout** (Google Fiber inspired):
+
+```
+┌─────────────────────────────────────┐
+│         Active Stage (60vh)         │
+│  ┌───────────────────────────────┐  │
+│  │  Live Speed Display / Graph   │  │
+│  │  (Canvas-based visualization) │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│          Results Tray               │
+│  ┌────────┬────────┬────────┬────┐  │
+│  │Latency │Download│ Upload │Jitr│  │
+│  │  ms    │  Mbps  │  Mbps  │ ms │  │
+│  └────────┴────────┴────────┴────┘  │
+└─────────────────────────────────────┘
+```
+
+**Components:**
+- **Active Stage**: 60vh height area displaying:
+  - Live speed value during tests (5-6rem font)
+  - Speed curve graph (blue download, purple upload gradients)
+  - Live status text ("Testing Download Speed...")
+  - Hidden during idle, visible during active tests
+
+- **Results Tray**: 4-card horizontal grid showing:
+  - Latency (ms) - First test, highlighted during latency phase
+  - Download (Mbps) - Highlighted during download test
+  - Upload (Mbps) - Highlighted during upload test
+  - Jitter (ms) - Calculated after latency test
+  - Each card includes icon, label, value, and unit
+
+**Responsive Behavior:**
+- Desktop (>1024px): Full Stage + Tray layout
+- Tablet (769-1024px): Adjusted spacing, 4-column tray maintained
+- Mobile (≤768px): 2×2 grid for tray cards, reduced stage height (50vh)
+
+### Learn Center
+
+**Article-Based Layout** with sticky sidebar navigation:
+
+```
+Desktop (>1024px):
+┌──────────────┬─────────────────────────┐
+│   Sidebar    │    Article Content      │
+│   (280px)    │    (max-width: 800px)   │
+│  ┌────────┐  │  ┌───────────────────┐  │
+│  │Articles│  │  │ Breadcrumb        │  │
+│  │  List  │  │  │ Title & Subtitle  │  │
+│  ├────────┤  │  │ Meta Bar          │  │
+│  │On This │  │  ├───────────────────┤  │
+│  │  Page  │  │  │                   │  │
+│  ├────────┤  │  │ Article Sections  │  │
+│  │ Back   │  │  │                   │  │
+│  └────────┘  │  │                   │  │
+│              │  └───────────────────┘  │
+└──────────────┴─────────────────────────┘
+
+Mobile (≤1024px):
+┌─────────────────────────────────────┐
+│        Article Content              │
+│  ┌───────────────────────────────┐  │
+│  │ Breadcrumb                    │  │
+│  │ Title & Subtitle              │  │
+│  │ Meta Bar                      │  │
+│  ├───────────────────────────────┤  │
+│  │                               │  │
+│  │ Article Sections              │  │
+│  │                               │  │
+│  └───────────────────────────────┘  │
+├─────────────────────────────────────┤
+│        Sidebar (Bottom)             │
+│  ┌───────────────────────────────┐  │
+│  │ Articles List                 │  │
+│  │ On This Page TOC              │  │
+│  │ Back Link                     │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
+**Sidebar Components:**
+1. **Learn Articles**: Navigation to all 6 pages
+   - Overview (learn.html)
+   - Speed Test Basics (5 min read)
+   - Testing Methodology (7 min read)
+   - Technical Concepts (10 min read)
+   - Troubleshooting (8 min read)
+   - Future Developments (6 min read)
+   - Active state highlighting for current page
+   - Lucide icons for visual identification
+
+2. **On This Page**: Auto-generated table of contents
+   - Extracted from H2/H3 headings in article
+   - Smooth scroll-to-section links
+   - Hover effects with border-left animation
+
+3. **Back to Speed Test**: Quick navigation link
+
+**Article Features:**
+- Breadcrumb navigation (Learn / Article Name)
+- Reading time estimates (5-10 minute range)
+- Last updated dates (Nov 2025)
+- Prev/Next navigation cards at article end
+- Responsive typography (max-width 800px for readability)
+
+**Page Loader:**
+- Displays while DOM loads and icons initialize
+- Custom loading messages per page
+- Fade-out transition (300ms) via `.hidden` class
+- Handled in `shared.js` module
 
 **Backend (Single Deployment)**:
 - **Express Server**: RESTful API endpoints for download/upload/ping
@@ -551,6 +672,137 @@ xhr.upload.onprogress = (event) => {
 - Workers catch and report errors to main thread
 - Automatic cleanup on test completion
 - Graceful degradation if workers unavailable
+
+---
+
+## Learn Center
+
+### Content Structure
+
+SpeedCheck includes a comprehensive learning center with 6 pages of educational content:
+
+**1. Learn Hub (learn.html)**
+- Article-style introduction to the learning center
+- Five article link cards with reading time estimates
+- Recommended reading order callout
+- Clean typography optimized for scanning
+
+**2. Speed Test Basics (basics.html)** - 5 min read
+- What internet speed means
+- Understanding Mbps vs MB/s
+- Why speed tests matter
+- How to interpret results
+
+**3. Testing Methodology (methodology.html)** - 7 min read
+- How speed tests work internally
+- Testing protocol and measurement accuracy
+- Server selection strategy
+- Data handling and latency measurement
+
+**4. Technical Concepts (technical.html)** - 10 min read
+- Network protocol stack visualization
+- TCP optimization techniques
+- Performance metrics explained
+- Congestion control algorithms
+- Web APIs and Web Workers architecture
+- Measurement theory
+
+**5. Troubleshooting (troubleshooting.html)** - 8 min read
+- Common issues and quick fixes
+- Diagnostic tools
+- Connection problems
+- Inconsistent results analysis
+- Advanced troubleshooting steps
+
+**6. Future Developments (future.html)** - 6 min read
+- Emerging technologies (QUIC, HTTP/3)
+- Protocol evolution
+- Measurement innovation
+- Network infrastructure trends
+- Future vision and development roadmap
+
+### Navigation System
+
+**Sidebar Navigation** (Desktop >1024px):
+```css
+.learn-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 3rem;
+}
+
+.learn-sidebar {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+```
+
+**Features:**
+- Sticky positioning keeps navigation visible while scrolling
+- Active state highlighting shows current article
+- Lucide icons for visual differentiation
+- Hover effects with slide-right animation
+- Three distinct sections: Articles, TOC, Back link
+
+**Mobile Responsiveness** (≤1024px):
+```css
+.learn-layout {
+  grid-template-columns: 1fr;
+}
+
+.learn-sidebar {
+  position: static;
+  order: 2; /* Sidebar moves to bottom */
+  margin-top: 3rem;
+  border-top: 2px solid var(--color-border);
+}
+
+.learn-article {
+  order: 1; /* Article content stays on top */
+}
+```
+
+### Article Metadata
+
+Each article includes:
+- **Breadcrumb**: Learn / [Article Name]
+- **Reading Time**: Estimated minutes (clock icon)
+- **Last Updated**: Month and year (calendar icon)
+- **Subtitle**: Brief description of article content
+- **Prev/Next Cards**: Navigation to related articles
+
+### Page Loading
+
+All learn pages use a unified loading system:
+
+```javascript
+// shared.js
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Initialize theme and PWA
+  registerServiceWorker();
+  initializeTheme();
+  
+  // 2. Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  // 3. Hide page loader
+  const pageLoader = document.querySelector('.page-loader');
+  if (pageLoader) {
+    pageLoader.classList.add('hidden'); // Fade out
+  }
+});
+```
+
+**Loading States:**
+- "Loading educational content..." (basics.html)
+- "Loading methodology insights..." (methodology.html)
+- "Loading technical details..." (technical.html)
+- "Loading troubleshooting guide..." (troubleshooting.html)
+- "Loading future insights..." (future.html)
 
 ---
 

@@ -4,6 +4,312 @@
 
 This document explains the technical choices, trade-offs, and architectural decisions made during the development of SpeedCheck.
 
+## Table of Contents
+
+- [Stage & Tray Layout (v1.67.0)](#stage--tray-layout-v1670)
+- [Learn Center Architecture (v1.67.0)](#learn-center-architecture-v1670)
+- [Desktop UI Architecture (v1.66.0)](#desktop-ui-architecture-v1660)
+- [Mobile Responsiveness](#mobile-responsiveness)
+- [CSS Architecture](#css-architecture)
+
+---
+
+## Stage & Tray Layout (v1.67.0)
+
+### Design Philosophy
+
+**Problem:** Previous two-column layout (gauge + results matrix) was functional but didn't emphasize the real-time nature of speed testing. Results felt static.
+
+**Solution:** Adopted Google Fiber's Stage & Tray layout pattern:
+- **Stage**: Dynamic 60vh area for active test visualization
+- **Tray**: Horizontal 4-card grid for persistent results
+
+### Implementation
+
+```css
+.active-stage {
+  height: 60vh;
+  min-height: 400px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.results-tray {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+```
+
+**Benefits:**
+- **Visual Hierarchy**: Active test dominates viewport during execution
+- **Real-time Focus**: Large stage area emphasizes live speed values and graph
+- **Persistent Context**: Tray keeps completed metrics visible without scrolling
+- **Progressive Disclosure**: Stage hidden when idle, reveals during tests
+- **Mobile-Friendly**: Easily adapts to 2×2 grid on small screens
+
+### Stage Components
+
+**1. Live Speed Display**
+```html
+<div class="live-status">
+  <div class="live-speed-value">94.7</div>
+  <div class="live-speed-unit">Mbps</div>
+  <div class="live-phase-name">Testing Download Speed...</div>
+</div>
+```
+- Font size: 5-6rem for primary value
+- Smooth number transitions
+- Phase indicator text
+- Visible class toggles during tests
+
+**2. Speed Curve Graph**
+```javascript
+// Canvas-based real-time plotting
+ctx.fillStyle = gradient; // Blue for download, purple for upload
+ctx.beginPath();
+ctx.moveTo(x, y);
+// Plot speed samples over time
+ctx.lineTo(x, y);
+ctx.fill();
+```
+- Blue gradient for download speeds
+- Purple gradient for upload speeds
+- Smooth area chart rendering
+- Persists after test completion
+
+### Tray Card System
+
+Each card includes:
+- Icon (lucide: wifi, download, upload, activity)
+- Label (Latency, Download, Upload, Jitter)
+- Value (large numeric display)
+- Unit (ms, Mbps)
+- Active state highlighting during test phase
+
+**Highlighting Logic:**
+```javascript
+// Latency phase
+highlightTrayCard('latency');
+
+// Download phase
+highlightTrayCard('download');
+
+// Upload phase
+highlightTrayCard('upload');
+```
+
+### Mobile Adaptation
+
+```css
+@media (max-width: 768px) {
+  .results-tray {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+  
+  .active-stage {
+    min-height: 350px;
+    height: 50vh;
+  }
+  
+  .tray-card {
+    min-height: 120px;
+  }
+}
+```
+
+---
+
+## Learn Center Architecture (v1.67.0)
+
+### Layout Evolution
+
+**Before:** Card-based grid layout (learning paths metaphor)
+```css
+.learning-paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.path-card {
+  /* Card styling */
+}
+```
+
+**After:** Article-first layout with sticky sidebar
+```css
+.learn-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 3rem;
+}
+
+.learn-sidebar {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+}
+
+.learn-article {
+  max-width: 800px;
+}
+```
+
+### Why Article Layout?
+
+**Card Layout Issues:**
+- Felt disconnected from reading experience
+- No clear navigation between related topics
+- Users had to return to hub to switch articles
+- No sense of position within content structure
+- Limited space for metadata and context
+
+**Article Layout Benefits:**
+- **Continuous Reading Flow**: Natural progression through topics
+- **Persistent Navigation**: Sidebar always shows all articles and current position
+- **Better Context**: Breadcrumbs, reading times, last updated dates
+- **Improved Discoverability**: On This Page TOC for long articles
+- **Professional Appearance**: Matches documentation sites users expect
+
+### Sidebar Navigation System
+
+**Three-Section Design:**
+
+1. **Learn Articles** (Navigation)
+   - All 6 pages listed with icons
+   - Active state highlights current page
+   - Reading time estimates for planning
+   - Hover effects (slide-right animation)
+
+2. **On This Page** (Table of Contents)
+   - Auto-generated from H2/H3 headings
+   - Smooth scroll links
+   - Border-left hover animation
+   - Shows article structure at a glance
+
+3. **Back to Speed Test** (Quick Exit)
+   - Persistent link to main app
+   - Prevents user from feeling trapped in docs
+
+**Sticky Positioning Strategy:**
+```css
+.learn-sidebar {
+  position: sticky;
+  top: 2rem; /* Fixed distance from top */
+  max-height: calc(100vh - 4rem); /* Prevent overflow */
+  overflow-y: auto; /* Scroll if content too tall */
+}
+```
+
+**Benefits:**
+- Sidebar remains visible while scrolling long articles
+- Viewport-based height prevents awkward cutoffs
+- Overflow scroll for very long TOCs
+- 2rem top offset provides breathing room
+
+### Reading Time Estimation
+
+**Methodology:**
+- Average adult reading speed: 238 words per minute
+- Technical content factor: 0.7× (slower comprehension)
+- Effective speed: ~165 words per minute
+
+**Calculation:**
+```javascript
+wordCount = articleText.split(/\s+/).length;
+readingTime = Math.ceil(wordCount / 165);
+```
+
+**Estimates:**
+- Speed Test Basics: ~750 words = 5 min
+- Testing Methodology: ~1100 words = 7 min
+- Technical Concepts: ~1600 words = 10 min
+- Troubleshooting: ~1300 words = 8 min
+- Future Developments: ~1000 words = 6 min
+
+### Mobile Responsiveness
+
+**Desktop Strategy** (>1024px):
+- 280px fixed sidebar width
+- Remaining space for article content
+- Article max-width 800px for readability
+- Both visible simultaneously
+
+**Mobile Strategy** (≤1024px):
+```css
+.learn-layout {
+  grid-template-columns: 1fr; /* Single column */
+}
+
+.learn-sidebar {
+  position: static; /* No sticky positioning */
+  order: 2; /* Moves to bottom */
+  margin-top: 3rem;
+  border-top: 2px solid var(--color-border);
+}
+
+.learn-article {
+  order: 1; /* Stays on top */
+}
+```
+
+**Rationale:**
+- **Content First**: Article appears immediately, no scrolling needed
+- **Navigation Available**: Sidebar still accessible below content
+- **Visual Separation**: Border-top makes sidebar section clear
+- **No Lost Features**: All navigation remains functional
+
+### Page Loader Pattern
+
+**Problem:** Articles use heavy Lucide icon library (100KB+), causing flash of unstyled content.
+
+**Solution:** Loading screen until DOM and icons ready:
+
+```html
+<div class="page-loader">
+  <i data-lucide="rocket" class="loader-icon"></i>
+  <div class="loader-text">Loading future insights...</div>
+</div>
+```
+
+```javascript
+// shared.js
+document.addEventListener('DOMContentLoaded', () => {
+  registerServiceWorker();
+  initializeTheme();
+  
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons(); // Initialize icons
+  }
+  
+  const pageLoader = document.querySelector('.page-loader');
+  if (pageLoader) {
+    pageLoader.classList.add('hidden'); // Trigger fade-out
+  }
+});
+```
+
+```css
+.page-loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+```
+
+**Benefits:**
+- No flash of unstyled icons
+- Smooth fade-in of content
+- Custom loading messages per page
+- Users see intentional loading, not broken page
+
+---
+
 ## Desktop UI Architecture (v1.66.0)
 
 ### Two-Column Layout Strategy

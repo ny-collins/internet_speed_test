@@ -5,6 +5,95 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.67.0] - 2025-12-02
+
+### Added
+
+**📚 Learn Center Redesign:**
+- **Article-Based Layout**: Transformed learn hub from card grid to article-style introduction
+  - Clean lead paragraphs explaining the learning center purpose
+  - Vertical article link cards with icons and reading time estimates (5-10 min)
+  - Recommended reading order callout box
+  - Call-to-action section with direct link back to speed test
+
+- **Sticky Sidebar Navigation System**: Comprehensive navigation for all learn articles
+  - Three-section sidebar: Article list (6 pages), On This Page TOC, Back to Speed Test link
+  - Active state highlighting shows current article
+  - Auto-generated table of contents from H2/H3 headings
+  - Sticky positioning (top: 2rem) with max-height viewport-based scrolling
+  - Lucide icons for each article (book-open, graduation-cap, flask-conical, cpu, wrench, sparkles)
+  - Smooth hover effects with border-left slide animation
+
+- **Article Metadata System**: Enhanced article context and navigation
+  - Breadcrumb navigation (Learn / Article Name)
+  - Reading time estimates with clock icon (5-10 minute range)
+  - Last updated dates with calendar icon (Nov 2025)
+  - Meta bar below article title for quick reference
+
+- **Prev/Next Navigation Cards**: Article progression system
+  - Grid layout for navigation cards at article end
+  - Special styling for "next" article with gradient background
+  - Related article suggestions with descriptive text
+  - Consistent navigation flow through all 5 articles
+
+### Improved
+
+**Learn Pages Architecture:**
+- **Responsive Layout**: Mobile-first grid system
+  - Desktop (>1024px): 280px sidebar + 1fr content area
+  - Mobile (≤1024px): Single column with sidebar moved to bottom, bordered separator
+  - Article content max-width 800px for optimal reading line length
+  - Sidebar maintains functionality on mobile with static positioning
+
+- **Typography & Spacing**: Enhanced readability
+  - Left-aligned article headers (removed gradients for cleaner look)
+  - Consistent spacing system using CSS custom properties
+  - Better heading hierarchy with proper font weights
+  - Article subtitle style with muted color
+
+- **Navigation UX**: Improved article discovery
+  - Sidebar links use flex layout with icons aligned left
+  - Hover state includes subtle slide-right animation
+  - Active article highlighted with primary color accent
+  - TOC links include smooth border-left reveal on hover
+
+### Fixed
+
+- **Page Loader Issue**: Learn articles stuck at "Loading future insights..." message
+  - Added `.page-loader.hidden` class application in shared.js
+  - Properly hides loader after DOM initialization and icon setup
+  - 300ms fade-out transition for smooth disappearance
+
+- **Mobile Sidebar Reflow**: Sidebar navigation accessible on mobile
+  - Changed from fixed to static positioning below 1024px
+  - Added order properties to maintain article-first, sidebar-second flow
+  - Border-top separator for visual clarity on mobile layout
+
+### Technical
+
+**CSS Architecture:**
+- Added 200+ lines to `pages.css` for sidebar and article layouts
+- Removed 40+ lines of legacy `.learning-paths` and `.path-card` styles
+- New components: `.learn-layout`, `.learn-sidebar`, `.sidebar-section`, `.sidebar-nav`, `.toc-nav-sidebar`, `.article-meta-bar`, `.article-navigation`, `.nav-card`
+- Mobile breakpoint: 1024px for sidebar layout switch
+- Additional mobile refinements at 768px for smaller screens
+
+**File Updates:**
+- `frontend/learn.html`: Complete restructure (356 lines removed, 329 added)
+- `frontend/learn/basics.html`: Sidebar template implementation (230 lines)
+- `frontend/learn/methodology.html`: Sidebar layout applied (260 lines)
+- `frontend/learn/technical.html`: Sidebar layout applied (337 lines)
+- `frontend/learn/troubleshooting.html`: Sidebar layout applied (365 lines)
+- `frontend/learn/future.html`: Sidebar layout applied (428 lines)
+- `frontend/shared.js`: Added page loader hide logic (3 lines)
+
+**Reading Time Estimates:**
+- Speed Test Basics: 5 min
+- Testing Methodology: 7 min
+- Technical Concepts: 10 min (longest, most detailed)
+- Troubleshooting: 8 min
+- Future Developments: 6 min
+
 ## [1.66.0] - 2025-12-02
 
 ### Added
