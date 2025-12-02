@@ -51,33 +51,82 @@
         </div>
     </header>
 
-    <main class="app-container">
-        <nav class="toc-nav" aria-label="Table of contents">
-            <div class="toc-content">
-                <h2>Contents</h2>
-                <ul class="toc-list">
-                    <li><a href="#common-issues">Common Issues</a></li>
-                    <li><a href="#quick-fixes">Quick Fixes</a></li>
-                    <li><a href="#diagnostic-tools">Diagnostic Tools</a></li>
-                    <li><a href="#connection-problems">Connection Problems</a></li>
-                    <li><a href="#inconsistent-results">Inconsistent Results</a></li>
-                    <li><a href="#advanced-troubleshooting">Advanced Troubleshooting</a></li>
-                </ul>
-                <div class="toc-note">
-                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+    <main class="learn-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="learn-sidebar" id="learnSidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Learn Articles</h3>
+                    <nav class="sidebar-nav">
+                        <a href="../learn.html" class="sidebar-link">
+                            <i data-lucide="book-open" class="sidebar-icon"></i>
+                            Overview
+                        </a>
+                        <a href="basics.html" class="sidebar-link">
+                            <i data-lucide="graduation-cap" class="sidebar-icon"></i>
+                            Speed Test Basics
+                        </a>
+                        <a href="methodology.html" class="sidebar-link">
+                            <i data-lucide="flask-conical" class="sidebar-icon"></i>
+                            Testing Methodology
+                        </a>
+                        <a href="technical.html" class="sidebar-link">
+                            <i data-lucide="cpu" class="sidebar-icon"></i>
+                            Technical Concepts
+                        </a>
+                        <a href="troubleshooting.html" class="sidebar-link active">
+                            <i data-lucide="wrench" class="sidebar-icon"></i>
+                            Troubleshooting
+                        </a>
+                        <a href="future.html" class="sidebar-link">
+                            <i data-lucide="sparkles" class="sidebar-icon"></i>
+                            Future of Testing
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">On This Page</h3>
+                    <nav class="toc-nav-sidebar" id="tableOfContents">
+                        <a href="#common-issues" class="toc-link">Common Issues</a>
+                        <a href="#quick-fixes" class="toc-link">Quick Fixes</a>
+                        <a href="#diagnostic-tools" class="toc-link">Diagnostic Tools</a>
+                        <a href="#connection-problems" class="toc-link">Connection Problems</a>
+                        <a href="#inconsistent-results" class="toc-link">Inconsistent Results</a>
+                        <a href="#advanced-troubleshooting" class="toc-link">Advanced Troubleshooting</a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-back">
+                    <a href="/" class="sidebar-link">
+                        <i data-lucide="arrow-left" class="sidebar-icon"></i>
+                        Back to Speed Test
+                    </a>
                 </div>
             </div>
-        </nav>
+        </aside>
 
-        <article class="article-content">
+        <!-- Main Content -->
+        <article class="article-content learn-article">
             <header class="article-header">
                 <nav class="breadcrumb">
-                    <a href="/learn.html">Learn</a>
+                    <a href="../learn.html">Learn</a>
                     <span>/</span>
                     <span>Troubleshooting</span>
                 </nav>
                 <h1>Troubleshooting</h1>
                 <p class="article-subtitle">Diagnose and fix common internet speed test issues and connection problems.</p>
+                <div class="article-meta-bar">
+                    <span class="meta-item">
+                        <i data-lucide="clock"></i>
+                        8 min read
+                    </span>
+                    <span class="meta-item">
+                        <i data-lucide="calendar"></i>
+                        Updated Nov 2025
+                    </span>
+                </div>
+            </header>
             </header>
 
             <div class="article-body">

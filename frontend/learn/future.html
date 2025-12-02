@@ -51,33 +51,82 @@
         </div>
     </header>
 
-    <main class="app-container">
-        <nav class="toc-nav" aria-label="Table of contents">
-            <div class="toc-content">
-                <h2>Contents</h2>
-                <ul class="toc-list">
-                    <li><a href="#emerging-tech">Emerging Technologies</a></li>
-                    <li><a href="#protocol-evolution">Protocol Evolution</a></li>
-                    <li><a href="#measurement-innovation">Measurement Innovation</a></li>
-                    <li><a href="#network-infrastructure">Network Infrastructure</a></li>
-                    <li><a href="#future-vision">Future Vision</a></li>
-                    <li><a href="#roadmap">Development Roadmap</a></li>
-                </ul>
-                <div class="toc-note">
-                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+    <main class="learn-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="learn-sidebar" id="learnSidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Learn Articles</h3>
+                    <nav class="sidebar-nav">
+                        <a href="../learn.html" class="sidebar-link">
+                            <i data-lucide="book-open" class="sidebar-icon"></i>
+                            Overview
+                        </a>
+                        <a href="basics.html" class="sidebar-link">
+                            <i data-lucide="graduation-cap" class="sidebar-icon"></i>
+                            Speed Test Basics
+                        </a>
+                        <a href="methodology.html" class="sidebar-link">
+                            <i data-lucide="flask-conical" class="sidebar-icon"></i>
+                            Testing Methodology
+                        </a>
+                        <a href="technical.html" class="sidebar-link">
+                            <i data-lucide="cpu" class="sidebar-icon"></i>
+                            Technical Concepts
+                        </a>
+                        <a href="troubleshooting.html" class="sidebar-link">
+                            <i data-lucide="wrench" class="sidebar-icon"></i>
+                            Troubleshooting
+                        </a>
+                        <a href="future.html" class="sidebar-link active">
+                            <i data-lucide="sparkles" class="sidebar-icon"></i>
+                            Future of Testing
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">On This Page</h3>
+                    <nav class="toc-nav-sidebar" id="tableOfContents">
+                        <a href="#emerging-tech" class="toc-link">Emerging Technologies</a>
+                        <a href="#protocol-evolution" class="toc-link">Protocol Evolution</a>
+                        <a href="#measurement-innovation" class="toc-link">Measurement Innovation</a>
+                        <a href="#network-infrastructure" class="toc-link">Network Infrastructure</a>
+                        <a href="#future-vision" class="toc-link">Future Vision</a>
+                        <a href="#roadmap" class="toc-link">Development Roadmap</a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-back">
+                    <a href="/" class="sidebar-link">
+                        <i data-lucide="arrow-left" class="sidebar-icon"></i>
+                        Back to Speed Test
+                    </a>
                 </div>
             </div>
-        </nav>
+        </aside>
 
-        <article class="article-content">
+        <!-- Main Content -->
+        <article class="article-content learn-article">
             <header class="article-header">
                 <nav class="breadcrumb">
-                    <a href="/learn.html">Learn</a>
+                    <a href="../learn.html">Learn</a>
                     <span>/</span>
                     <span>Future Developments</span>
                 </nav>
                 <h1>Future Developments</h1>
                 <p class="article-subtitle">Exploring emerging trends and innovations in internet speed testing technology.</p>
+                <div class="article-meta-bar">
+                    <span class="meta-item">
+                        <i data-lucide="clock"></i>
+                        6 min read
+                    </span>
+                    <span class="meta-item">
+                        <i data-lucide="calendar"></i>
+                        Updated Nov 2025
+                    </span>
+                </div>
+            </header>
             </header>
 
             <div class="article-body">

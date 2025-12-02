@@ -51,33 +51,81 @@
         </div>
     </header>
 
-    <main class="app-container">
-        <nav class="toc-nav" aria-label="Table of contents">
-            <div class="toc-content">
-                <h2>Contents</h2>
-                <ul class="toc-list">
-                    <li><a href="#how-tests-work">How Speed Tests Work</a></li>
-                    <li><a href="#testing-protocol">Testing Protocol</a></li>
-                    <li><a href="#measurement-accuracy">Measurement Accuracy</a></li>
-                    <li><a href="#server-selection">Server Selection</a></li>
-                    <li><a href="#data-handling">Data Handling</a></li>
-                    <li><a href="#latency-measurement">Latency Measurement</a></li>
-                </ul>
-                <div class="toc-note">
-                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+    <main class="learn-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="learn-sidebar" id="learnSidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Learn Articles</h3>
+                    <nav class="sidebar-nav">
+                        <a href="../learn.html" class="sidebar-link">
+                            <i data-lucide="book-open" class="sidebar-icon"></i>
+                            Overview
+                        </a>
+                        <a href="basics.html" class="sidebar-link">
+                            <i data-lucide="graduation-cap" class="sidebar-icon"></i>
+                            Speed Test Basics
+                        </a>
+                        <a href="methodology.html" class="sidebar-link active">
+                            <i data-lucide="flask-conical" class="sidebar-icon"></i>
+                            Testing Methodology
+                        </a>
+                        <a href="technical.html" class="sidebar-link">
+                            <i data-lucide="cpu" class="sidebar-icon"></i>
+                            Technical Concepts
+                        </a>
+                        <a href="troubleshooting.html" class="sidebar-link">
+                            <i data-lucide="wrench" class="sidebar-icon"></i>
+                            Troubleshooting
+                        </a>
+                        <a href="future.html" class="sidebar-link">
+                            <i data-lucide="sparkles" class="sidebar-icon"></i>
+                            Future of Testing
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">On This Page</h3>
+                    <nav class="toc-nav-sidebar" id="tableOfContents">
+                        <a href="#how-tests-work" class="toc-link">How Speed Tests Work</a>
+                        <a href="#testing-protocol" class="toc-link">Testing Protocol</a>
+                        <a href="#measurement-accuracy" class="toc-link">Measurement Accuracy</a>
+                        <a href="#server-selection" class="toc-link">Server Selection</a>
+                        <a href="#data-handling" class="toc-link">Data Handling</a>
+                        <a href="#latency-measurement" class="toc-link">Latency Measurement</a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-back">
+                    <a href="/" class="sidebar-link">
+                        <i data-lucide="arrow-left" class="sidebar-icon"></i>
+                        Back to Speed Test
+                    </a>
                 </div>
             </div>
-        </nav>
+        </aside>
 
-        <article class="article-content">
+        <!-- Main Content -->
+        <article class="article-content learn-article">
             <header class="article-header">
                 <nav class="breadcrumb">
-                    <a href="/learn.html">Learn</a>
+                    <a href="../learn.html">Learn</a>
                     <span>/</span>
                     <span>Testing Methodology</span>
                 </nav>
                 <h1>Testing Methodology</h1>
                 <p class="article-subtitle">Understanding how internet speed tests work and what makes them accurate.</p>
+                <div class="article-meta-bar">
+                    <span class="meta-item">
+                        <i data-lucide="clock"></i>
+                        7 min read
+                    </span>
+                    <span class="meta-item">
+                        <i data-lucide="calendar"></i>
+                        Updated Nov 2025
+                    </span>
+                </div>
             </header>
 
             <div class="article-body">

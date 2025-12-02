@@ -21,5 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
     
+    // 3. Hide Page Loader
+    const pageLoader = document.querySelector('.page-loader');
+    if (pageLoader) {
+        pageLoader.classList.add('hidden');
+    }
+    
     console.log('[Shared] Initialization complete');
 });
