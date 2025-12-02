@@ -249,18 +249,15 @@
                         <div class="variance-graph-header">
                             <h3>Speed Over Time</h3>
                             <div class="variance-stats">
-                                <span class="stat">Avg: <strong id="varianceAvg">—</strong></span>
+                                <span class="stat">Avg: <strong id="varianceAvg">—</strong> Mbps</span>
                                 <span class="stat">Min: <strong id="varianceMin">—</strong></span>
                                 <span class="stat">Max: <strong id="varianceMax">—</strong></span>
                             </div>
                         </div>
-                        <canvas id="varianceGraph" width="340" height="120" aria-label="Real-time speed variation graph"></canvas>
-                        <div class="variance-quality">
-                            <div class="quality-indicator" id="varianceQuality">
-                                <span class="quality-badge">🟢</span>
-                                <span class="quality-text">Measuring...</span>
-                            </div>
-                            <div class="variance-percentage" id="variancePercentage">±0%</div>
+                        <canvas id="varianceCanvas" width="340" height="120" aria-label="Real-time speed variation graph"></canvas>
+                        <div class="variance-footer">
+                            <div class="variance-quality">⚪ Waiting...</div>
+                            <div class="variance-percentage">Variance: <strong id="variancePercent">—</strong>%</div>
                         </div>
                     </div>
                 </div>
@@ -322,16 +319,11 @@
                                 <span class="matrix-number" id="latency-value">—</span>
                                 <span class="matrix-unit" id="latency-unit">ms</span>
                             </div>
-                            <div class="quality-badge-container" id="latency-quality" hidden>
-                                <span class="quality-badge">🟢</span>
-                                <span class="quality-label">Excellent</span>
+                            <div class="quality-badge-container" data-quality-badge="latency" style="display: none;">
+                                <span class="quality-icon">🟢</span>
+                                <span class="quality-label">Great</span>
                             </div>
-                            <div class="latency-context" id="latency-context-info" hidden>
-                                <ul class="context-list">
-                                    <li>Gaming performance</li>
-                                    <li>Video call quality</li>
-                                </ul>
-                            </div>
+                            <div class="latency-context" data-latency-context style="display: none;"></div>
                         </div>
                     </div>
 
@@ -345,9 +337,9 @@
                                 <span class="matrix-number" id="jitter-value">—</span>
                                 <span class="matrix-unit" id="jitter-unit">ms</span>
                             </div>
-                            <div class="quality-badge-container" id="jitter-quality" hidden>
-                                <span class="quality-badge">🟢</span>
-                                <span class="quality-label">Stable</span>
+                            <div class="quality-badge-container" data-quality-badge="jitter" style="display: none;">
+                                <span class="quality-icon">🟢</span>
+                                <span class="quality-label">Great</span>
                             </div>
                             <div class="sparkline-container" id="jitterSparkline" aria-label="Jitter variation chart">
                                 <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-labelledby="jitter-label">

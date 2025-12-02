@@ -357,6 +357,22 @@ export function clearResultsDisplay() {
     // Reset sparkline
     const sparkline = document.querySelector('#jitterSparkline path');
     if (sparkline) sparkline.setAttribute('d', '');
+    
+    // Hide quality badges
+    document.querySelectorAll('[data-quality-badge]').forEach(badge => {
+        badge.style.display = 'none';
+    });
+    
+    // Hide latency context
+    const latencyContext = document.querySelector('[data-latency-context]');
+    if (latencyContext) latencyContext.style.display = 'none';
+    
+    // Hide variance graph
+    const varianceContainer = document.getElementById('varianceGraphContainer');
+    if (varianceContainer) varianceContainer.hidden = true;
+    
+    // Reset variance graph
+    resetVarianceGraph();
 }
 
 export function setProgress(percent) {
@@ -586,10 +602,15 @@ export function startVarianceTracking() {
     STATE.varianceGraph.samples = [];
     STATE.varianceGraph.active = true;
     initVarianceGraph();
+    
+    // Show variance graph container
+    const container = document.getElementById('varianceGraphContainer');
+    if (container) container.hidden = false;
 }
 
 export function stopVarianceTracking() {
     STATE.varianceGraph.active = false;
+    // Keep graph visible after test to show final results
 }
 
 export function resetVarianceGraph() {
