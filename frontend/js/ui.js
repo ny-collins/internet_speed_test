@@ -475,6 +475,51 @@ export function announceToScreenReader(message) {
 }
 
 // ========================================
+// ANIMATION UTILITIES
+// ========================================
+
+function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+}
+
+function animateNumber(elementId, targetValue, stateKey, duration = 300) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const animState = STATE.varianceGraph.animations[stateKey];
+    if (!animState) return;
+
+    // Cancel existing animation
+    if (animState.rafId) {
+        cancelAnimationFrame(animState.rafId);
+    }
+
+    const startValue = animState.current || 0;
+    const startTime = performance.now();
+
+    animState.target = targetValue;
+
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutCubic(progress);
+
+        const currentValue = startValue + (targetValue - startValue) * easedProgress;
+        animState.current = currentValue;
+
+        element.textContent = currentValue.toFixed(1);
+
+        if (progress < 1) {
+            animState.rafId = requestAnimationFrame(animate);
+        } else {
+            animState.rafId = null;
+        }
+    }
+
+    animState.rafId = requestAnimationFrame(animate);
+}
+
+// ========================================
 // VARIANCE GRAPH
 // ========================================
 
@@ -515,6 +560,12 @@ function drawVarianceGraph() {
     const samples = STATE.varianceGraph.samples;
     if (samples.length < 2) return;
 
+    // Remove loading state once we have data
+    const container = document.getElementById('varianceGraphContainer');
+    if (container && container.getAttribute('data-loading') === 'true') {
+        container.removeAttribute('data-loading');
+    }
+
     const ctx = canvas._ctx;
     const width = canvas._width;
     const height = canvas._height;
@@ -529,20 +580,11 @@ function drawVarianceGraph() {
     const range = max - min || 1;
     const variance = ((range / avg) * 100);
 
-    // Update stats display
-    const avgEl = document.getElementById('varianceAvg');
-    const minEl = document.getElementById('varianceMin');
-    const maxEl = document.getElementById('varianceMax');
-    const percentEl = document.getElementById('variancePercent');
-    const qualityEl = document.querySelector('.variance-quality');
-
-    if (avgEl) avgEl.textContent = avg.toFixed(1);
-    if (minEl) minEl.textContent = min.toFixed(1);
-    if (maxEl) maxEl.textContent = max.toFixed(1);
-    if (percentEl) percentEl.textContent = variance.toFixed(1);
-
-    // Update quality indicator
-    if (qualityEl) {
+    // Update stats display with smooth animations
+    animateNumber('varianceAvg', avg, 'avg', 300);
+    animateNumber('varianceMin', min, 'min', 300);
+    animateNumber('varianceMax', max, 'max', 300);
+    animateNumber('variancePercent', variance, 'percent', 300);
         let quality, text;
         if (variance < 10) {
             quality = 'excellent';
@@ -603,10 +645,21 @@ export function startVarianceTracking() {
     STATE.varianceGraph.active = true;
     initVarianceGraph();
     
-    // Show variance graph container
+    // Show variance graph container with fade-in
     const container = document.getElementById('varianceGraphContainer');
-    if (container) container.hidden = false;
-}
+    if (container) {
+        container.hidden = false;
+        container.setAttribute('data-loading', 'true');
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(10px)';
+        
+        // Trigger animation on next frame
+        requestAnimationFrame(() => {
+            container.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+            container.style.opacity = '1';
+            container.style.transform = 'translateY(0)';
+        });
+    }\n}
 
 export function stopVarianceTracking() {
     STATE.varianceGraph.active = false;
@@ -685,7 +738,6 @@ export function updateQualityBadge(metric, value) {
         }
     }
 
-    badge.style.display = 'flex';
     badge.setAttribute('data-quality', quality);
 
     const iconEl = badge.querySelector('.quality-icon');
@@ -693,6 +745,18 @@ export function updateQualityBadge(metric, value) {
 
     if (iconEl) iconEl.textContent = icon;
     if (labelEl) labelEl.textContent = label;
+
+    // Animate badge appearance with stagger
+    const delay = metric === 'latency' ? 0 : 100; // Jitter appears 100ms after latency
+    badge.style.opacity = '0';
+    badge.style.transform = 'translateY(10px)';
+    badge.style.display = 'flex';
+    
+    setTimeout(() => {
+        badge.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+        badge.style.opacity = '1';
+        badge.style.transform = 'translateY(0)';
+    }, delay);
 }
 
 export function updateLatencyContext(latency) {
