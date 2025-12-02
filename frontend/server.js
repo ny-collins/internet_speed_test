@@ -29,33 +29,33 @@ app.use(compression({
 // Security headers middleware
 app.use((req, res, next) => {
     // Content Security Policy - NO unsafe-inline for maximum security
-    res.setHeader('Content-Security-Policy', 
-        "default-src 'self'; " +
-        "script-src 'self' https://unpkg.com; " +
-        "style-src 'self'; " +
-        "img-src 'self' data: https:; " +
-        "font-src 'self' data:; " +
-        "connect-src 'self' https://speed-test-backend.up.railway.app https://*.railway.app https://unpkg.com; " +
-        "worker-src 'self' blob:; " +
-        "frame-ancestors 'none'; " +
-        "base-uri 'self'; " +
-        "form-action 'self';"
+    res.setHeader('Content-Security-Policy',
+        'default-src \'self\';' +
+        'script-src \'self\' https://unpkg.com; ' +
+        'style-src \'self\'; ' +
+        'img-src \'self\' data: https:; ' +
+        'font-src \'self\' data:; ' +
+        'connect-src \'self\' https://speed-test-backend.up.railway.app https://*.railway.app https://unpkg.com; ' +
+        'worker-src \'self\' blob:; ' +
+        'frame-ancestors \'none\'; ' +
+        'base-uri \'self\'; ' +
+        'form-action \'self\';'
     );
-    
+
     // HSTS - Force HTTPS for 1 year
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    
+
     // Prevent clickjacking
     res.setHeader('X-Frame-Options', 'DENY');
-    
+
     // Prevent MIME sniffing
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    
+
     // Referrer policy
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
+
     // Permissions policy (restrict features)
-    res.setHeader('Permissions-Policy', 
+    res.setHeader('Permissions-Policy',
         'geolocation=(), ' +
         'microphone=(), ' +
         'camera=(), ' +
@@ -64,12 +64,12 @@ app.use((req, res, next) => {
         'magnetometer=(), ' +
         'gyroscope=()'
     );
-    
+
     next();
 });
 
-// Cache control for static assets
-app.use(express.static(__dirname, {
+// Serve static files from 'public' directory only (prevents exposing server.js)
+app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html'],
     index: 'index.html',
     setHeaders: (res, filePath) => {
@@ -84,7 +84,7 @@ app.use(express.static(__dirname, {
 }));
 
 app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '404.html'));
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 app.listen(PORT, () => {
