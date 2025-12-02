@@ -189,10 +189,6 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 
 See [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for complete implementation details.
 
-## 🤝 Contributing
-
-We welcome contributions! See [Contributing Guidelines](CONTRIBUTING.md) for details.
-
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
