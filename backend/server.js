@@ -124,16 +124,7 @@ app.disable('x-powered-by');
 
 // Enhanced security headers with helmet
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      // Minimal CSP for API - browsers don't apply most CSP rules to JSON responses
-      defaultSrc: ["'none'"],
-      connectSrc: ["'self'"],
-      baseUri: ["'none'"],
-      frameAncestors: ["'none'"],
-      formAction: ["'none'"]
-    }
-  },
+  contentSecurityPolicy: false, // Disable helmet's CSP (we set custom minimal API CSP below)
   crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // Relaxed for API usage
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
@@ -147,6 +138,18 @@ app.use(helmet({
   // Don't set X-XSS-Protection (obsolete header, rely on CSP instead)
   xssFilter: false
 }));
+
+// Minimal CSP for API - no font-src, img-src, script-src, style-src needed for JSON endpoints
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'none'; " +
+    "connect-src 'self'; " +
+    "base-uri 'none'; " +
+    "frame-ancestors 'none'; " +
+    "form-action 'none';"
+  );
+  next();
+});
 
 app.use(httpLogger);
 
