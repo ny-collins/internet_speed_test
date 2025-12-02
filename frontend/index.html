@@ -243,6 +243,26 @@
                     <div class="test-timer" id="testTimer" hidden aria-live="polite" aria-atomic="true">
                         <span class="timer-text">Time remaining: <strong id="timerValue" aria-label="Time remaining">10s</strong></span>
                     </div>
+                    
+                    <!-- Real-time variance graph -->
+                    <div class="variance-graph-container" id="varianceGraphContainer" hidden>
+                        <div class="variance-graph-header">
+                            <h3>Speed Over Time</h3>
+                            <div class="variance-stats">
+                                <span class="stat">Avg: <strong id="varianceAvg">—</strong></span>
+                                <span class="stat">Min: <strong id="varianceMin">—</strong></span>
+                                <span class="stat">Max: <strong id="varianceMax">—</strong></span>
+                            </div>
+                        </div>
+                        <canvas id="varianceGraph" width="340" height="120" aria-label="Real-time speed variation graph"></canvas>
+                        <div class="variance-quality">
+                            <div class="quality-indicator" id="varianceQuality">
+                                <span class="quality-badge">🟢</span>
+                                <span class="quality-text">Measuring...</span>
+                            </div>
+                            <div class="variance-percentage" id="variancePercentage">±0%</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="results-matrix" id="resultsMatrix" role="region" aria-label="Test results">
@@ -302,6 +322,16 @@
                                 <span class="matrix-number" id="latency-value">—</span>
                                 <span class="matrix-unit" id="latency-unit">ms</span>
                             </div>
+                            <div class="quality-badge-container" id="latency-quality" hidden>
+                                <span class="quality-badge">🟢</span>
+                                <span class="quality-label">Excellent</span>
+                            </div>
+                            <div class="latency-context" id="latency-context-info" hidden>
+                                <ul class="context-list">
+                                    <li>Gaming performance</li>
+                                    <li>Video call quality</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
@@ -315,7 +345,11 @@
                                 <span class="matrix-number" id="jitter-value">—</span>
                                 <span class="matrix-unit" id="jitter-unit">ms</span>
                             </div>
-                            <div class="sparkline-container" id="jitterSparkline" hidden aria-label="Jitter variation chart">
+                            <div class="quality-badge-container" id="jitter-quality" hidden>
+                                <span class="quality-badge">🟢</span>
+                                <span class="quality-label">Stable</span>
+                            </div>
+                            <div class="sparkline-container" id="jitterSparkline" aria-label="Jitter variation chart">
                                 <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-labelledby="jitter-label">
                                     <path class="sparkline-path" d="" fill="none" stroke="currentColor" stroke-width="2"></path>
                                 </svg>
@@ -480,79 +514,99 @@
                             <p>Most speed tests use nearby servers and show idealized local speeds. We test from <strong>Amsterdam, Netherlands</strong> to show your <strong>real-world international internet speed</strong> - what you actually experience when streaming European content, gaming on international servers, or accessing global websites.</p>
                         </div>
                         <a href="/learn.html" class="banner-cta">
-                            Learn More
+                            Learn More About Our Methodology
                             <i data-lucide="arrow-right"></i>
                         </a>
                     </div>
                 </div>
 
-                <button class="footer-toggle-btn" id="footerToggleBtn">
-                    <span id="footerToggleText">Show More Information</span>
-                </button>
+                <!-- Accordion for technical details -->
+                <div class="footer-accordion">
+                    <div class="accordion-item" data-expanded="true">
+                        <button class="accordion-header" aria-expanded="true">
+                            <span class="accordion-icon"><i data-lucide="activity"></i></span>
+                            <span class="accordion-title">Understanding Metrics</span>
+                            <span class="accordion-chevron"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="accordion-content">
+                            <p><strong>Download:</strong> How fast you receive data from the internet. Measured in Mbps (Megabits per second). Higher is better for streaming, downloading files, and browsing.</p>
+                            <p><strong>Upload:</strong> How fast you send data to the internet. Important for video calls, uploading files, and live streaming.</p>
+                            <p><strong>Ping (Latency):</strong> Response time delay. Lower is better. Critical for gaming and real-time communication.</p>
+                            <p><strong>Jitter:</strong> Variation in latency. Lower is better. High jitter causes choppy video calls and game lag.</p>
+                        </div>
+                    </div>
 
-                <div class="footer-info-grid collapsed" id="footerInfoGrid">
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="server"></i>
+                    <div class="accordion-item">
+                        <button class="accordion-header" aria-expanded="false">
+                            <span class="accordion-icon"><i data-lucide="globe"></i></span>
+                            <span class="accordion-title">Why Distance Matters</span>
+                            <span class="accordion-chevron"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="accordion-content" hidden>
+                            <p>Internet data doesn't travel instantly. Signals pass through multiple network hops, undersea cables, and continental routing infrastructure. Physics limits speed - light travels at 300,000 km/s, but internet signals travel slower through fiber optic cables.</p>
+                            <p>The further you are from Europe, the higher your latency and the more network congestion can affect your speed. This test shows your real-world international performance.</p>
                         </div>
-                        <h3>European Server Connection</h3>
-                        <p>Our server is hosted in <strong>Amsterdam, Netherlands</strong>. Your internet packets travel from your location to Europe and back, measuring real international connectivity rather than idealized local speeds.</p>
                     </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="activity"></i>
+
+                    <div class="accordion-item">
+                        <button class="accordion-header" aria-expanded="false">
+                            <span class="accordion-icon"><i data-lucide="trending-up"></i></span>
+                            <span class="accordion-title">What Affects Your Speed?</span>
+                            <span class="accordion-chevron"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="accordion-content" hidden>
+                            <p>Multiple factors impact your results:</p>
+                            <ul>
+                                <li><strong>ISP routing quality:</strong> How efficiently your ISP routes traffic to Europe</li>
+                                <li><strong>Time of day:</strong> Network congestion during peak hours</li>
+                                <li><strong>Network equipment:</strong> Router quality, WiFi vs wired connection</li>
+                                <li><strong>Background usage:</strong> Other devices and applications using your network</li>
+                                <li><strong>Undersea cable capacity:</strong> International link congestion</li>
+                            </ul>
                         </div>
-                        <h3>Understanding Metrics</h3>
-                        <p><strong>Download:</strong> How fast you receive data. <strong>Upload:</strong> How fast you send data. <strong>Ping:</strong> Response delay (lower = better). <strong>Jitter:</strong> Connection consistency (lower = better, critical for video calls).</p>
                     </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="wifi"></i>
+
+                    <div class="accordion-item">
+                        <button class="accordion-header" aria-expanded="false">
+                            <span class="accordion-icon"><i data-lucide="bar-chart-3"></i></span>
+                            <span class="accordion-title">Comparing Different Speed Tests</span>
+                            <span class="accordion-chevron"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="accordion-content" hidden>
+                            <p>If other speed tests show higher speeds, they're likely using nearby servers in your region. Both results are valid - they just measure different things:</p>
+                            <p><strong>Local speed tests:</strong> Show your maximum network capacity and ISP connection quality.</p>
+                            <p><strong>Our international test:</strong> Shows real-world performance when accessing European content, gaming on international servers, or video conferencing abroad.</p>
+                            <p>Think of it like measuring highway speed vs. actual trip time - both are useful metrics for different purposes.</p>
                         </div>
-                        <h3>Network Latency Explained</h3>
-                        <p>Latency (ping) is the time it takes for a signal to travel to the server and back. <strong>Physics limits speed</strong> - light travels 300,000 km/s, but internet signals travel slower through fiber cables. Distance creates unavoidable delay.</p>
                     </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="globe"></i>
+
+                    <div class="accordion-item">
+                        <button class="accordion-header" aria-expanded="false">
+                            <span class="accordion-icon"><i data-lucide="zap"></i></span>
+                            <span class="accordion-title">Use Cases & Recommendations</span>
+                            <span class="accordion-chevron"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="accordion-content" hidden>
+                            <p><strong>Streaming:</strong> 25+ Mbps for 4K, 10+ Mbps for HD, 5+ Mbps for SD</p>
+                            <p><strong>Gaming:</strong> <50ms ping excellent, 50-100ms good, >100ms difficult</p>
+                            <p><strong>Video Calls:</strong> 5+ Mbps and <100ms ping with low jitter (<10ms)</p>
+                            <p><strong>File Downloads:</strong> Higher download speed = faster downloads</p>
+                            <p><strong>Cloud Backup:</strong> Higher upload speed = faster backup times</p>
                         </div>
-                        <h3>Real-World Performance</h3>
-                        <p>Most speed tests use <strong>nearby servers</strong>, showing optimal but unrealistic speeds. We measure actual performance when accessing international content, like streaming Netflix, browsing European sites, or video conferencing abroad.</p>
                     </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="route"></i>
+
+                    <div class="accordion-item">
+                        <button class="accordion-header" aria-expanded="false">
+                            <span class="accordion-icon"><i data-lucide="settings"></i></span>
+                            <span class="accordion-title">Advanced Technical Details</span>
+                            <span class="accordion-chevron"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="accordion-content" hidden>
+                            <p><strong>Bufferbloat:</strong> Excessive latency caused by packet buffering in network equipment. Our variance graph helps identify this issue.</p>
+                            <p><strong>TCP Window Scaling:</strong> How much data can be "in flight" between you and the server. Long distances require larger windows.</p>
+                            <p><strong>Packet Loss:</strong> Lost data packets require retransmission, reducing effective speed.</p>
+                            <p><strong>QoS & Traffic Shaping:</strong> ISPs may prioritize certain types of traffic, affecting test results.</p>
                         </div>
-                        <h3>Why Distance Matters</h3>
-                        <p>Internet data doesn't travel instantly. Signals pass through <strong>multiple network hops</strong>, undersea cables, and continental routing. The further you are from Europe, the higher your latency and the more network congestion affects your speed.</p>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="tv"></i>
-                        </div>
-                        <h3>International Streaming</h3>
-                        <p>When streaming content hosted internationally (like European sports, BBC iPlayer, or global CDNs), your speed to distant servers matters more than local network speed. This test shows if you can handle <strong>4K streaming from Europe</strong>.</p>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="trending-up"></i>
-                        </div>
-                        <h3>What Affects Your Speed?</h3>
-                        <p>Multiple factors impact results: <strong>ISP routing quality</strong>, undersea cable capacity, time of day congestion, network equipment, WiFi vs wired connection, and background internet usage on your network.</p>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon-wrapper">
-                            <i data-lucide="bar-chart-3"></i>
-                        </div>
-                        <h3>Comparing with Other Tests</h3>
-                        <p>If other speed tests show higher speeds, they're likely using <strong>local servers</strong>. Both results are valid - they test different scenarios. Our test shows international performance, theirs shows local network capacity.</p>
                     </div>
                 </div>
                 

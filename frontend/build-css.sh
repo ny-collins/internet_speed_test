@@ -8,7 +8,7 @@ cat css/variables.css \
     css/base.css \
     css/layout.css \
     css/components.css \
-    css/features.css \
+    css/gauge.css \
     css/pages.css \
     css/utils.css > main.css
 
