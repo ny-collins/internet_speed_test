@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,6 +11,20 @@ const PORT = process.env.PORT || 8080;
 
 // Remove X-Powered-By header (information leak)
 app.disable('x-powered-by');
+
+// Enable gzip/brotli compression for all responses
+// Reduces HTML from ~35KB to ~10KB (70% compression ratio)
+// Enables single-roundtrip delivery within TCP Initial Congestion Window (14KB)
+app.use(compression({
+    level: 6, // Balance between compression speed and ratio
+    threshold: 1024, // Only compress responses > 1KB
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) {
+            return false;
+        }
+        return compression.filter(req, res);
+    }
+}));
 
 // Security headers middleware
 app.use((req, res, next) => {
