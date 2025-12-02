@@ -42,7 +42,7 @@ async function initializeApp() {
     }
     
     // 3. Check Page Type (Speed Test vs Learn)
-    const isSpeedTestPage = document.getElementById('gaugeContainer') !== null;
+    const isSpeedTestPage = document.getElementById('activeStage') !== null;
     
     if (isSpeedTestPage) {
         console.log('[App] Speed test page detected');
