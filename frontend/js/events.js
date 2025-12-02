@@ -87,24 +87,8 @@ export function initializeEventListeners() {
     // Sidebar (if present)
     initializeTabNavigation();
 
-    // Footer toggle
-    const footerToggleBtn = document.getElementById('footerToggleBtn');
-    const footerInfoGrid = document.getElementById('footerInfoGrid');
-    const footerToggleText = document.getElementById('footerToggleText');
-
-    if (footerToggleBtn && footerInfoGrid && footerToggleText) {
-        footerToggleBtn.addEventListener('click', () => {
-            const isCollapsed = footerInfoGrid.classList.contains('collapsed');
-
-            if (isCollapsed) {
-                footerInfoGrid.classList.remove('collapsed');
-                footerToggleText.textContent = 'Show Less';
-            } else {
-                footerInfoGrid.classList.add('collapsed');
-                footerToggleText.textContent = 'Show More Information';
-            }
-        });
-    }
+    // Accordion functionality
+    initializeAccordion();
 
     // Help modal with focus trapping
     const helpModal = document.getElementById('helpModal');
@@ -557,3 +541,10 @@ Tested: ${new Date().toLocaleString()}
         showStatus('Failed to copy results', 'error');
     });
 }
+
+// ========================================
+// ACCORDION FUNCTIONALITY
+// ========================================
+
+function initializeAccordion() {
+    const accordionItems = document.querySelectorAll('.accordion-item');\n\n    accordionItems.forEach(item => {\n        const button = item.querySelector('.accordion-button');\n        const content = item.querySelector('.accordion-content');\n\n        if (!button || !content) return;\n\n        button.addEventListener('click', () => {\n            const isExpanded = button.getAttribute('aria-expanded') === 'true';\n\n            // Toggle this item\n            button.setAttribute('aria-expanded', !isExpanded);\n            content.hidden = isExpanded;\n\n            // Optional: Close other items (accordion behavior)\n            // Comment out the lines below if you want multiple sections open at once\n            accordionItems.forEach(otherItem => {\n                if (otherItem !== item) {\n                    const otherButton = otherItem.querySelector('.accordion-button');\n                    const otherContent = otherItem.querySelector('.accordion-content');\n                    if (otherButton && otherContent) {\n                        otherButton.setAttribute('aria-expanded', 'false');\n                        otherContent.hidden = true;\n                    }\n                }\n            });\n        });\n    });\n}

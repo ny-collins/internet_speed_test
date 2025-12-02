@@ -30,5 +30,11 @@ export const STATE = {
     pwa: {
         updateAvailable: false,
         newWorker: null
+    },
+    // Variance graph tracking
+    varianceGraph: {
+        samples: [],
+        maxSamples: 50, // 50 samples at 100ms = 5 seconds of data
+        active: false
     }
 };

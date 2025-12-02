@@ -273,6 +273,10 @@ export function updateResultCard(type, result) {
             
             // Show measurement info button
             showMeasurementInfoButton('latency', result);
+
+            // Update quality badge and context
+            updateQualityBadge('latency', result.average);
+            updateLatencyContext(result.average);
         }
 
         if (resultCard) {
@@ -310,6 +314,9 @@ export function updateResultCard(type, result) {
             if (matrixUnit) {
                 matrixUnit.id = 'jitter-unit'; // Update ID for accessibility
             }
+
+            // Update quality badge
+            updateQualityBadge('jitter', result.value);
         }
 
         if (resultCard) {
@@ -449,4 +456,241 @@ export function announceToScreenReader(message) {
             if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
         }, 100);
     }
+}
+
+// ========================================
+// VARIANCE GRAPH
+// ========================================
+
+export function initVarianceGraph() {
+    const canvas = document.getElementById('varianceCanvas');
+    if (!canvas) return;
+
+    // Set canvas resolution for crisp rendering
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    // Store context for later use
+    canvas._ctx = ctx;
+    canvas._width = rect.width;
+    canvas._height = rect.height;
+}
+
+export function updateVarianceGraph(speed) {
+    if (!STATE.varianceGraph.active) return;
+
+    // Add sample
+    STATE.varianceGraph.samples.push(speed);
+    if (STATE.varianceGraph.samples.length > STATE.varianceGraph.maxSamples) {
+        STATE.varianceGraph.samples.shift();
+    }
+
+    drawVarianceGraph();
+}
+
+function drawVarianceGraph() {
+    const canvas = document.getElementById('varianceCanvas');
+    if (!canvas || !canvas._ctx) return;
+
+    const samples = STATE.varianceGraph.samples;
+    if (samples.length < 2) return;
+
+    const ctx = canvas._ctx;
+    const width = canvas._width;
+    const height = canvas._height;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Calculate stats
+    const min = Math.min(...samples);
+    const max = Math.max(...samples);
+    const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const range = max - min || 1;
+    const variance = ((range / avg) * 100);
+
+    // Update stats display
+    const avgEl = document.getElementById('varianceAvg');
+    const minEl = document.getElementById('varianceMin');
+    const maxEl = document.getElementById('varianceMax');
+    const percentEl = document.getElementById('variancePercent');
+    const qualityEl = document.querySelector('.variance-quality');
+
+    if (avgEl) avgEl.textContent = avg.toFixed(1);
+    if (minEl) minEl.textContent = min.toFixed(1);
+    if (maxEl) maxEl.textContent = max.toFixed(1);
+    if (percentEl) percentEl.textContent = variance.toFixed(1);
+
+    // Update quality indicator
+    if (qualityEl) {
+        let quality, text;
+        if (variance < 10) {
+            quality = 'excellent';
+            text = '🟢 Excellent Stability';
+        } else if (variance < 20) {
+            quality = 'good';
+            text = '🟡 Good Stability';
+        } else if (variance < 30) {
+            quality = 'fair';
+            text = '🟠 Fair Stability';
+        } else {
+            quality = 'poor';
+            text = '🔴 Poor Stability';
+        }
+        qualityEl.textContent = text;
+        qualityEl.setAttribute('data-quality', quality);
+    }
+
+    // Draw grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = (height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+
+    // Draw line graph
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    samples.forEach((val, i) => {
+        const x = (i / (samples.length - 1)) * width;
+        const y = height - ((val - min) / range) * height;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.stroke();
+
+    // Draw filled area under line
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.fill();
+}
+
+export function startVarianceTracking() {
+    STATE.varianceGraph.samples = [];
+    STATE.varianceGraph.active = true;
+    initVarianceGraph();
+}
+
+export function stopVarianceTracking() {
+    STATE.varianceGraph.active = false;
+}
+
+export function resetVarianceGraph() {
+    STATE.varianceGraph.samples = [];
+    const canvas = document.getElementById('varianceCanvas');
+    if (canvas && canvas._ctx) {
+        canvas._ctx.clearRect(0, 0, canvas._width, canvas._height);
+    }
+
+    // Clear stats
+    const avgEl = document.getElementById('varianceAvg');
+    const minEl = document.getElementById('varianceMin');
+    const maxEl = document.getElementById('varianceMax');
+    const percentEl = document.getElementById('variancePercent');
+    const qualityEl = document.querySelector('.variance-quality');
+
+    if (avgEl) avgEl.textContent = '-';
+    if (minEl) minEl.textContent = '-';
+    if (maxEl) maxEl.textContent = '-';
+    if (percentEl) percentEl.textContent = '-';
+    if (qualityEl) {
+        qualityEl.textContent = '⚪ Waiting...';
+        qualityEl.setAttribute('data-quality', 'waiting');
+    }
+}
+
+// ========================================
+// QUALITY BADGES
+// ========================================
+
+export function updateQualityBadge(metric, value) {
+    const badge = document.querySelector(`[data-quality-badge="${metric}"]`);
+    if (!badge) return;
+
+    let quality, icon, label;
+
+    if (metric === 'latency') {
+        if (value < 50) {
+            quality = 'excellent';
+            icon = '🟢';
+            label = 'Great';
+        } else if (value < 100) {
+            quality = 'good';
+            icon = '🟡';
+            label = 'Good';
+        } else if (value < 200) {
+            quality = 'fair';
+            icon = '🟠';
+            label = 'Fair';
+        } else {
+            quality = 'poor';
+            icon = '🔴';
+            label = 'Poor';
+        }
+    } else if (metric === 'jitter') {
+        if (value < 10) {
+            quality = 'excellent';
+            icon = '🟢';
+            label = 'Great';
+        } else if (value < 30) {
+            quality = 'good';
+            icon = '🟡';
+            label = 'Good';
+        } else if (value < 50) {
+            quality = 'fair';
+            icon = '🟠';
+            label = 'Fair';
+        } else {
+            quality = 'poor';
+            icon = '🔴';
+            label = 'Poor';
+        }
+    }
+
+    badge.style.display = 'flex';
+    badge.setAttribute('data-quality', quality);
+
+    const iconEl = badge.querySelector('.quality-icon');
+    const labelEl = badge.querySelector('.quality-label');
+
+    if (iconEl) iconEl.textContent = icon;
+    if (labelEl) labelEl.textContent = label;
+}
+
+export function updateLatencyContext(latency) {
+    const contextEl = document.querySelector('[data-latency-context]');
+    if (!contextEl) return;
+
+    let text;
+    if (latency < 20) {
+        text = 'Excellent for competitive gaming and real-time applications';
+    } else if (latency < 50) {
+        text = 'Great for gaming, video calls, and streaming';
+    } else if (latency < 100) {
+        text = 'Good for most online activities and video calls';
+    } else if (latency < 200) {
+        text = 'Fair for casual browsing and standard streaming';
+    } else {
+        text = 'May experience delays in real-time applications';
+    }
+
+    contextEl.textContent = text;
+    contextEl.style.display = 'block';
 }

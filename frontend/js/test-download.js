@@ -5,7 +5,7 @@
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
 import { scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
-import { updateGauge, setProgress, announceToScreenReader } from './ui.js';
+import { updateGauge, setProgress, announceToScreenReader, updateVarianceGraph, startVarianceTracking, stopVarianceTracking } from './ui.js';
 
 export async function measureDownload() {
     const threadCount = CONFIG.threads.download;
@@ -13,6 +13,9 @@ export async function measureDownload() {
 
     console.log(`[Download] Starting with ${threadCount} threads (Web Worker)`);
     announceToScreenReader(`Starting download test with ${threadCount} threads`);
+
+    // Start variance tracking
+    startVarianceTracking();
 
     return new Promise((resolve, reject) => {
         // Create abort controller for this test
@@ -67,6 +70,7 @@ export async function measureDownload() {
                 // Throttle UI updates for smooth animation
                 if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
                     updateGauge(smoothedSpeed, 'download');
+                    updateVarianceGraph(currentSpeed); // Track raw speed for variance
                     lastUiUpdate = now;
 
                     // Schedule memory monitoring as idle task (non-critical)
@@ -122,6 +126,9 @@ export async function measureDownload() {
                 }).catch(error => {
                     console.warn('[Download] Loaded latency measurement failed:', error);
                 });
+
+                // Stop variance tracking
+                stopVarianceTracking();
 
                 // Cleanup immediately (don't wait for loaded latency)
                 cleanup();
