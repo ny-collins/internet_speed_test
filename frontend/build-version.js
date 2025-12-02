@@ -80,7 +80,7 @@ console.log('✅ Updated index.html');
 const learnPath = path.join(publicDir, 'learn.html');
 if (fs.existsSync(learnPath)) {
     let learnContent = fs.readFileSync(learnPath, 'utf8');
-    
+
     learnContent = learnContent.replace(
         /\/main\.css\?v=[\d.]+"/g,
         `/main.css?v=${version}"`
@@ -89,7 +89,7 @@ if (fs.existsSync(learnPath)) {
         /\/main\.js\?v=[\d.]+"/g,
         `/main.js?v=${version}"`
     );
-    
+
     fs.writeFileSync(learnPath, learnContent, 'utf8');
     console.log('✅ Updated learn.html');
 }
@@ -98,11 +98,11 @@ if (fs.existsSync(learnPath)) {
 // SUMMARY
 // ========================================
 
-console.log(`\n🎉 Version ${version} injected successfully!`);
-console.log(`\nFiles updated:`);
-console.log(`  - sw.js (CACHE_NAME + assets)`);
-console.log(`  - index.html (CSS + JS versions)`);
+console.log('\n🎉 Version ' + version + ' injected successfully!');
+console.log('\nFiles updated:');
+console.log('  - sw.js (CACHE_NAME + assets)');
+console.log('  - index.html (CSS + JS versions)');
 if (fs.existsSync(learnPath)) {
-    console.log(`  - learn.html (CSS + JS versions)`);
+    console.log('  - learn.html (CSS + JS versions)');
 }
-console.log(`\n✨ Ready for deployment!\n`);
+console.log('\n✨ Ready for deployment!\n');
