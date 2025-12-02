@@ -93,9 +93,9 @@ export function updateGauge(speed, phase) {
 }
 
 export function updateMatrixCardLive(phase, speed) {
-    const matrixCard = document.querySelector(`.matrix-card[data-metric="${phase}"]`);
-    if (matrixCard) {
-        const numberEl = matrixCard.querySelector('.matrix-number');
+    const trayCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
+    if (trayCard) {
+        const numberEl = trayCard.querySelector('.matrix-number');
         if (numberEl) {
             const speedText = speed.toFixed(1);
             // Only update if value changed
@@ -120,8 +120,8 @@ export function resetGauge() {
 }
 
 export function updatePhaseUI(phase, status) {
-    // Update matrix card with matching data-metric attribute
-    const metricCard = document.querySelector(`.matrix-card[data-metric="${phase}"]`);
+    // Update tray card with matching data-metric attribute
+    const metricCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
     if (metricCard) {
         // For active status, set to "measuring" and start progress animation
         if (status === 'active') {
@@ -174,13 +174,13 @@ function animateBorderProgress(element, durationMs) {
 }
 
 export function resetAllPhases() {
-    document.querySelectorAll('.matrix-card[data-metric]').forEach(el => {
+    document.querySelectorAll('.tray-card[data-metric]').forEach(el => {
         el.setAttribute('data-status', 'not-started');
     });
 }
 
 export function updateResultCard(type, result) {
-    const matrixCard = document.querySelector(`.matrix-card[data-metric="${type}"]`);
+    const trayCard = document.querySelector(`.tray-card[data-metric="${type}"]`);
     const resultCard = document.querySelector(`.result-card[data-metric="${type}"]`);
 
     switch (type) {
@@ -188,8 +188,8 @@ export function updateResultCard(type, result) {
     case 'upload': {
         const speed = result.speed.toFixed(1);
 
-        if (matrixCard) {
-            const matrixNumber = matrixCard.querySelector('.matrix-number');
+        if (trayCard) {
+            const matrixNumber = trayCard.querySelector('.matrix-number');
             if (matrixNumber) {
                 matrixNumber.textContent = speed;
                 matrixNumber.id = `${type}-value`; // Update ID for accessibility
@@ -337,7 +337,7 @@ export function updateResultCard(type, result) {
 }
 
 export function clearResultsDisplay() {
-    document.querySelectorAll('.matrix-card').forEach(card => {
+    document.querySelectorAll('.tray-card').forEach(card => {
         card.setAttribute('data-status', '');
         const matrixNumber = card.querySelector('.matrix-number');
         if (matrixNumber) matrixNumber.textContent = '—';

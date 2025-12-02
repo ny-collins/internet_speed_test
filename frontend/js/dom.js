@@ -29,6 +29,15 @@ export const DOM = {
     gaugeValue: null,
     gaugeUnit: null,
     gaugePhase: null,
+    
+    // Stage & Tray
+    activeStage: null,
+    resultsTray: null,
+    stageSpeedCurve: null,
+    liveStatus: null,
+    liveSpeedValue: null,
+    liveSpeedUnit: null,
+    livePhaseName: null,
 
     // Results
     resultsMatrix: null,
@@ -81,6 +90,15 @@ export function queryDOMElements() {
     DOM.gaugeValue = document.getElementById('gaugeValue');
     DOM.gaugeUnit = document.getElementById('gaugeUnit');
     DOM.gaugePhase = document.getElementById('gaugePhase');
+    
+    // Stage & Tray
+    DOM.activeStage = document.getElementById('activeStage');
+    DOM.resultsTray = document.getElementById('resultsTray');
+    DOM.stageSpeedCurve = document.getElementById('stageSpeedCurve');
+    DOM.liveStatus = document.getElementById('liveStatus');
+    DOM.liveSpeedValue = document.getElementById('liveSpeedValue');
+    DOM.liveSpeedUnit = document.getElementById('liveSpeedUnit');
+    DOM.livePhaseName = document.getElementById('livePhaseName');
 
     // Results
     DOM.resultsMatrix = document.getElementById('resultsMatrix');

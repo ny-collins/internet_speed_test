@@ -7,6 +7,7 @@ echo "Building main.css from source files..."
 cat css/variables.css \
     css/base.css \
     css/layout.css \
+    css/stage-tray.css \
     css/components.css \
     css/gauge.css \
     css/pages.css \

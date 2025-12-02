@@ -86,7 +86,7 @@ export async function measureUpload() {
                 setProgress(Math.min(progressPercent, 95));
 
                 // Update Matrix Card Border - use test elapsed time for consistent animation
-                const uploadCard = document.querySelector('.matrix-card[data-metric="upload"]');
+                const uploadCard = document.querySelector('.tray-card[data-metric="upload"]');
                 if (uploadCard) {
                     const progress = Math.min((testElapsed / maxDuration) * 100, 100);
                     uploadCard.style.setProperty('--progress', progress.toFixed(2));

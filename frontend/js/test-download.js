@@ -86,7 +86,7 @@ export async function measureDownload() {
                 setProgress(Math.min(progressPercent, 60));
 
                 // Update Matrix Card Border - use test elapsed time for consistent animation
-                const downloadCard = document.querySelector('.matrix-card[data-metric="download"]');
+                const downloadCard = document.querySelector('.tray-card[data-metric="download"]');
                 if (downloadCard) {
                     const progress = Math.min((testElapsed / maxDuration) * 100, 100);
                     downloadCard.style.setProperty('--progress', progress.toFixed(2));
