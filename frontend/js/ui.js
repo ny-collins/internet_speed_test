@@ -585,6 +585,10 @@ function drawVarianceGraph() {
     animateNumber('varianceMin', min, 'min', 300);
     animateNumber('varianceMax', max, 'max', 300);
     animateNumber('variancePercent', variance, 'percent', 300);
+
+    // Update quality indicator
+    const qualityEl = document.querySelector('.variance-quality');
+    if (qualityEl) {
         let quality, text;
         if (variance < 10) {
             quality = 'excellent';
