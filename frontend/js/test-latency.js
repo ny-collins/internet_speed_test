@@ -6,7 +6,6 @@ import { CONFIG } from './config.js';
 import { STATE } from './state.js';
 import { sleep } from './utils.js';
 import {
-    updateDataStripLive,
     setProgress,
     updatePhaseUI,
     updateResultCard,
@@ -55,9 +54,6 @@ export async function measureLatency() {
             drawSparkline(samples);
             const currentAvg = samples.reduce((a, b) => a + b, 0) / samples.length;
             
-            // UPDATED: Use new function name
-            updateDataStripLive('latency', currentAvg);
-            
             setProgress((i + 1) / sampleCount * 25); // 25% of total progress
 
             if (i < sampleCount - 1) {
@@ -82,8 +78,6 @@ export async function measureLatency() {
         const jitterStats = calculateJitterStats(effectiveSamples);
         STATE.testResults.jitter = { value: jitter, ...jitterStats };
 
-        // UPDATED: Use new function name
-        updateDataStripLive('jitter', jitter);
         updateResultCard('jitter', { value: jitter, ...jitterStats });
 
         // Brief pause for visual effect
