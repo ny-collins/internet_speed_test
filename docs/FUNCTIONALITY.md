@@ -196,8 +196,59 @@ SpeedCheck uses a **tri-service architecture** with geographic distribution:
 ```
 
 **Interpretation**:
-- Low jitter (< 10ms): Stable connection
-- Medium jitter (10-50ms): Some variation
+- Low jitter (< 10ms): Stable connection - 🟢 Great
+- Medium jitter (10-50ms): Some variation - 🟡 Good to 🟠 Fair
+- High jitter (> 50ms): Unstable connection - 🔴 Poor
+
+### 3. Variance Graph & Bufferbloat Detection
+
+**Purpose**: Real-time visualization of speed stability to detect bufferbloat and network congestion
+
+**Implementation**:
+```javascript
+// State management (state.js)
+varianceGraph: {
+  samples: [],           // Rolling buffer of speed measurements
+  maxSamples: 50,        // 50 samples at 100ms = 5 seconds history
+  active: false          // Tracking state
+}
+
+// Data collection (test-download.js, test-upload.js)
+if (now - lastUiUpdate >= 100) {  // Every 100ms
+  updateVarianceGraph(currentSpeed);  // Store raw speed sample
+}
+
+// Visualization (ui.js)
+function drawVarianceGraph() {
+  const min = Math.min(...samples);
+  const max = Math.max(...samples);
+  const avg = samples.reduce((a, b) => a + b) / samples.length;
+  const variance = ((max - min) / avg) * 100;
+  
+  // Draw on canvas with grid, line, and filled area
+  // Update stats display (avg/min/max)
+  // Set quality indicator based on variance
+}
+```
+
+**Quality Indicators**:
+- 🟢 Excellent (<10% variance): Stable, consistent speed - minimal bufferbloat
+- 🟡 Good (10-20% variance): Minor fluctuations - acceptable stability
+- 🟠 Fair (20-30% variance): Noticeable instability - some bufferbloat
+- 🔴 Poor (>30% variance): Significant variation - bufferbloat/congestion issues
+
+**Canvas Rendering**:
+- High-DPI scaling: `canvas.width = rect.width * devicePixelRatio`
+- Grid lines for reference (5 horizontal lines)
+- Smooth line graph connecting speed points
+- Filled gradient area below line for visual emphasis
+- Real-time updates without frame drops
+
+**Use Cases**:
+- Detecting bufferbloat (router buffer overflow)
+- Identifying connection quality issues beyond raw speed
+- Spotting network congestion patterns
+- Validating ISP consistency claims
 - High jitter (> 50ms): Unstable, gaming/VoIP affected
 
 ### 3. Download Measurement

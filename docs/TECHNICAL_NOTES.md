@@ -4,6 +4,175 @@
 
 This document explains the technical choices, trade-offs, and architectural decisions made during the development of SpeedCheck.
 
+## Desktop UI Architecture (v1.66.0)
+
+### Two-Column Layout Strategy
+
+**Problem:** Original single-column layout required scrolling to see results during tests, and didn't utilize desktop screen real estate effectively.
+
+**Solution:** Implemented 45/55 split two-column grid with sticky gauge positioning:
+
+```css
+.test-container {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: var(--spacing-2xl);
+  align-items: start;
+}
+
+.gauge-column {
+  position: sticky;
+  top: var(--spacing-xl);
+  /* Gauge remains visible during scroll */
+}
+```
+
+**Benefits:**
+- Gauge always visible during tests (sticky positioning)
+- Results matrix hierarchy: Download/Upload prominent, Latency/Jitter compact
+- Desktop-first approach leverages available screen width
+- No scrolling needed to monitor active tests
+
+**Breakpoints:**
+- 1024px: Two-column layout activates
+- 1440px: Container max-width 1600px prevents over-stretching
+- 1600px+: Additional spacing adjustments
+
+### Variance Graph Implementation
+
+**Problem:** Users had no visibility into speed consistency - a 100 Mbps connection with 50% variance is worse than 80 Mbps with 5% variance, but raw speed numbers don't show this.
+
+**Solution:** Real-time Canvas-based variance graph with bufferbloat detection:
+
+```javascript
+// Rolling buffer strategy
+STATE.varianceGraph = {
+  samples: [],        // Speed measurements
+  maxSamples: 50,     // 5 seconds at 100ms intervals
+  active: false
+};
+
+// Data collection (every 100ms during tests)
+updateVarianceGraph(currentSpeed);
+
+// Variance calculation
+const range = max - min;
+const variance = (range / avg) * 100;
+
+// Quality classification
+if (variance < 10) quality = 'excellent';      // 🟢
+else if (variance < 20) quality = 'good';      // 🟡
+else if (variance < 30) quality = 'fair';      // 🟠
+else quality = 'poor';                          // 🔴
+```
+
+**Benefits:**
+- Detects bufferbloat (router buffer overflow causing latency spikes)
+- Visualizes connection stability beyond raw speed
+- 50-sample buffer prevents unbounded memory growth
+- High-DPI canvas rendering for crisp visuals
+- Persists after test for analysis
+
+**Why Canvas over SVG?**
+- Better performance for real-time updates (10 fps)
+- Native pixel-level control for grid and fills
+- Lower memory footprint for frequent redraws
+- Simpler redraw logic with `clearRect()`
+
+### Quality Badge System
+
+**Problem:** Users needed quick visual feedback on whether their latency/jitter was good without reading numbers.
+
+**Solution:** Color-coded emoji badges with contextual labels:
+
+```javascript
+// Latency thresholds (gaming-oriented)
+if (latency < 50) badge = '🟢 Great';   // Competitive gaming ready
+else if (latency < 100) badge = '🟡 Good';   // Casual gaming, calls OK
+else if (latency < 200) badge = '🟠 Fair';   // Browsing acceptable
+else badge = '🔴 Poor';                      // Noticeable delays
+
+// Jitter thresholds (stability-focused)
+if (jitter < 10) badge = '🟢 Great';    // Very stable
+else if (jitter < 30) badge = '🟡 Good';    // Minor variation
+else if (jitter < 50) badge = '🟠 Fair';    // Some instability
+else badge = '🔴 Poor';                   // Highly unstable
+```
+
+**Benefits:**
+- Instant visual feedback without number interpretation
+- Gaming-oriented latency thresholds (competitive vs casual)
+- Stability-focused jitter thresholds
+- Consistent color language across UI
+
+**Contextual Latency Messages:**
+```javascript
+if (latency < 20) text = 'Excellent for competitive gaming...';
+else if (latency < 50) text = 'Great for gaming, video calls...';
+else if (latency < 100) text = 'Good for most online activities...';
+else if (latency < 200) text = 'Fair for casual browsing...';
+else text = 'May experience delays in real-time applications';
+```
+
+### Interactive Accordion Footer
+
+**Problem:** Footer information was always visible, creating visual clutter. Users rarely needed methodology details during active testing.
+
+**Solution:** Six-section accordion with expand/collapse functionality:
+
+```javascript
+// Single-section-open behavior
+button.addEventListener('click', () => {
+  const isExpanded = button.getAttribute('aria-expanded') === 'true';
+  
+  // Close all other sections
+  accordionItems.forEach(item => closeSection(item));
+  
+  // Toggle clicked section
+  button.setAttribute('aria-expanded', !isExpanded);
+  content.hidden = isExpanded;
+});
+```
+
+**Sections:**
+1. How It Works - Test methodology
+2. Measurement Accuracy - Confidence scoring explained
+3. Privacy & Data - Local storage policy
+4. Connection Quality - Interpreting results
+5. Troubleshooting - Common issues
+6. About - Project information
+
+**Benefits:**
+- Reduces visual clutter when not needed
+- Single-section-open prevents overwhelming users
+- Smooth CSS transitions for professional feel
+- Chevron rotation provides visual feedback
+- ARIA attributes for accessibility
+
+### CSS Architecture Refactoring
+
+**Problem:** `features.css` was ambiguous - contained gauge styles but name didn't reflect this.
+
+**Solution:** Renamed to `gauge.css` for clarity:
+
+```bash
+# Build pipeline
+variables.css → \
+base.css → \
+layout.css → \
+components.css → \
+gauge.css →      # Renamed from features.css
+pages.css → \
+utils.css → \
+main.css (output)
+```
+
+**Benefits:**
+- Clear file purpose identification
+- Easier maintenance and navigation
+- Consistent naming convention
+- No functional changes to build pipeline
+
 ## Performance Optimizations (v1.64.0)
 
 ### Web Workers Architecture

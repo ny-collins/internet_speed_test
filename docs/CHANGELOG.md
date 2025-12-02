@@ -5,6 +5,102 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.66.0] - 2025-12-02
+
+### Added
+
+**🎨 Desktop UI Overhaul (Phase 1):**
+- **Two-Column Layout**: Implemented 45/55 split with sticky gauge column and hierarchical results matrix
+  - Gauge remains visible during scroll for continuous test monitoring
+  - Download/Upload cards emphasized (larger size, 3rem font, 180px height)
+  - Latency/Jitter cards compact (2rem font) for space efficiency
+  - Desktop breakpoints: 1024px, 1440px (max-width 1600px), 1600px+
+
+- **Real-time Variance Graph**: Canvas-based speed visualization with bufferbloat detection
+  - 50-sample rolling buffer collecting data every 100ms (5 seconds of history)
+  - Real-time plotting with grid lines, filled area, and smooth line rendering
+  - Statistics display: Average, Min, Max speeds during test
+  - Variance percentage calculation: (range/average) × 100
+  - Quality indicator with color-coded stability levels:
+    - 🟢 Excellent (<10% variance) - Stable connection
+    - 🟡 Good (10-20% variance) - Minor fluctuations
+    - 🟠 Fair (20-30% variance) - Noticeable instability
+    - 🔴 Poor (>30% variance) - Significant bufferbloat/congestion
+  - High-DPI canvas rendering for crisp visuals on retina displays
+  - Auto-show during download/upload tests, persists after completion
+
+- **Quality Badge System**: Visual performance indicators on metric cards
+  - **Latency badges**: 🟢 Great (<50ms), 🟡 Good (50-100ms), 🟠 Fair (100-200ms), 🔴 Poor (>200ms)
+  - **Jitter badges**: 🟢 Great (<10ms), 🟡 Good (10-30ms), 🟠 Fair (30-50ms), 🔴 Poor (>50ms)
+  - Automatic display after test completion with proper color coding
+  - Hidden by default, revealed with results for clean initial state
+
+- **Contextual Latency Information**: Smart recommendations based on measured latency
+  - <20ms: "Excellent for competitive gaming and real-time applications"
+  - <50ms: "Great for gaming, video calls, and streaming"
+  - <100ms: "Good for most online activities and video calls"
+  - <200ms: "Fair for casual browsing and standard streaming"
+  - ≥200ms: "May experience delays in real-time applications"
+  - Appears below latency card after test completion
+
+- **Interactive Accordion Footer**: Six expandable information sections
+  - How It Works, Measurement Accuracy, Privacy & Data, Connection Quality, Troubleshooting, About
+  - Smooth expand/collapse animations with chevron rotation
+  - Aria-expanded attributes for accessibility
+  - Single-section-open behavior (optional multi-open supported)
+  - Click-to-expand interface with visual feedback
+
+- **Enhanced Start Button**: 340px circular gradient button
+  - Matches gauge diameter for visual consistency
+  - Larger font sizes (3rem value, 1.5rem label)
+  - Enhanced pulse animation and ripple effects
+  - Improved hover states and accessibility
+
+### Improved
+
+**UI/UX Architecture:**
+- **State Management**: Added `varianceGraph` state with 50-sample buffer and active tracking
+- **Modular CSS**: Renamed `features.css` to `gauge.css` for clearer component organization
+- **Display Logic**: Integrated variance tracking into download/upload test flows
+  - `startVarianceTracking()` called at test start
+  - `updateVarianceGraph()` called every 100ms with raw speed data
+  - `stopVarianceTracking()` called at test completion
+  - Graph persists after test for analysis of final results
+
+**Reset & Cleanup:**
+- `clearResultsDisplay()` now properly hides quality badges, latency context, and variance graph
+- `resetVarianceGraph()` clears canvas and resets stats to waiting state
+- Clean state management prevents stale data between consecutive tests
+
+### Technical
+
+**Canvas Implementation:**
+- Device pixel ratio scaling for high-DPI displays
+- Efficient redraw with `clearRect()` for smooth animations
+- Grid line rendering for visual reference
+- Filled area under line graph for better data visualization
+- Real-time stats calculation (min/max/avg/variance)
+
+**Performance:**
+- Variance graph updates throttled to 100ms (10 updates/second)
+- Rolling buffer prevents unbounded memory growth
+- RequestAnimationFrame for smooth UI updates
+- Non-blocking Canvas operations on main thread
+
+**Accessibility:**
+- Accordion ARIA attributes (aria-expanded, role="button")
+- Canvas aria-label for screen reader context
+- Quality badges with semantic color coding
+- Keyboard navigation support maintained
+
+**File Structure:**
+- `frontend/css/gauge.css` (renamed from features.css)
+- `frontend/css/layout.css` (two-column grid, results matrix)
+- `frontend/css/components.css` (variance graph, badges, accordion)
+- `frontend/js/state.js` (variance graph state)
+- `frontend/js/ui.js` (graph drawing, badges, context)
+- `frontend/js/events.js` (accordion handlers)
+
 ## [1.65.0] - 2025-11-29
 
 ### Added
