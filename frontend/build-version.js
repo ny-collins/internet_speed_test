@@ -15,6 +15,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Define public directory path
+const publicDir = path.join(__dirname, 'public');
+
 // Read version from package.json
 const packageJsonPath = path.join(__dirname, 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -26,7 +29,7 @@ console.log(`📦 Building version ${version}...`);
 // UPDATE SERVICE WORKER (sw.js)
 // ========================================
 
-const swPath = path.join(__dirname, 'sw.js');
+const swPath = path.join(publicDir, 'sw.js');
 let swContent = fs.readFileSync(swPath, 'utf8');
 
 // Update CACHE_NAME
@@ -52,7 +55,7 @@ console.log('✅ Updated sw.js');
 // UPDATE INDEX.HTML
 // ========================================
 
-const indexPath = path.join(__dirname, 'index.html');
+const indexPath = path.join(publicDir, 'index.html');
 let indexContent = fs.readFileSync(indexPath, 'utf8');
 
 // Update CSS version
@@ -74,7 +77,7 @@ console.log('✅ Updated index.html');
 // UPDATE LEARN.HTML (if exists)
 // ========================================
 
-const learnPath = path.join(__dirname, 'learn.html');
+const learnPath = path.join(publicDir, 'learn.html');
 if (fs.existsSync(learnPath)) {
     let learnContent = fs.readFileSync(learnPath, 'utf8');
     
