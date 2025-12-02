@@ -102,8 +102,8 @@
             const isLikelyAfrica = africanTimezones.some(tz => timeZone.includes(tz)) || 
                                    /Africa|Nairobi|Johannesburg|Lagos|Cairo|Algiers|Casablanca|Accra|Addis|Ababa|Khartoum|Tunis|Tripoli|Rabat|Nouakchott|Bamako|Ouagadougou|Niamey|Ndjamena|Bangui|Kinshasa|Brazzaville|Libreville|Sao|Tome|Malabo|Yaounde|Luanda|Windhoek|Gaborone|Harare|Lusaka|Maputo|Pretoria|Maseru|Mbabane|Antananarivo|Moroni|Victoria|Port|Louis|Saint|Denis|Jamestown|Praia|Dakar|Bissau|Conakry|Freetown|Monrovia|Accra|Lome|Cotonou|Porto|Novo|Abidjan|Yamoussoukro|Ouagadougou|Niamey|Ndjamena|Bangui|Kinshasa|Brazzaville|Libreville|Sao|Tome|Malabo|Yaounde|Luanda|Windhoek|Gaborone|Harare|Lusaka|Maputo|Pretoria|Maseru|Mbabane|Antananarivo|Moroni|Victoria|Port|Louis|Saint|Denis|Jamestown/.test(timeZone);
 
-            // Check if already on Cloudflare site
-            const isOnCloudflare = window.location.hostname.includes('speed-test-ahc.pages.dev');
+            // Check if already on Cloudflare site (both main domain and preview URLs)
+            const isOnCloudflare = window.location.hostname.includes('.pages.dev');
             
             const isDismissed = localStorage.getItem('hideAfricaBanner');
 
