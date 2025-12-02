@@ -1,8 +1,8 @@
 #!/bin/bash
-# Build bundled CSS from source files
+# Build main CSS from source files
 # Run this whenever you modify files in css/ folder
 
-echo "Building styles-bundled.css from source files..."
+echo "Building main.css from source files..."
 
 cat css/variables.css \
     css/base.css \
@@ -10,7 +10,7 @@ cat css/variables.css \
     css/components.css \
     css/features.css \
     css/pages.css \
-    css/utils.css > styles-bundled.css
+    css/utils.css > main.css
 
-echo "✅ styles-bundled.css rebuilt successfully!"
-echo "File size: $(wc -l < styles-bundled.css) lines"
+echo "✅ main.css rebuilt successfully!"
+echo "File size: $(wc -l < main.css) lines"
