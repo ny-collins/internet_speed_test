@@ -195,7 +195,7 @@ export function updateResultCard(type, result) {
                 matrixNumber.id = `${type}-value`; // Update ID for accessibility
             }
 
-            const matrixUnit = matrixCard.querySelector('.matrix-unit');
+            const matrixUnit = trayCard.querySelector('.matrix-unit');
             if (matrixUnit) {
                 matrixUnit.id = `${type}-unit`; // Update ID for accessibility
             }
@@ -210,22 +210,22 @@ export function updateResultCard(type, result) {
 
             // Add quality badge
             const quality = getSpeedQuality(result.speed, type);
-            let badge = matrixCard.querySelector('.quality-badge');
+            let badge = trayCard.querySelector('.quality-badge');
             if (!badge) {
                 badge = document.createElement('div');
                 badge.className = 'quality-badge';
-                matrixCard.appendChild(badge);
+                trayCard.appendChild(badge);
             }
             badge.textContent = quality;
             badge.className = `quality-badge ${quality.toLowerCase()}`;
 
             // Add quality context
-            let context = matrixCard.querySelector('.matrix-context');
+            let context = trayCard.querySelector('.matrix-context');
             if (!context) {
                 context = document.createElement('div');
                 context.className = 'matrix-context';
                 context.id = `${type}-context`; // Update ID for accessibility
-                matrixCard.querySelector('.matrix-content').appendChild(context);
+                trayCard.querySelector('.matrix-content').appendChild(context);
             }
             context.innerHTML = getSpeedContext(result.speed, type);
         }
@@ -255,14 +255,14 @@ export function updateResultCard(type, result) {
     case 'latency': {
         const latency = result.average.toFixed(1);
 
-        if (matrixCard) {
-            const matrixNumber = matrixCard.querySelector('.matrix-number');
+        if (trayCard) {
+            const matrixNumber = trayCard.querySelector('.matrix-number');
             if (matrixNumber) {
                 matrixNumber.textContent = latency;
                 matrixNumber.id = 'latency-value'; // Update ID for accessibility
             }
 
-            const matrixUnit = matrixCard.querySelector('.matrix-unit');
+            const matrixUnit = trayCard.querySelector('.matrix-unit');
             if (matrixUnit) {
                 matrixUnit.id = 'latency-unit'; // Update ID for accessibility
             }
@@ -304,14 +304,14 @@ export function updateResultCard(type, result) {
     case 'jitter': {
         const jitterValue = result.value.toFixed(1);
 
-        if (matrixCard) {
-            const matrixNumber = matrixCard.querySelector('.matrix-number');
+        if (trayCard) {
+            const matrixNumber = trayCard.querySelector('.matrix-number');
             if (matrixNumber) {
                 matrixNumber.textContent = jitterValue;
                 matrixNumber.id = 'jitter-value'; // Update ID for accessibility
             }
 
-            const matrixUnit = matrixCard.querySelector('.matrix-unit');
+            const matrixUnit = trayCard.querySelector('.matrix-unit');
             if (matrixUnit) {
                 matrixUnit.id = 'jitter-unit'; // Update ID for accessibility
             }
