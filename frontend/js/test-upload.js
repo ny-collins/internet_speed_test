@@ -151,7 +151,6 @@ export async function measureUpload() {
                     confidence: confidence || 0,
                     warnings: warnings || []
                 });
-                });
                 break;
             }
 
