@@ -10,7 +10,8 @@ import {
     updatePhaseUI,
     updateResultCard,
     drawSparkline,
-    announceToScreenReader
+    announceToScreenReader,
+    highlightTrayCard
 } from './ui.js';
 
 export async function measureLatency() {
@@ -29,6 +30,7 @@ export async function measureLatency() {
     };
 
     announceToScreenReader('Measuring latency');
+    highlightTrayCard('latency');
 
     // Reset sparkline - Note: Sparkline container removed in new layout, this might need update or removal if sparkline is not used yet
     // For now, safe to leave as it won't find the element and will skip

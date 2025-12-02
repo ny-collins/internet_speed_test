@@ -142,6 +142,25 @@
     box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-lg);
 }
 
+/* Additional highlighting for active metric */
+.tray-card.active-metric {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary), 
+                0 0 20px rgba(59, 130, 246, 0.4),
+                var(--shadow-xl);
+    transform: translateY(-4px) scale(1.02);
+    z-index: 10;
+}
+
+.tray-card.active-metric .matrix-label {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.tray-card.active-metric .matrix-number {
+    color: var(--color-primary);
+}
+
 /* Progress Ring for Tray Cards (keep existing system) */
 .tray-card::before {
     content: '';

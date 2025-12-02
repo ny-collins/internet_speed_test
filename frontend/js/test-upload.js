@@ -5,7 +5,7 @@
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
 import { scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
-import { updateGauge, setProgress, announceToScreenReader, updateVarianceGraph, startVarianceTracking, stopVarianceTracking } from './ui.js';
+import { updateGauge, setProgress, announceToScreenReader, startSpeedCurve, updateSpeedCurve, stopSpeedCurve, showLiveStatus, updateLiveStatus, hideLiveStatus, highlightTrayCard } from './ui.js';
 
 export async function measureUpload() {
     const threadCount = CONFIG.threads.upload;
@@ -14,8 +14,10 @@ export async function measureUpload() {
     console.log(`[Upload] Starting with ${threadCount} threads (Web Worker)`);
     announceToScreenReader(`Starting upload test with ${threadCount} threads`);
 
-    // Start variance tracking
-    startVarianceTracking();
+    // Start speed curve and live status
+    startSpeedCurve('upload');
+    showLiveStatus('upload');
+    highlightTrayCard('upload');
 
     return new Promise((resolve, reject) => {
         // Create abort controller for this test
@@ -70,7 +72,8 @@ export async function measureUpload() {
                 // Throttle UI updates for smooth animation
                 if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
                     updateGauge(smoothedSpeed, 'upload');
-                    updateVarianceGraph(currentSpeed); // Track raw speed for variance
+                    updateSpeedCurve(currentSpeed); // Track raw speed for curve
+                    updateLiveStatus(smoothedSpeed, 'Mbps');
                     lastUiUpdate = now;
 
                     // Schedule memory monitoring as idle task (non-critical)
@@ -126,8 +129,9 @@ export async function measureUpload() {
                     console.warn('[Upload] Loaded latency measurement failed:', error);
                 });
 
-                // Stop variance tracking
-                stopVarianceTracking();
+                // Stop speed curve
+                stopSpeedCurve();
+                hideLiveStatus();
 
                 // Cleanup immediately (don't wait for loaded latency)
                 cleanup();

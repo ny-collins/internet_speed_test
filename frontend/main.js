@@ -5,7 +5,7 @@
 import { queryDOMElements, DOM } from './js/dom.js';
 import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './js/events.js';
 import { registerServiceWorker } from './js/worker.js';
-import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, initVarianceGraph, resetVarianceGraph } from './js/ui.js';
+import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, initStageSpeedCurve, resetSpeedCurve, clearTrayHighlights } from './js/ui.js';
 import { updateTestContext, updateHistoryStats, displayHistoryStats, animateNumber } from './js/ui-enhancements.js';
 import { getFriendlyError, getConnectionType, performanceMonitor } from './js/utils.js';
 import { drawHistoryChart } from './js/chart.js';
@@ -60,8 +60,8 @@ async function initializeApp() {
         loadConfiguration();
         updateConfigSummary();
         buildMainGauge();
-        initVarianceGraph(); // Initialize variance graph canvas
-        resetVarianceGraph(); // Set initial state
+        initStageSpeedCurve(); // Initialize stage speed curve canvas
+        resetSpeedCurve(); // Set initial state
         loadHistory();
         await fetchServerInfo();
         
@@ -124,6 +124,8 @@ async function startTest() {
     showGauge();
     clearResultsDisplay();
     setProgress(0);
+    resetSpeedCurve();
+    clearTrayHighlights();
     
     if (DOM.startTest) DOM.startTest.disabled = true;
     if (DOM.cancelTest) {

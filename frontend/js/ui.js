@@ -543,7 +543,215 @@ function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numbe
 }
 
 // ========================================
-// VARIANCE GRAPH
+// STAGE SPEED CURVE GRAPH
+// ========================================
+
+let speedCurvePhase = null; // 'download' or 'upload'
+const speedCurveSamples = [];
+const MAX_CURVE_SAMPLES = 100;
+
+export function initStageSpeedCurve() {
+    const canvas = DOM.stageSpeedCurve;
+    if (!canvas) return;
+
+    // Set canvas resolution for crisp rendering
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    // Store context for later use
+    canvas._ctx = ctx;
+    canvas._width = rect.width;
+    canvas._height = rect.height;
+}
+
+export function startSpeedCurve(phase) {
+    speedCurvePhase = phase; // 'download' or 'upload'
+    speedCurveSamples.length = 0; // Clear samples
+    
+    if (DOM.stageSpeedCurve) {
+        DOM.stageSpeedCurve.classList.add('active');
+        initStageSpeedCurve();
+    }
+}
+
+export function updateSpeedCurve(speed) {
+    if (!speedCurvePhase) return;
+    
+    speedCurveSamples.push(speed);
+    if (speedCurveSamples.length > MAX_CURVE_SAMPLES) {
+        speedCurveSamples.shift();
+    }
+    
+    drawSpeedCurve();
+}
+
+function drawSpeedCurve() {
+    const canvas = DOM.stageSpeedCurve;
+    if (!canvas || !canvas._ctx || speedCurveSamples.length < 2) return;
+
+    const ctx = canvas._ctx;
+    const width = canvas._width;
+    const height = canvas._height;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    const samples = speedCurveSamples;
+    const min = Math.min(...samples);
+    const max = Math.max(...samples);
+    const range = max - min || 1;
+
+    // Set colors based on phase
+    let lineColor, gradientColorStart, gradientColorEnd;
+    if (speedCurvePhase === 'download') {
+        lineColor = '#3b82f6'; // Blue
+        gradientColorStart = 'rgba(59, 130, 246, 0.4)';
+        gradientColorEnd = 'rgba(59, 130, 246, 0.0)';
+    } else {
+        lineColor = '#8b5cf6'; // Purple
+        gradientColorStart = 'rgba(139, 92, 246, 0.4)';
+        gradientColorEnd = 'rgba(139, 92, 246, 0.0)';
+    }
+
+    // Create gradient fill
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, gradientColorStart);
+    gradient.addColorStop(1, gradientColorEnd);
+
+    // Draw smooth curve
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    samples.forEach((val, i) => {
+        const x = (i / (samples.length - 1)) * width;
+        const y = height - ((val - min) / range) * (height * 0.8) - (height * 0.1);
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.stroke();
+
+    // Fill area under curve
+    ctx.fillStyle = gradient;
+    const lastX = ((samples.length - 1) / (samples.length - 1)) * width;
+    const lastY = height - ((samples[samples.length - 1] - min) / range) * (height * 0.8) - (height * 0.1);
+    ctx.lineTo(lastX, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.fill();
+}
+
+export function stopSpeedCurve() {
+    speedCurvePhase = null;
+    // Keep graph visible to show final result
+}
+
+export function resetSpeedCurve() {
+    speedCurvePhase = null;
+    speedCurveSamples.length = 0;
+    
+    const canvas = DOM.stageSpeedCurve;
+    if (canvas) {
+        canvas.classList.remove('active');
+        if (canvas._ctx) {
+            canvas._ctx.clearRect(0, 0, canvas._width, canvas._height);
+        }
+    }
+}
+
+// ========================================
+// STAGE TRANSITIONS
+// ========================================
+
+export function showLiveStatus(phase) {
+    if (!DOM.liveStatus) return;
+    
+    // Hide gauge, show live status
+    if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = true;
+    if (DOM.gaugeInner) DOM.gaugeInner.hidden = true;
+    
+    // Update phase name
+    if (DOM.livePhaseName) {
+        const phaseNames = {
+            'download': 'Downloading',
+            'upload': 'Uploading',
+            'latency': 'Measuring Latency'
+        };
+        DOM.livePhaseName.textContent = phaseNames[phase] || phase;
+    }
+    
+    // Show live status with fade-in
+    DOM.liveStatus.hidden = false;
+    requestAnimationFrame(() => {
+        DOM.liveStatus.classList.add('visible');
+    });
+}
+
+export function updateLiveStatus(speed, unit = 'Mbps') {
+    if (!DOM.liveSpeedValue) return;
+    
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    if (prefersReducedMotion) {
+        DOM.liveSpeedValue.textContent = speed.toFixed(1);
+    } else {
+        // Smooth transition
+        DOM.liveSpeedValue.textContent = speed.toFixed(1);
+    }
+    
+    if (DOM.liveSpeedUnit) {
+        DOM.liveSpeedUnit.textContent = unit;
+    }
+}
+
+export function hideLiveStatus() {
+    if (!DOM.liveStatus) return;
+    
+    DOM.liveStatus.classList.remove('visible');
+    setTimeout(() => {
+        DOM.liveStatus.hidden = true;
+    }, 300);
+    
+    // Show gauge again
+    if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
+    if (DOM.gaugeInner) DOM.gaugeInner.hidden = false;
+}
+
+// ========================================
+// TRAY CARD HIGHLIGHTING
+// ========================================
+
+export function highlightTrayCard(phase) {
+    // Remove highlight from all cards
+    document.querySelectorAll('.tray-card').forEach(card => {
+        card.classList.remove('active-metric');
+    });
+    
+    // Add highlight to active card
+    const activeCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
+    if (activeCard) {
+        activeCard.classList.add('active-metric');
+    }
+}
+
+export function clearTrayHighlights() {
+    document.querySelectorAll('.tray-card').forEach(card => {
+        card.classList.remove('active-metric');
+    });
+}
+
+// ========================================
+// VARIANCE GRAPH (Legacy - kept for reference)
 // ========================================
 
 export function initVarianceGraph() {
