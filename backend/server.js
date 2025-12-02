@@ -141,12 +141,12 @@ app.use(helmet({
 
 // Minimal CSP for API - no font-src, img-src, script-src, style-src needed for JSON endpoints
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
-    "default-src 'none'; " +
-    "connect-src 'self'; " +
-    "base-uri 'none'; " +
-    "frame-ancestors 'none'; " +
-    "form-action 'none';"
+  res.setHeader('Content-Security-Policy',
+    'default-src \'none\'; ' +
+    'connect-src \'self\'; ' +
+    'base-uri \'none\'; ' +
+    'frame-ancestors \'none\'; ' +
+    'form-action \'none\';'
   );
   next();
 });
@@ -345,12 +345,12 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
 
   req.on('data', (chunk) => {
     if (aborted || clientDisconnected) return;
-    
+
     // Track time of first byte for more accurate timing
     if (firstByteTime === null && chunk.length > 0) {
       firstByteTime = Date.now();
     }
-    
+
     receivedBytes += chunk.length;
     if (receivedBytes > byteLimit) {
       aborted = true;
