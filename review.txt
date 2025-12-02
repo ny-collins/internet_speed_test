@@ -67,16 +67,49 @@ The "SpeedCheck" project is an exceptionally well-engineered, modern web applica
 
 ## 8. Suggestions for Improvement
 
-1.  **Backend:**
-    *   **HTTP/2:** While the audit checks for it, ensuring the Node.js server explicitly supports HTTP/2 could further improve performance, especially for the multiple concurrent connections used in the download test.
-    *   **WebSocket Fallback:** Currently, the test seems to rely on XHR/Fetch. Adding a WebSocket implementation could provide an alternative testing mechanism for scenarios where HTTP overhead is significant (though less "real-world" for web browsing).
+### Features & User Experience
+1.  **"Bufferbloat" (Loaded Latency) Analysis**
+    *   **Concept:** Measure latency *while* the download/upload tests are running, not just before.
+    *   **Why:** This is critical for gamers and video callers. A connection might have 500Mbps download but spike to 400ms ping under load, making it unusable for real-time applications.
+    *   **Implementation:** Utilize the existing worker loop to trigger lightweight ping checks during heavy transfer phases.
 
-2.  **Frontend:**
-    *   **History Persistence:** The history is stored locally. Adding an option to sync this to a cloud account (optional login) would add value for users tracking ISP issues over time.
-    *   **Comparison:** Allow users to compare their current result against a "global average" or "regional average" if that data could be aggregated anonymously.
+2.  **Application-Specific "Can I Run It?" Scores**
+    *   **Concept:** Translate abstract Mbps numbers into actionable advice.
+    *   **Why:** Non-technical users understand "You can stream 4K Netflix" better than "You have 25 Mbps."
+    *   **Implementation:** Post-test, display a checklist (e.g., ✅ 4K Streaming, ✅ Online Gaming, ⚠️ Zoom Calls) based on thresholds for speed, jitter, and packet loss.
 
-3.  **DevOps:**
-    *   **CI/CD:** Integrating the `audit.sh` script into a GitHub Actions workflow would ensure no regression passes into production.
+3.  **Dynamic Server Selection**
+    *   **Concept:** Allow users to select a specific target server (e.g., "US East", "EU West", "Asia").
+    *   **Why:** Useful for debugging specific routing issues (e.g., "Why is my connection to US servers so slow?").
+    *   **Implementation:** Add a simple JSON config of available endpoints and a dropdown in the settings.
+
+4.  **Visual History Trends**
+    *   **Concept:** Add a line chart to the history section.
+    *   **Why:** Helps users visualize performance degradation over time (e.g., "My internet always drops at 8 PM").
+    *   **Implementation:** Reuse the existing `chart.js` library to plot the last 10-20 local results.
+
+5.  **Offline History Access**
+    *   **Concept:** Ensure the history section is viewable without an internet connection.
+    *   **Why:** When internet fails, users often want to check past results to prove reliability issues to their ISP.
+    *   **Implementation:** Verify Service Worker caching for the app shell so it loads offline, retrieving history from `localStorage`.
+
+### Technical & Architecture
+6.  **TypeScript Migration**
+    *   **Concept:** Gradually migrate critical logic files (like `worker-utils.js`) to TypeScript.
+    *   **Why:** The complex mathematical logic and configuration objects would benefit significantly from static typing to prevent runtime errors during refactoring.
+
+7.  **Internationalization (i18n)**
+    *   **Concept:** Abstract hardcoded strings into locale files.
+    *   **Why:** The "Smart Banner" for Africa proves you have a global audience. supporting French, Swahili, or Arabic would increase accessibility.
+
+8.  **Backend Enhancements**
+    *   **HTTP/2:** Ensure the Node.js server explicitly supports HTTP/2 to optimize concurrent download streams.
+    *   **WebSocket Fallback:** Consider adding a WebSocket implementation for environments where HTTP overhead is significant.
+
+### Future Roadmap
+9.  **DevOps & CI/CD**
+    *   **Concept:** Integrate the `audit.sh` script into a GitHub Actions workflow.
+    *   **Status:** **Defer to later.** Since the project is currently in active development, prioritize feature velocity. Once the codebase stabilizes, enable this to prevent regressions in production.
 
 ## Conclusion
 

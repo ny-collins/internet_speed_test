@@ -854,6 +854,48 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.02em;
 }
 
+/* Ripple effect on click */
+.gauge-start-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    opacity: 0;
+}
+
+.gauge-start-button:active::after {
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .gauge-start-button::before {
+        animation: none;
+    }
+    .gauge-start-button:active::after {
+        animation: none;
+    }
+    .gauge-start-button:hover {
+        transform: none;
+    }
+    .gauge-start-button:active {
+        transform: none;
+    }
+}
+
 /* --- Typography Fixes --- */
 /* Ensure these apply to the new data strip values too */
 .gauge-value-live, .data-item .value, #timerValue {
