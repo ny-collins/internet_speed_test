@@ -119,7 +119,6 @@ export async function measureUpload() {
                 // Handle loaded latency asynchronously (don't block UI)
                 loadedLatencyPromise.then(loadedLatency => {
                     console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
-                    announceToScreenReader(`Upload speed: ${speed.toFixed(1)} megabits per second`);
 
                     // Store loaded latency in state for later use
                     STATE.loadedLatency = loadedLatency;
@@ -146,7 +145,7 @@ export async function measureUpload() {
                 }
 
                 console.log(`[Upload] Speed measurement complete: ${speed.toFixed(2)} Mbps`);
-                announceToScreenReader(`Upload speed: ${speed.toFixed(1)} megabits per second`);
+                announceToScreenReader(`Upload complete: ${speed.toFixed(1)} megabits per second`);
 
                 resolve({
                     speed: speed,

@@ -4,6 +4,7 @@
 
 import { DOM } from './dom.js';
 import { STATE } from './state.js';
+import { CONFIG } from './config.js';
 import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getSpeedContext } from './utils.js';
 import { showConfidenceIndicator, showMeasurementInfoButton } from './ui-enhancements.js';
 
@@ -74,7 +75,7 @@ export function updateGauge(speed, phase) {
 
         if (DOM.gaugeProgress) {
             const percentage = Math.min(speed / maxSpeed, 1);
-            const degrees = percentage * 270;
+            const degrees = percentage * CONFIG.gaugeMaxDegrees;
 
             DOM.gaugeProgress.style.background = `conic-gradient(
                 from -135deg,
@@ -464,14 +465,28 @@ export function drawSparkline(data) {
     path.setAttribute('d', `M${points.join(' L')}`);
 }
 
-// Add this export to fix the error
+// Throttle screen reader announcements to avoid flooding speech buffer
+let lastAnnouncement = '';
+let lastAnnouncementTime = 0;
+
 export function announceToScreenReader(message) {
-    if (DOM.ariaLiveRegion) {
-        DOM.ariaLiveRegion.textContent = '';
-        setTimeout(() => {
-            if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
-        }, 100);
+    if (!DOM.ariaLiveRegion) return;
+    
+    const now = Date.now();
+    
+    // Skip if same message was announced within throttle period
+    if (message === lastAnnouncement && (now - lastAnnouncementTime) < CONFIG.screenReaderThrottle) {
+        return;
     }
+    
+    lastAnnouncement = message;
+    lastAnnouncementTime = now;
+    
+    // Clear and re-announce for better screen reader compatibility
+    DOM.ariaLiveRegion.textContent = '';
+    setTimeout(() => {
+        if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
+    }, 100);
 }
 
 // ========================================
@@ -482,7 +497,7 @@ function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
 }
 
-function animateNumber(elementId, targetValue, stateKey, duration = 300) {
+function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numberAnimationDuration) {
     const element = document.getElementById(elementId);
     if (!element) return;
 
@@ -498,6 +513,14 @@ function animateNumber(elementId, targetValue, stateKey, duration = 300) {
     const startTime = performance.now();
 
     animState.target = targetValue;
+
+    // Skip animation if user prefers reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        animState.current = targetValue;
+        element.textContent = targetValue.toFixed(1);
+        return;
+    }
 
     function animate(currentTime) {
         const elapsed = currentTime - startTime;
@@ -581,10 +604,10 @@ function drawVarianceGraph() {
     const variance = ((range / avg) * 100);
 
     // Update stats display with smooth animations
-    animateNumber('varianceAvg', avg, 'avg', 300);
-    animateNumber('varianceMin', min, 'min', 300);
-    animateNumber('varianceMax', max, 'max', 300);
-    animateNumber('variancePercent', variance, 'percent', 300);
+    animateNumber('varianceAvg', avg, 'avg');
+    animateNumber('varianceMin', min, 'min');
+    animateNumber('varianceMax', max, 'max');
+    animateNumber('variancePercent', variance, 'percent');
 
     // Update quality indicator
     const qualityEl = document.querySelector('.variance-quality');
@@ -654,15 +677,24 @@ export function startVarianceTracking() {
     if (container) {
         container.hidden = false;
         container.setAttribute('data-loading', 'true');
-        container.style.opacity = '0';
-        container.style.transform = 'translateY(10px)';
         
-        // Trigger animation on next frame
-        requestAnimationFrame(() => {
-            container.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        if (prefersReducedMotion) {
+            // No animation for reduced motion preference
             container.style.opacity = '1';
             container.style.transform = 'translateY(0)';
-        });
+        } else {
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(10px)';
+            
+            // Trigger animation on next frame
+            requestAnimationFrame(() => {
+                container.style.transition = `opacity ${CONFIG.fadeAnimationDuration}ms ease-out, transform ${CONFIG.fadeAnimationDuration}ms ease-out`;
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            });
+        }
     }
 }
 

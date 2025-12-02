@@ -148,11 +148,23 @@ export async function measureLoadedLatency(config, abortController, durationMs =
     while (performance.now() < endTime && !abortController.signal.aborted) {
         try {
             const pingStart = performance.now();
+            
+            // Create timeout controller for this specific ping
+            const timeoutController = new AbortController();
+            const timeoutId = setTimeout(() => timeoutController.abort(), 10000);
+            
+            // Combine abort signals
+            const combinedSignal = AbortSignal.any ? 
+                AbortSignal.any([abortController.signal, timeoutController.signal]) :
+                abortController.signal;
+            
             await fetch(`${config.apiBase}/api/ping?t=${Date.now()}`, {
-                signal: abortController.signal,
+                signal: combinedSignal,
                 cache: 'no-store',
                 method: 'HEAD' // Use HEAD to minimize data transfer
             });
+            
+            clearTimeout(timeoutId);
             const pingDuration = performance.now() - pingStart;
             samples.push(pingDuration);
 

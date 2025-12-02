@@ -84,9 +84,18 @@ async function uploadThread(threadId, byteCounter) {
                 let finished = false;
                 let lastLoaded = 0; // Track loaded bytes for this specific request
 
+                // Set timeout for this XHR request
+                const timeoutId = setTimeout(() => {
+                    if (!finished) {
+                        xhr.abort();
+                        reject(new Error('Upload timeout (10s)'));
+                    }
+                }, 10000);
+
                 const finish = (error = null) => {
                     if (finished) return;
                     finished = true;
+                    clearTimeout(timeoutId);
                     if (error) {
                         reject(error);
                     } else {

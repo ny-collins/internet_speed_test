@@ -334,6 +334,12 @@
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .gauge-start-button::before {
+        animation: none;
+    }
+}
+
 .gauge-start-button:hover {
     transform: scale(1.05);
     box-shadow: 0 12px 48px var(--color-primary-glow);

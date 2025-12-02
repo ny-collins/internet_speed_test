@@ -61,8 +61,13 @@ export const CONFIG = {
     retryDelay: 1000,           // Delay between retries (ms)
     // Backend
     apiBase: typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'https://speed-test-backend.up.railway.app',
-    // UI
+    // UI Animation Constants
     animationDuration: 350,
+    gaugeMaxDegrees: 270,        // Maximum rotation for gauge progress (270° = 3/4 circle)
+    numberAnimationDuration: 300, // ms for smooth number counting
+    fadeAnimationDuration: 400,   // ms for fade-in effects
+    // Accessibility
+    screenReaderThrottle: 2000,   // ms between similar announcements
     // Validation
     enableValidation: true,     // Enable measurement validation
     minConfidenceScore: 50      // Minimum confidence score to accept results
