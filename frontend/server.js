@@ -13,14 +13,14 @@ app.disable('x-powered-by');
 
 // Security headers middleware
 app.use((req, res, next) => {
-    // Content Security Policy
+    // Content Security Policy - NO unsafe-inline for maximum security
     res.setHeader('Content-Security-Policy', 
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' https://unpkg.com; " +
-        "style-src 'self' 'unsafe-inline'; " +
+        "script-src 'self' https://unpkg.com; " +
+        "style-src 'self'; " +
         "img-src 'self' data: https:; " +
         "font-src 'self' data:; " +
-        "connect-src 'self' https://speed-test-backend.up.railway.app; " +
+        "connect-src 'self' https://speed-test-backend.up.railway.app https://*.railway.app https://unpkg.com; " +
         "worker-src 'self' blob:; " +
         "frame-ancestors 'none'; " +
         "base-uri 'self'; " +

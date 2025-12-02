@@ -237,24 +237,7 @@
         </div>
     </footer>
 
-    <!-- API Configuration: Set API_BASE_URL before loading main.js -->
-    <script>
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            window.API_BASE_URL = 'http://localhost:3000';
-        }
-        
-        // Hide loading spinner when page loads
-        window.addEventListener('load', () => {
-            const loader = document.getElementById('pageLoader');
-            if (loader) {
-                loader.classList.add('hidden');
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                }, 300);
-            }
-        });
-    </script>
-
+    <script src="/learn-init.js?v=1.68.0"></script>
     <script type="module" src="/shared.js?v=1.66.0"></script>
 </body>
 </html>

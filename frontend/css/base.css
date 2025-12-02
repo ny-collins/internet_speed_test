@@ -8,6 +8,21 @@
     padding: 0;
 }
 
+/* Error Message Styling */
+.error-message {
+    color: var(--color-danger);
+    padding: 20px;
+    text-align: center;
+}
+
+.error-message h2 {
+    margin-bottom: 1rem;
+}
+
+.error-message p {
+    margin-bottom: 0.5rem;
+}
+
 html {
     font-size: 16px;
     scroll-behavior: smooth;
