@@ -291,7 +291,68 @@
 
 /* --- Gauge Specifics (Overrides from layout.css if needed) --- */
 .gauge-start-button {
-    /* Pulsing animation is in layout.css */
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    font-weight: 700;
+    font-size: var(--font-size-2xl);
+    box-shadow: 0 8px 32px var(--color-primary-glow);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.gauge-start-button::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}
+
+.gauge-start-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 48px var(--color-primary-glow);
+}
+
+.gauge-start-button:active {
+    transform: scale(0.98);
+}
+
+.start-button-text {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.start-button-subtitle {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    opacity: 0.9;
+    letter-spacing: 0.02em;
 }
 
 /* --- Typography Fixes --- */
