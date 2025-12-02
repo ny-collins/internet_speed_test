@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.68.0] - 2025-12-02
 
+### Security
+
+**🛡️ Production Security Hardening** (Based on Security Audit):
+
+- **Frontend (Railway):**
+  - Removed `X-Powered-By` header (Express information leak)
+  - Added comprehensive Content-Security-Policy (CSP)
+  - Implemented HSTS with 1-year max-age and preload
+  - Enhanced cache control: immutable caching for versioned assets (CSS/JS), no-cache for HTML
+  - Added Permissions-Policy to restrict unused browser features
+  - Referrer-Policy set to `strict-origin-when-cross-origin`
+
+- **Backend (Railway):**
+  - Removed `X-Powered-By` header
+  - Disabled obsolete `X-XSS-Protection` header (rely on CSP instead)
+  - Enhanced helmet.js configuration with comprehensive CSP directives
+  - HSTS with 1-year max-age, includeSubDomains, and preload
+  - Frame-ancestors set to 'none' for clickjacking protection
+  - Upgrade-insecure-requests directive added
+
+- **Cloudflare Pages:**
+  - Added HSTS header with preload support
+  - Added comprehensive CSP matching Railway frontend
+  - Maintained existing security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+
+### Improved
+
+**Security Header Coverage:**
+- All three deployments now have consistent security posture
+- CORS origin `*` for Cloudflare Pages is intentional (public frontend)
+- CSP allows `unpkg.com` for Lucide icons library
+- CSP allows backend API connections for speed tests
+- Worker-src allows blob: for Web Workers implementation
+
+**Caching Strategy:**
+- Frontend static assets: 1-year immutable cache for versioned files
+- Frontend HTML: no-cache to ensure fresh content
+- Backend: appropriate cache-control per endpoint
+
+## [1.67.0] - 2025-12-02
+
 ### Added
 
 **🎨 Visual Polish & Graph Smoothing:**

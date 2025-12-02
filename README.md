@@ -37,6 +37,7 @@ SpeedCheck measures your **real-world international connectivity** with a **dist
 - **🔬 Scientific Accuracy** - TCP slow start compensation with statistical outlier removal (MAD)
 - **💎 Visual Polish** - Smooth animations, loading skeletons, button interactions, tabular numbers
 - **🌐 Dual Deployment** - Europe (Railway) + Africa (Cloudflare) for optimized global access
+- **🛡️ Production Security** - HSTS, CSP, security headers, X-Powered-By removal, helmet.js protection
 
 ## 🚀 Quick Start
 
@@ -113,7 +114,7 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 - ✅ **Security & CORS Compliance** - Access control validation
 - ✅ **Cache Optimization** - Preflight caching verification
 - ✅ **Performance Deep Dive** - Response consistency & cold starts
-- ✅ **Security Headers & SSL** - Certificate & header validation
+- ✅ **Security Headers & SSL** - Certificate & header validation (HSTS, CSP, X-Frame-Options)
 - ✅ **Network & Protocol Tests** - IPv6, HTTP/2, compression
 - ✅ **Load & Stress Testing** - Concurrent requests & rate limiting
 - ✅ **Error Handling & Edge Cases** - Robustness validation

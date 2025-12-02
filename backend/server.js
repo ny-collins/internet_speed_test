@@ -119,9 +119,39 @@ function circuitBreaker(req, res, next) {
   next();
 }
 
+// Remove X-Powered-By header (information leak)
+app.disable('x-powered-by');
+
+// Enhanced security headers with helmet
 app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      imgSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: []
+    }
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  },
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin'
+  },
+  // Don't set X-XSS-Protection (obsolete header, rely on CSP instead)
+  xssFilter: false
 }));
 
 app.use(httpLogger);
