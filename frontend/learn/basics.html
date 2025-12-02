@@ -50,32 +50,80 @@
         </div>
     </header>
 
-    <main class="app-container">
-        <nav class="toc-nav" aria-label="Table of contents">
-            <div class="toc-content">
-                <h2>Contents</h2>
-                <ul class="toc-list">
-                    <li><a href="#what-is-speed">What is Internet Speed?</a></li>
-                    <li><a href="#why-test">Why Test Your Speed?</a></li>
-                    <li><a href="#download-upload">Download vs Upload</a></li>
-                    <li><a href="#interpreting-results">Interpreting Results</a></li>
-                    <li><a href="#common-misconceptions">Common Misconceptions</a></li>
-                </ul>
-                <div class="toc-note">
-                    <p><a href="/learn.html">← Back to Learn Home</a></p>
+    <main class="learn-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="learn-sidebar" id="learnSidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Learn Articles</h3>
+                    <nav class="sidebar-nav">
+                        <a href="../learn.html" class="sidebar-link">
+                            <i data-lucide="book-open" class="sidebar-icon"></i>
+                            Overview
+                        </a>
+                        <a href="basics.html" class="sidebar-link active">
+                            <i data-lucide="graduation-cap" class="sidebar-icon"></i>
+                            Speed Test Basics
+                        </a>
+                        <a href="methodology.html" class="sidebar-link">
+                            <i data-lucide="flask-conical" class="sidebar-icon"></i>
+                            Testing Methodology
+                        </a>
+                        <a href="technical.html" class="sidebar-link">
+                            <i data-lucide="cpu" class="sidebar-icon"></i>
+                            Technical Concepts
+                        </a>
+                        <a href="troubleshooting.html" class="sidebar-link">
+                            <i data-lucide="wrench" class="sidebar-icon"></i>
+                            Troubleshooting
+                        </a>
+                        <a href="future.html" class="sidebar-link">
+                            <i data-lucide="sparkles" class="sidebar-icon"></i>
+                            Future of Testing
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">On This Page</h3>
+                    <nav class="toc-nav-sidebar" id="tableOfContents">
+                        <a href="#what-is-speed" class="toc-link">What is Internet Speed?</a>
+                        <a href="#why-test" class="toc-link">Why Test Your Speed?</a>
+                        <a href="#download-upload" class="toc-link">Download vs Upload</a>
+                        <a href="#interpreting-results" class="toc-link">Interpreting Results</a>
+                        <a href="#common-misconceptions" class="toc-link">Common Misconceptions</a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-back">
+                    <a href="/" class="sidebar-link">
+                        <i data-lucide="arrow-left" class="sidebar-icon"></i>
+                        Back to Speed Test
+                    </a>
                 </div>
             </div>
-        </nav>
+        </aside>
 
-        <article class="article-content">
+        <!-- Main Content -->
+        <article class="article-content learn-article">
             <header class="article-header">
                 <nav class="breadcrumb">
-                    <a href="/learn.html">Learn</a>
+                    <a href="../learn.html">Learn</a>
                     <span>/</span>
                     <span>Speed Test Basics</span>
                 </nav>
                 <h1>Speed Test Basics</h1>
                 <p class="article-subtitle">Understanding what internet speed tests measure and why they matter.</p>
+                <div class="article-meta-bar">
+                    <span class="meta-item">
+                        <i data-lucide="clock"></i>
+                        5 min read
+                    </span>
+                    <span class="meta-item">
+                        <i data-lucide="calendar"></i>
+                        Updated Nov 2025
+                    </span>
+                </div>
             </header>
 
             <div class="article-body">
@@ -187,10 +235,16 @@
                     <h2>Next Steps</h2>
                     <p>Now that you understand the basics of internet speed testing, you might want to explore:</p>
 
-                    <div class="next-steps">
-                        <a href="methodology.html" class="btn-primary">Learn About Testing Methodology →</a>
-                        <a href="troubleshooting.html" class="btn-secondary">Troubleshoot Connection Issues →</a>
-                    </div>
+                    <nav class="article-navigation" aria-label="Next articles">
+                        <a href="methodology.html" class="nav-card nav-next">
+                            <span class="nav-label">Next Article</span>
+                            <span class="nav-title">Testing Methodology →</span>
+                        </a>
+                        <a href="troubleshooting.html" class="nav-card">
+                            <span class="nav-label">Also See</span>
+                            <span class="nav-title">Troubleshooting Guide</span>
+                        </a>
+                    </nav>
                 </section>
             </div>
         </article>

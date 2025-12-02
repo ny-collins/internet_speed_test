@@ -2525,6 +2525,228 @@ canvas#historyChart {
    PAGE-SPECIFIC STYLES
    ======================================== */
 
+/* --- Learn Layout with Sidebar --- */
+.learn-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    align-items: start;
+}
+
+.learn-sidebar {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar-section {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-section:last-child {
+    border-bottom: none;
+}
+
+.sidebar-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-tertiary);
+    margin-bottom: 1rem;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    border-left: 2px solid transparent;
+}
+
+.sidebar-link:hover {
+    color: var(--color-primary);
+    background: var(--color-bg-secondary);
+    border-left-color: var(--color-primary);
+    padding-left: 1.125rem;
+}
+
+.sidebar-link.active {
+    color: var(--color-primary);
+    background: var(--color-bg-secondary);
+    font-weight: 600;
+    border-left-color: var(--color-primary);
+}
+
+.sidebar-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.toc-nav-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toc-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: var(--color-text-tertiary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.toc-link:hover,
+.toc-link.active {
+    color: var(--color-primary);
+    border-left-color: var(--color-primary);
+    padding-left: 1rem;
+}
+
+.sidebar-back {
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+/* Article with Sidebar */
+.learn-article {
+    max-width: 800px;
+    padding: 0;
+}
+
+.learn-article .article-header {
+    text-align: left;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+}
+
+.learn-article .article-header h1 {
+    text-align: left;
+    background: none;
+    -webkit-text-fill-color: unset;
+    color: var(--color-text-primary);
+}
+
+.article-meta-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-tertiary);
+}
+
+.meta-item i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Article Navigation Cards */
+.article-navigation {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.nav-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.nav-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+}
+
+.nav-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-tertiary);
+    font-weight: 600;
+}
+
+.nav-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.nav-next {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+    border-color: var(--color-primary);
+}
+
+.nav-next .nav-label {
+    color: var(--color-primary);
+}
+
+/* Mobile Responsiveness for Sidebar Layout */
+@media (max-width: 1024px) {
+    .learn-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .learn-sidebar {
+        position: static;
+        max-height: none;
+        order: 2;
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 2px solid var(--color-border);
+    }
+    
+    .learn-article {
+        order: 1;
+    }
+}
+
 /* --- Table of Contents --- */
 .toc-nav {
     position: sticky;
