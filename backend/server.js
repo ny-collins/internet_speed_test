@@ -126,21 +126,15 @@ app.disable('x-powered-by');
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
-      imgSrc: ["'self'"],
+      // Minimal CSP for API - browsers don't apply most CSP rules to JSON responses
+      defaultSrc: ["'none'"],
       connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
+      baseUri: ["'none'"],
       frameAncestors: ["'none'"],
-      upgradeInsecureRequests: []
+      formAction: ["'none'"]
     }
   },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // Relaxed for API usage
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
     maxAge: 31536000, // 1 year
