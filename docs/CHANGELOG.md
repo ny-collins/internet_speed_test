@@ -5,6 +5,35 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.68.0] - 2025-12-02
+
+### Added
+
+**🎨 Visual Polish & Graph Smoothing:**
+- **Catmull-Rom Spline Smoothing**: Implemented quadratic Bézier curves for the real-time speed graph
+  - Replaces jagged `lineTo` segments with smooth, flowing curves
+  - Provides a professional, high-end visual feel similar to commercial tools
+  - Maintains 60fps performance using efficient Canvas path operations
+
+- **Responsive Canvas Handling**: Added robust resize listeners for the stage graph
+  - Automatically recalculates internal canvas resolution on window resize
+  - Prevents blurriness or stretching when rotating mobile devices
+  - Maintains correct aspect ratio and coordinate mapping
+
+**🐛 Critical Fixes:**
+- **Syntax Error Resolution**: Fixed a critical orphaned code block in `updateHistoryUI` function
+- **Selector Safety**: Updated tray card selectors to use `data-metric` attributes correctly, preventing runtime errors
+
+### Improved
+
+**Stage & Tray Layout:**
+- **Layout Stability**: Finalized CSS Grid structure for the new Google Fiber-style layout
+- **Live Status Integration**: Correctly positioned the live speed number within the stage area
+- **Graph Layering**: Optimized z-index stacking to ensure the graph sits beautifully behind the text
+
+**Documentation:**
+- Updated `FUNCTIONALITY.md` and `TECHNICAL_NOTES.md` to reflect the new layout architecture and graph logic.
+
 ## [1.67.0] - 2025-12-02
 
 ### Added

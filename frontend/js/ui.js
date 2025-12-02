@@ -554,18 +554,28 @@ export function initStageSpeedCurve() {
     const canvas = DOM.stageSpeedCurve;
     if (!canvas) return;
 
-    // Set canvas resolution for crisp rendering
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
+    const resizeCanvas = () => {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        canvas._ctx = ctx;
+        canvas._width = rect.width;
+        canvas._height = rect.height;
+        
+        // Redraw if we have data
+        if (speedCurveSamples.length > 0) {
+            drawSpeedCurve();
+        }
+    };
 
-    // Store context for later use
-    canvas._ctx = ctx;
-    canvas._width = rect.width;
-    canvas._height = rect.height;
+    // Initial sizing
+    resizeCanvas();
+
+    // Handle window resizing
+    window.addEventListener('resize', resizeCanvas);
 }
 
 export function startSpeedCurve(phase) {
@@ -574,7 +584,17 @@ export function startSpeedCurve(phase) {
     
     if (DOM.stageSpeedCurve) {
         DOM.stageSpeedCurve.classList.add('active');
-        initStageSpeedCurve();
+        // Re-init to ensure correct size on start
+        const canvas = DOM.stageSpeedCurve;
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        canvas._ctx = ctx;
+        canvas._width = rect.width;
+        canvas._height = rect.height;
     }
 }
 
@@ -622,31 +642,47 @@ function drawSpeedCurve() {
     gradient.addColorStop(0, gradientColorStart);
     gradient.addColorStop(1, gradientColorEnd);
 
-    // Draw smooth curve
+    // Draw smooth curve (Catmull-Rom Spline equivalent via quadratic curves)
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     ctx.beginPath();
-    samples.forEach((val, i) => {
-        const x = (i / (samples.length - 1)) * width;
-        const y = height - ((val - min) / range) * (height * 0.8) - (height * 0.1);
-        
-        if (i === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
+    
+    // Map data points to canvas coordinates
+    const points = samples.map((val, i) => {
+        return {
+            x: (i / (samples.length - 1)) * width,
+            y: height - ((val - min) / range) * (height * 0.8) - (height * 0.1)
+        };
     });
+
+    ctx.moveTo(points[0].x, points[0].y);
+
+    // Use quadratic curves for smoothing
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i + 1];
+        
+        // Calculate control point (midpoint)
+        const xc = (p0.x + p1.x) / 2;
+        const yc = (p0.y + p1.y) / 2;
+        
+        ctx.quadraticCurveTo(p0.x, p0.y, xc, yc);
+    }
+    
+    // Draw the last segment
+    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    
     ctx.stroke();
 
     // Fill area under curve
     ctx.fillStyle = gradient;
-    const lastX = ((samples.length - 1) / (samples.length - 1)) * width;
-    const lastY = height - ((samples[samples.length - 1] - min) / range) * (height * 0.8) - (height * 0.1);
-    ctx.lineTo(lastX, height);
-    ctx.lineTo(0, height);
+    
+    // Complete the shape for filling
+    ctx.lineTo(width, height); // Bottom right
+    ctx.lineTo(0, height);     // Bottom left
     ctx.closePath();
     ctx.fill();
 }
