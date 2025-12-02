@@ -439,6 +439,34 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Root endpoint - human-readable backend info
+app.get('/', (req, res) => {
+  res.json({
+    name: 'SpeedCheck API',
+    description: 'Internet speed testing backend API',
+    version: '1.68.0',
+    location: config.serverLocation,
+    status: 'operational',
+    endpoints: {
+      info: '/api/info',
+      health: '/health',
+      metrics: config.metrics.enabled ? '/metrics' : null,
+      api: {
+        ping: '/api/ping',
+        pingBatch: '/api/ping-batch',
+        download: '/api/download?size=<MB>&chunk=<KB>',
+        upload: '/api/upload'
+      }
+    },
+    docs: 'https://github.com/ny-collins/internet_speed_test',
+    deployment: {
+      platform: 'Railway',
+      region: 'Europe West (Amsterdam, Netherlands)',
+      environment: config.nodeEnv
+    }
+  });
+});
+
 app.get('/api/diagnostics', (req, res) => {
   const memUsage = process.memoryUsage();
   res.json({
