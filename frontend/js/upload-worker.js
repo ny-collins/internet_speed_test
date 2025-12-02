@@ -73,6 +73,8 @@ function createUploadBlob() {
 
 // Upload thread function (runs in worker)
 async function uploadThread(threadId, byteCounter) {
+    let previousBytes = 0; // Track bytes from completed requests
+
     try {
         // Loop uploads until time limit reached or aborted
         while (isRunning && !abortController.signal.aborted) {
@@ -80,17 +82,25 @@ async function uploadThread(threadId, byteCounter) {
             await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 let finished = false;
+                let lastLoaded = 0; // Track loaded bytes for this specific request
 
                 const finish = (error = null) => {
                     if (finished) return;
                     finished = true;
-                    if (error) reject(error);
-                    else resolve();
+                    if (error) {
+                        reject(error);
+                    } else {
+                        // Request complete: add this request's total to previousBytes
+                        previousBytes += lastLoaded;
+                        resolve();
+                    }
                 };
 
                 xhr.upload.onprogress = (event) => {
                     if (event.lengthComputable) {
-                        byteCounter.bytes = event.loaded;
+                        lastLoaded = event.loaded;
+                        // Total for this thread = bytes from old requests + bytes from current request
+                        byteCounter.bytes = previousBytes + event.loaded;
                     }
                 };
 
