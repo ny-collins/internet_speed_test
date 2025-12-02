@@ -551,7 +551,29 @@ function initializeAccordion() {
 
     accordionItems.forEach(item => {
         const button = item.querySelector('.accordion-header');
-        const content = item.querySelector('.accordion-content');\n\n        if (!button || !content) return;\n\n        button.addEventListener('click', () => {\n            const isExpanded = button.getAttribute('aria-expanded') === 'true';\n\n            // Toggle this item\n            button.setAttribute('aria-expanded', !isExpanded);\n            content.hidden = isExpanded;\n\n            // Optional: Close other items (accordion behavior)\n            // Comment out the lines below if you want multiple sections open at once\n            accordionItems.forEach(otherItem => {
+        const content = item.querySelector('.accordion-content');
+
+        if (!button || !content) return;
+
+        button.addEventListener('click', () => {
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+            // Toggle this item
+            button.setAttribute('aria-expanded', !isExpanded);
+            content.hidden = isExpanded;
+
+            // Optional: Close other items (accordion behavior)
+            // Comment out the lines below if you want multiple sections open at once
+            accordionItems.forEach(otherItem => {
                 if (otherItem !== item) {
                     const otherButton = otherItem.querySelector('.accordion-header');
-                    const otherContent = otherItem.querySelector('.accordion-content');\n                    if (otherButton && otherContent) {\n                        otherButton.setAttribute('aria-expanded', 'false');\n                        otherContent.hidden = true;\n                    }\n                }\n            });\n        });\n    });\n}
+                    const otherContent = otherItem.querySelector('.accordion-content');
+                    if (otherButton && otherContent) {
+                        otherButton.setAttribute('aria-expanded', 'false');
+                        otherContent.hidden = true;
+                    }
+                }
+            });
+        });
+    });
+}
