@@ -659,7 +659,8 @@ export function startVarianceTracking() {
             container.style.opacity = '1';
             container.style.transform = 'translateY(0)';
         });
-    }\n}
+    }
+}
 
 export function stopVarianceTracking() {
     STATE.varianceGraph.active = false;
