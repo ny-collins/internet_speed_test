@@ -342,7 +342,9 @@ function updateConfigSummary() {
 
 async function fetchServerInfo() {
     try {
-        const response = await fetch(`${CONFIG.apiBase}/api/info`);
+        const response = await fetch(`${CONFIG.apiBase}/api/info`, {
+            signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
         if (response.ok) {
             STATE.serverInfo = await response.json();
             if (DOM.serverLocation) DOM.serverLocation.textContent = STATE.serverInfo.location || 'Unknown';
@@ -350,9 +352,14 @@ async function fetchServerInfo() {
                 DOM.serverLimits.textContent = `${STATE.serverInfo.maxDownloadSize}MB DL / ${STATE.serverInfo.maxUploadSize}MB UL`;
             }
             if (DOM.serverInfo) DOM.serverInfo.hidden = false;
+        } else {
+            // Update UI even if fetch fails
+            if (DOM.serverLocation) DOM.serverLocation.textContent = 'Amsterdam, Netherlands';
         }
     } catch (e) {
         console.warn('[Server] Info fetch failed', e);
+        // Always update the placeholder text even on error
+        if (DOM.serverLocation) DOM.serverLocation.textContent = 'Amsterdam, Netherlands';
     }
 }
 

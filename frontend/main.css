@@ -595,10 +595,12 @@ h1, h2, h3, h4, h5, h6 {
     text-align: center;
     opacity: 0;
     transition: opacity 0.3s ease-out;
+    pointer-events: none; /* Don't block clicks when hidden */
 }
 
 .live-status.visible {
     opacity: 1;
+    pointer-events: auto; /* Allow interactions when visible */
 }
 
 .live-speed-value {
