@@ -11,9 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **🛡️ Production Security Hardening** (Based on Security Audit):
 
+- **CRITICAL: Removed `'unsafe-inline'` from CSP** (Major XSS vulnerability fix)
+  - Extracted all inline `<script>` blocks to external files
+  - Removed inline `onclick` handlers, replaced with data attributes
+  - Browser now blocks ANY injected inline scripts
+  - Zero inline JavaScript execution allowed
+
+- **Code Refactoring for Security:**
+  - Created `init.js` - API configuration, emergency fallback, error handler
+  - Created `edge-banner.js` - Edge deployment banner logic
+  - Created `settings-helper.js` - Settings button click handler  
+  - Created `learn-init.js` - Learn page initialization
+  - Added `.error-message` CSS class to replace inline styles
+  - All functionality maintained, security dramatically improved
+
+- **Future-Proof `connect-src` Policy:**
+  - Added `https://*.railway.app` for backend flexibility
+  - Added `https://unpkg.com` for CDN resources
+  - Prepared for analytics, logging, or monitoring additions
+  - No need to redeploy for minor backend changes
+
 - **Frontend (Railway):**
   - Removed `X-Powered-By` header (Express information leak)
-  - Added comprehensive Content-Security-Policy (CSP)
+  - Added comprehensive Content-Security-Policy (NO unsafe-inline)
   - Implemented HSTS with 1-year max-age and preload
   - Enhanced cache control: immutable caching for versioned assets (CSS/JS), no-cache for HTML
   - Added Permissions-Policy to restrict unused browser features
@@ -29,22 +49,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Cloudflare Pages:**
   - Added HSTS header with preload support
-  - Added comprehensive CSP matching Railway frontend
+  - Added comprehensive CSP (NO unsafe-inline)
   - Maintained existing security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
 
 ### Improved
 
-**Security Header Coverage:**
-- All three deployments now have consistent security posture
-- CORS origin `*` for Cloudflare Pages is intentional (public frontend)
-- CSP allows `unpkg.com` for Lucide icons library
-- CSP allows backend API connections for speed tests
-- Worker-src allows blob: for Web Workers implementation
+**Security Posture:**
+- **Before:** `script-src 'unsafe-inline'` allowed any injected scripts to run
+- **After:** Only whitelisted external scripts from `'self'` and `https://unpkg.com` can execute
+- **Impact:** Eliminates primary XSS attack vector
+- Browser will actively block inline script injection attempts
 
 **Caching Strategy:**
 - Frontend static assets: 1-year immutable cache for versioned files
-- Frontend HTML: no-cache to ensure fresh content
+- Frontend HTML: no-cache to ensure fresh content  
 - Backend: appropriate cache-control per endpoint
+
+**Files Changed:**
+- CSS: 3349 lines (added error message styling)
+- JavaScript: 4 new external files, 0 inline scripts remaining
+- HTML: All inline scripts externalized, inline handlers removed
 
 ## [1.67.0] - 2025-12-02
 
