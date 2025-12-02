@@ -46,3 +46,76 @@
     from { transform: translateX(0); opacity: 1; }
     to { transform: translateX(400px); opacity: 0; }
 }
+
+/* App container fade-in */
+.app-container-loading {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Hidden elements with display */
+.hidden-display {
+    display: none;
+}
+
+/* Share button positioning */
+.share-btn-positioned {
+    margin-left: auto;
+}
+
+/* PWA Update Banner */
+.update-banner-wrapper {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 90%;
+    animation: slideDown 0.3s ease-out;
+}
+
+.update-banner-message {
+    flex: 1;
+    font-weight: 500;
+}
+
+.update-banner-btn-primary {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.update-banner-btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}

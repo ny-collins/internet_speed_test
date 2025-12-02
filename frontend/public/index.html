@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <div class="app-container" style="opacity: 0; transition: opacity 0.3s;">
+    <div class="app-container app-container-loading">
         <header class="header">
             <div class="header-content">
                 <div class="logo">
@@ -242,7 +242,7 @@
                             <span class="matrix-number" id="latency-value">—</span>
                             <span class="matrix-unit" id="latency-unit">ms</span>
                         </div>
-                        <div class="quality-badge-container" data-quality-badge="latency" style="display: none;">
+                        <div class="quality-badge-container hidden-display" data-quality-badge="latency">
                             <span class="quality-icon">🟢</span>
                             <span class="quality-label">Great</span>
                         </div>
@@ -287,7 +287,7 @@
                             <span class="matrix-number" id="jitter-value">—</span>
                             <span class="matrix-unit" id="jitter-unit">ms</span>
                         </div>
-                        <div class="quality-badge-container" data-quality-badge="jitter" style="display: none;">
+                        <div class="quality-badge-container hidden-display" data-quality-badge="jitter">
                             <span class="quality-icon">🟢</span>
                             <span class="quality-label">Great</span>
                         </div>
@@ -304,8 +304,8 @@
                     <i data-lucide="refresh-cw" class="btn-icon"></i>
                     <span class="btn-text">Retry</span>
                 </button>
-                <button class="btn-primary" id="shareResultBtn" hidden style="margin-left: auto;">
-                    <i data-lucide="share-2" class="btn-icon"></i>
+                <button class="btn-primary share-btn-positioned" id="shareResultBtn" hidden>
+                    <i data-lucide="share-2" class="icon"></i>
                     <span class="btn-text">Share Results</span>
                 </button>
             </div>
@@ -371,7 +371,7 @@
                     <i data-lucide="refresh-cw" class="btn-icon"></i>
                     <span class="btn-text">Test Again</span>
                 </button>
-                <button class="btn-primary" id="shareResultBtn" hidden style="margin-left: auto;">
+                <button class="btn-primary share-btn-positioned" id="shareResultBtn" hidden>
                     <i data-lucide="share-2" class="btn-icon"></i>
                     <span class="btn-text">Share</span>
                 </button>
@@ -624,48 +624,14 @@
 
     <!-- PWA Update Banner -->
     <div id="update-banner" hidden>
-        <div style="
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            max-width: 90%;
-            animation: slideDown 0.3s ease-out;
-        ">
-            <span style="flex: 1; font-weight: 500;">
+        <div class="update-banner-wrapper">
+            <span class="update-banner-message">
                 🎉 New version available! Update now for the latest features.
             </span>
-            <button id="update-btn" style="
-                background: white;
-                color: #667eea;
-                border: none;
-                padding: 8px 20px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: transform 0.2s;
-            ">
+            <button id="update-btn" class="update-banner-btn-primary">
                 Update Now
             </button>
-            <button id="dismiss-btn" style="
-                background: transparent;
-                color: white;
-                border: 2px solid white;
-                padding: 8px 16px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: transform 0.2s;
-            ">
+            <button id="dismiss-btn" class="update-banner-btn-secondary">
                 Later
             </button>
         </div>
