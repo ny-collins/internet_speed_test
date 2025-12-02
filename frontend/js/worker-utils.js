@@ -83,7 +83,9 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
         bytesTransferred: finalResults.bytesTransferred,
         duration: finalResults.duration,
         effectiveDuration: finalResults.effectiveDuration,
-        stability: finalResults.stability
+        stability: finalResults.stability,
+        confidence: finalResults.confidence,
+        warnings: finalResults.warnings
     });
 }// Shared final calculation function
 export function calculateFinalResults(config, testType, totalBytes, warmupBytes, totalDuration, speedSamples, calculateStability) {
@@ -96,13 +98,85 @@ export function calculateFinalResults(config, testType, totalBytes, warmupBytes,
     // Calculate speed based on post-warmup performance only
     const speedMbps = postWarmupBytes > 0 ? (postWarmupBytes * 8) / effectiveDuration / 1_000_000 : 0;
 
-    console.log(`[${testType.charAt(0).toUpperCase() + testType.slice(1)} Worker] Final: ${speedMbps.toFixed(2)} Mbps (${postWarmupBytes.toLocaleString()} bytes post-warmup in ${effectiveDuration.toFixed(1)}s effective duration, ${warmupBytes.toLocaleString()} bytes during warmup)`);
+    // Calculate confidence score based on multiple factors
+    const confidence = calculateConfidenceScore(
+        speedSamples,
+        postWarmupBytes,
+        effectiveDuration,
+        totalDuration,
+        warmUpPeriod
+    );
+
+    // Detect potential measurement issues
+    const warnings = [];
+    if (confidence < 70) warnings.push('Low confidence in measurement');
+    if (effectiveDuration < 3) warnings.push('Short test duration may affect accuracy');
+    if (speedSamples.length < 5) warnings.push('Insufficient samples for reliable measurement');
+
+    console.log(`[${testType.charAt(0).toUpperCase() + testType.slice(1)} Worker] Final: ${speedMbps.toFixed(2)} Mbps (${postWarmupBytes.toLocaleString()} bytes post-warmup in ${effectiveDuration.toFixed(1)}s effective duration, ${warmupBytes.toLocaleString()} bytes during warmup, confidence: ${confidence}%)`);
+
+    if (warnings.length > 0) {
+        console.warn(`[${testType.charAt(0).toUpperCase() + testType.slice(1)} Worker] Warnings:`, warnings);
+    }
 
     return {
         speed: speedMbps,
         bytesTransferred: postWarmupBytes, // Use post-warmup bytes for accuracy
         duration: totalDuration,
         effectiveDuration,
-        stability: calculateStability(speedSamples)
+        stability: calculateStability(speedSamples),
+        confidence,
+        warnings
     };
+}
+
+// Calculate confidence score (0-100) based on measurement quality indicators
+function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, warmupPeriod) {
+    let score = 100;
+
+    // Factor 1: Sample count (more samples = higher confidence)
+    if (speedSamples.length < 5) {
+        score -= 20;
+    } else if (speedSamples.length < 10) {
+        score -= 10;
+    }
+
+    // Factor 2: Test duration (longer tests = higher confidence)
+    const testDuration = duration;
+    if (testDuration < 3) {
+        score -= 30;
+    } else if (testDuration < 5) {
+        score -= 15;
+    }
+
+    // Factor 3: Data volume (more data = higher confidence)
+    const mbTransferred = bytes / 1024 / 1024;
+    if (mbTransferred < 5) {
+        score -= 20;
+    } else if (mbTransferred < 10) {
+        score -= 10;
+    }
+
+    // Factor 4: Speed variance (lower variance = higher confidence)
+    if (speedSamples.length >= 3) {
+        const mean = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
+        const variance = speedSamples.reduce((sum, speed) => {
+            const diff = (speed - mean) / mean;
+            return sum + (diff * diff);
+        }, 0) / speedSamples.length;
+
+        if (variance > 0.3) {
+            score -= 15; // High variance
+        } else if (variance > 0.15) {
+            score -= 8;
+        }
+    }
+
+    // Factor 5: Warmup ratio (proper warmup period used)
+    const warmupRatio = (warmupPeriod / totalDuration);
+    if (warmupRatio > 0.5) {
+        score -= 10; // Too much time spent in warmup
+    }
+
+    return Math.max(0, Math.min(100, Math.round(score)));
 }

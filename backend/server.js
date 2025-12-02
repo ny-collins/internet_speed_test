@@ -218,6 +218,8 @@ if (config.metrics.enabled) {
 
 app.get('/api/ping', (req, res) => {
   const timestamp = Date.now();
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Connection', 'keep-alive');
   res.json({
     timestamp,
     server: 'ok'
@@ -252,6 +254,8 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Keep-Alive', 'timeout=5, max=100');
 
   let sent = 0;
   let clientDisconnected = false;
@@ -300,6 +304,7 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 app.post('/api/upload', circuitBreaker, (req, res) => {
   const startTime = Date.now();
   let receivedBytes = 0;
+  let firstByteTime = null;
   const byteLimit = config.maxUploadSizeMB * 1024 * 1024;
   let aborted = false;
   let clientDisconnected = false;
@@ -313,6 +318,12 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
 
   req.on('data', (chunk) => {
     if (aborted || clientDisconnected) return;
+    
+    // Track time of first byte for more accurate timing
+    if (firstByteTime === null && chunk.length > 0) {
+      firstByteTime = Date.now();
+    }
+    
     receivedBytes += chunk.length;
     if (receivedBytes > byteLimit) {
       aborted = true;
@@ -326,7 +337,8 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
     if (aborted || clientDisconnected) return;
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000;
-    const speedMbps = (receivedBytes * 8) / (duration * 1000000);
+    const effectiveDuration = firstByteTime ? (endTime - firstByteTime) / 1000 : duration;
+    const speedMbps = (receivedBytes * 8) / (effectiveDuration * 1000000);
 
     if (config.metrics.enabled) {
       app.locals.metrics.uploadBytesTotal.inc(receivedBytes);
@@ -336,7 +348,9 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
       success: true,
       receivedBytes,
       durationMs: endTime - startTime,
-      speedMbps: Math.round(speedMbps * 100) / 100
+      effectiveDurationMs: firstByteTime ? endTime - firstByteTime : endTime - startTime,
+      speedMbps: Math.round(speedMbps * 100) / 100,
+      timestamp: Date.now()
     });
   });
 
@@ -392,6 +406,34 @@ app.get('/health', (req, res) => {
     timestamp: Date.now(),
     uptime: process.uptime(),
     ip: req.ip
+  });
+});
+
+app.get('/api/diagnostics', (req, res) => {
+  const memUsage = process.memoryUsage();
+  res.json({
+    status: 'ok',
+    timestamp: Date.now(),
+    uptime: process.uptime(),
+    serverLocation: config.serverLocation,
+    connection: {
+      inflightRequests: inflightCount,
+      maxInflight: config.maxInflightRequests,
+      utilizationPercent: Math.round((inflightCount / config.maxInflightRequests) * 100)
+    },
+    memory: {
+      heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+      heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
+      rssMB: Math.round(memUsage.rss / 1024 / 1024),
+      utilizationPercent: Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100)
+    },
+    config: {
+      maxDownloadSizeMB: config.maxDownloadSizeMB,
+      maxUploadSizeMB: config.maxUploadSizeMB,
+      rateLimitEnabled: config.rateLimit.enabled,
+      metricsEnabled: config.metrics.enabled
+    },
+    nodeVersion: process.version
   });
 });
 

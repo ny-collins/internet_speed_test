@@ -53,34 +53,61 @@ function calculateStability(samples) {
 
 // Download thread function (runs in worker)
 async function downloadThread(threadId, byteCounter) {
-    try {
-        const url = `${config.apiBase}/api/download?stream=true&chunk=${config.chunkSize}&t=${Date.now()}`;
-        const response = await fetch(url, {
-            signal: abortController.signal,
-            cache: 'no-store'
-        });
-
-        if (!response.ok) throw new Error(`Status ${response.status}`);
-        if (!response.body) throw new Error('No body');
-
-        const reader = response.body.getReader();
-
-        while (isRunning && !abortController.signal.aborted) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            byteCounter.bytes += value.length;
-        }
-
-        try { await reader.cancel(); } catch (e) { /* Ignore cancel errors */ }
-
-    } catch (error) {
-        if (error.name !== 'AbortError') {
-            console.error(`[Download Worker] Thread ${threadId} error:`, error);
-            self.postMessage({
-                type: MESSAGE_TYPES.DOWNLOAD_ERROR,
-                threadId,
-                error: error.message
+    let retryCount = 0;
+    const maxRetries = config.maxRetries || 2;
+    
+    while (retryCount <= maxRetries) {
+        try {
+            const url = `${config.apiBase}/api/download?stream=true&chunk=${config.chunkSize}&t=${Date.now()}`;
+            
+            // Create abort controller with timeout
+            const timeoutMs = config.connectionTimeout || 10000;
+            const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
+            
+            const response = await fetch(url, {
+                signal: abortController.signal,
+                cache: 'no-store',
+                keepalive: true,
+                priority: 'high'
             });
+            
+            clearTimeout(timeoutId);
+
+            if (!response.ok) throw new Error(`Status ${response.status}`);
+            if (!response.body) throw new Error('No body');
+
+            const reader = response.body.getReader();
+
+            while (isRunning && !abortController.signal.aborted) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                byteCounter.bytes += value.length;
+            }
+
+            try { await reader.cancel(); } catch (e) { /* Ignore cancel errors */ }
+            
+            // Success - exit retry loop
+            break;
+
+        } catch (error) {
+            if (error.name === 'AbortError' || STATE.cancelling) {
+                // User cancelled or timeout - don't retry
+                break;
+            }
+            
+            retryCount++;
+            if (retryCount <= maxRetries) {
+                console.warn(`[Download Worker] Thread ${threadId} error, retrying (${retryCount}/${maxRetries}):`, error.message);
+                await new Promise(resolve => setTimeout(resolve, config.retryDelay || 1000));
+            } else {
+                console.error(`[Download Worker] Thread ${threadId} failed after ${maxRetries} retries:`, error);
+                self.postMessage({
+                    type: MESSAGE_TYPES.DOWNLOAD_ERROR,
+                    threadId,
+                    error: error.message
+                });
+                break;
+            }
         }
     }
 }

@@ -5,6 +5,7 @@
 import { DOM } from './dom.js';
 import { STATE } from './state.js';
 import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getSpeedContext } from './utils.js';
+import { showConfidenceIndicator, showMeasurementInfoButton } from './ui-enhancements.js';
 
 // Gauge scale breakpoints for adaptive scaling
 const GAUGE_SCALES = [10, 25, 50, 100, 250, 500, 1000];
@@ -197,6 +198,14 @@ export function updateResultCard(type, result) {
             if (matrixUnit) {
                 matrixUnit.id = `${type}-unit`; // Update ID for accessibility
             }
+            
+            // Show confidence indicator if available
+            if (result.confidence !== undefined) {
+                showConfidenceIndicator(type, result.confidence);
+            }
+            
+            // Show measurement info button
+            showMeasurementInfoButton(type, result);
 
             // Add quality badge
             const quality = getSpeedQuality(result.speed, type);
@@ -256,6 +265,14 @@ export function updateResultCard(type, result) {
             if (matrixUnit) {
                 matrixUnit.id = 'latency-unit'; // Update ID for accessibility
             }
+            
+            // Show confidence indicator if available
+            if (result.confidence !== undefined) {
+                showConfidenceIndicator('latency', result.confidence);
+            }
+            
+            // Show measurement info button
+            showMeasurementInfoButton('latency', result);
         }
 
         if (resultCard) {

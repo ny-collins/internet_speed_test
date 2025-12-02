@@ -23,15 +23,18 @@ SpeedCheck measures your **real-world international connectivity** with a **dist
 ## ✨ Key Features
 
 - **⚡ Real-time Testing** - Live gauge with download, upload, latency & jitter using Web Workers
-- **🌍 Geographic Optimization** - Dual deployment: Europe (Railway) + Africa (Cloudflare)
-- **📱 Mobile Responsive** - Works perfectly on all devices with progressive enhancement
+- **🎯 Measurement Quality** - Confidence scoring (0-100%) with detailed quality indicators
+- **📊 Transparent Metrics** - Sample counts, outlier detection, measurement methodology visible
+- **🌍 Geographic Context** - Distance calculation, network type detection, server location display
+- **📈 History & Statistics** - Local storage with averages, trends, and test count (privacy-focused)
 - **🛠️ PWA Support** - Add to home screen for app-like experience with background sync
 - **🔒 Zero Dependencies** - Pure vanilla JavaScript, fast loading, secure by design
-- **📊 Comprehensive Audit** - Built-in monitoring system for performance & security validation
+- **📚 Comprehensive Audit** - Built-in monitoring system for performance & security validation
 - **🎓 Educational Content** - Learn page explaining internet concepts and performance metrics
 - **♿ Accessibility** - Screen reader support, ARIA labels, keyboard navigation
-- **🔬 Scientific Accuracy** - TCP slow start compensation with byte tracking for professional-grade measurements
-- **📈 Bufferbloat Detection** - Loaded latency measurement during active transfers for network quality analysis
+- **🔬 Scientific Accuracy** - TCP slow start compensation with statistical outlier removal (MAD)
+- **💎 Visual Polish** - Smooth animations, loading skeletons, button interactions, tabular numbers
+- **🌐 Dual Deployment** - Europe (Railway) + Africa (Cloudflare) for optimized global access
 
 ## 🚀 Quick Start
 
@@ -138,6 +141,43 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 - 🛡️ **Security Improvements** - PWA update banner security fix
 - 🔧 **Critical Bug Fixes** - Module imports, speed calculations, sparkline rendering
 
+## 🎨 Recent Enhancements (v1.0.0)
+
+### Phase 1-5 Implementation Complete
+
+**Measurement Quality Visibility**
+- Confidence scoring (0-100%) for all test types (download/upload/latency)
+- Color-coded indicators: High (≥85%), Medium (70-84%), Low (50-69%), Very Low (<50%)
+- Detailed modals with sample counts, outlier info, and methodology
+- 5-factor confidence calculation for speed tests, 3-factor for latency
+
+**Geographic Context**
+- Real-time distance calculation to Amsterdam server
+- Network type detection (WiFi, 4G, etc.) via Network Information API
+- Test context panel with server location, distance, connection, timestamp
+- Geolocation integration with Great Circle distance formula
+
+**Local History & Statistics**
+- localStorage-based history (50 test limit)
+- Privacy notice: "History stored locally on this device only"
+- Aggregate statistics: average download/upload/latency, test count
+- Chart visualization with export/clear functionality
+
+**Learn Page Integration**
+- Tooltip helper functions for contextual education
+- Smooth navigation from results to learning content
+- Enhanced accessibility and mobile responsiveness
+
+**Visual Polish**
+- Tabular numerals for consistent number display
+- Smooth number counting animations with easing
+- Button ripple effects and micro-interactions
+- Loading skeletons with shimmer animations
+- Professional tooltip system with positioning
+- Pulse animations for loading states
+
+See [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for complete implementation details.
+
 ## 🤝 Contributing
 
 We welcome contributions! See [Contributing Guidelines](CONTRIBUTING.md) for details.
@@ -149,8 +189,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 ## 📚 Documentation
-
 - **[Technical Notes](docs/TECHNICAL_NOTES.md)** - Design decisions & performance optimizations
 - **[Functionality](docs/FUNCTIONALITY.md)** - System architecture & API details
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Distributed deployment strategy
 - **[Changelog](docs/CHANGELOG.md)** - Version history & release notes

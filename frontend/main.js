@@ -6,6 +6,7 @@ import { queryDOMElements, DOM } from './js/dom.js';
 import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './js/events.js';
 import { registerServiceWorker } from './js/worker.js';
 import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay } from './js/ui.js';
+import { updateTestContext, updateHistoryStats, displayHistoryStats, animateNumber } from './js/ui-enhancements.js';
 import { getFriendlyError, getConnectionType, performanceMonitor } from './js/utils.js';
 import { drawHistoryChart } from './js/chart.js';
 import { measureLatency } from './js/test-latency.js';
@@ -41,7 +42,7 @@ async function initializeApp() {
     }
     
     // 3. Check Page Type (Speed Test vs Learn)
-    const isSpeedTestPage = document.getElementById('gaugeCircle') !== null;
+    const isSpeedTestPage = document.getElementById('gaugeContainer') !== null;
     
     if (isSpeedTestPage) {
         console.log('[App] Speed test page detected');
@@ -64,6 +65,9 @@ async function initializeApp() {
         
         // Initialize Accessibility
         initializeAccessibility();
+        
+        // Initialize modal close handlers
+        initializeModalHandlers();
         
         // Listen for resize events to redraw history chart
         window.addEventListener('resize', () => {
@@ -269,6 +273,15 @@ async function completeTest() {
     
     saveToHistory(testResult);
     
+    // Update test context panel with detailed test information
+    updateTestContext({
+        download: STATE.testResults.download,
+        upload: STATE.testResults.upload,
+        latency: STATE.testResults.latency,
+        timestamp: testResult.timestamp,
+        connectionType: testResult.connectionType
+    });
+    
     announceToScreenReader('Test complete');
 }
 
@@ -363,6 +376,12 @@ async function updateHistoryUI() {
     
     // Draw Chart
     drawHistoryChart(STATE.history);
+    
+    // Calculate and display statistics
+    const stats = updateHistoryStats(STATE.history);
+    if (stats) {
+        displayHistoryStats(stats);
+    }
         
         if (STATE.history.length === 0) {
             DOM.historyList.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--color-text-tertiary)">No test history yet</div>';
@@ -456,6 +475,37 @@ function setupGlobalErrorHandling() {
             console.warn('[Performance] Long task monitoring not supported');
         }
     }
+}
+
+// ========================================
+// MODAL HANDLERS
+// ========================================
+
+function initializeModalHandlers() {
+    const modal = document.getElementById('measurement-details-modal');
+    if (!modal) return;
+    
+    // Close button
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    }
+    
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // ESC key to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+    });
 }
 
 // Export updateConfigSummary so events.js can call it

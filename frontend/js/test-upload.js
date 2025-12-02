@@ -92,7 +92,7 @@ export async function measureUpload() {
             }
 
             case 'upload_complete': {
-                const { speed, bytesTransferred, duration, effectiveDuration, stability } = data;
+                const { speed, bytesTransferred, duration, effectiveDuration, stability, confidence, warnings } = data;
 
                 // Continue main progress bar animation to target (95%) smoothly
                 const continueMainProgressAnimation = () => {
@@ -147,7 +147,10 @@ export async function measureUpload() {
                     duration,
                     effectiveDuration,
                     stability,
-                    loadedLatency: null // Will be updated asynchronously
+                    loadedLatency: null, // Will be updated asynchronously
+                    confidence: confidence || 0,
+                    warnings: warnings || []
+                });
                 });
                 break;
             }

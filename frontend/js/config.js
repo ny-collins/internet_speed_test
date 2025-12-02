@@ -55,8 +55,15 @@ export const CONFIG = {
     chunkSize: 512,      // KB for download chunks
     uploadSize: 10,      // MB per upload thread
     downloadSize: 50,    // MB per download thread
+    // Connection optimization
+    connectionTimeout: 10000,   // 10 second timeout for connections
+    maxRetries: 2,              // Maximum retry attempts for failed requests
+    retryDelay: 1000,           // Delay between retries (ms)
     // Backend
     apiBase: typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'https://speed-test-backend.up.railway.app',
     // UI
-    animationDuration: 350
+    animationDuration: 350,
+    // Validation
+    enableValidation: true,     // Enable measurement validation
+    minConfidenceScore: 50      // Minimum confidence score to accept results
 };
