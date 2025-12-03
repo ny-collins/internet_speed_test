@@ -105,11 +105,19 @@ function optimizeThreadCount() {
     // TCP throughput over high-latency links suffers when multiple streams compete
     if (avgLatency > 200) {
         optimalThreads = 1;
-        console.log(`[Optimization] High latency detected (${avgLatency.toFixed(0)}ms) - using 1 thread for optimal throughput`);
+        // Also increase minimum test duration for high-latency links to allow TCP ramp-up
+        CONFIG.duration.download.min = 15;
+        CONFIG.duration.upload.min = 15;
+        // Increase variance threshold - high-latency links are naturally more variable
+        CONFIG.stability.varianceThreshold = 0.40;
+        console.log(`[Optimization] High latency detected (${avgLatency.toFixed(0)}ms) - using 1 thread, extended duration, relaxed stability`);
     } 
     // Medium latency (100-200ms): Use 2 threads
     else if (avgLatency > 100) {
         optimalThreads = 2;
+        CONFIG.duration.download.min = 12;
+        CONFIG.duration.upload.min = 12;
+        CONFIG.stability.varianceThreshold = 0.35;
         console.log(`[Optimization] Medium latency detected (${avgLatency.toFixed(0)}ms) - using 2 threads`);
     }
     // Low latency (<100ms): Use default 4 threads
