@@ -39,19 +39,6 @@ const config = {
 
   // Server Location
   serverLocation: process.env.SERVER_LOCATION || 'EU WEST (Amsterdam, Netherlands)',
-  
-  // Performance Tuning
-  compression: {
-    level: parseInt(process.env.COMPRESSION_LEVEL || '6', 10), // 0-9, 6 is default
-    threshold: parseInt(process.env.COMPRESSION_THRESHOLD || '1024', 10), // Bytes
-  },
-  
-  // Keep-Alive Settings
-  keepAlive: {
-    enabled: (process.env.ENABLE_KEEP_ALIVE || 'true').toLowerCase() === 'true',
-    timeout: parseInt(process.env.KEEP_ALIVE_TIMEOUT || '5000', 10),
-    maxRequests: parseInt(process.env.KEEP_ALIVE_MAX_REQUESTS || '100', 10),
-  },
 };
 
 // Validation

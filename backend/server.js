@@ -88,6 +88,9 @@ if (config.metrics.enabled) {
   };
 }
 
+// Circuit breaker: Track concurrent requests
+// NOTE: This counter is per-instance. When horizontally scaled across multiple
+// replicas, the effective limit is (maxInflightRequests × replicas).
 let inflightCount = 0;
 
 function trackInflight(req, res, next) {

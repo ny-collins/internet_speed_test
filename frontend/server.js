@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const API_URL = process.env.API_URL || 'https://speed-test-backend.up.railway.app';
 
 // Remove X-Powered-By header (information leak)
 app.disable('x-powered-by');
@@ -35,7 +36,7 @@ app.use((req, res, next) => {
         'style-src \'self\'; ' +
         'img-src \'self\' data: https:; ' +
         'font-src \'self\' data:; ' +
-        'connect-src \'self\' https://speed-test-backend.up.railway.app https://*.railway.app https://unpkg.com; ' +
+        `connect-src 'self' ${API_URL} https://*.railway.app https://unpkg.com; ` +
         'worker-src \'self\' blob:; ' +
         'frame-ancestors \'none\'; ' +
         'base-uri \'self\'; ' +
