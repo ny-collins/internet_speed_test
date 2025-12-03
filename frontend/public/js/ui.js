@@ -677,21 +677,6 @@ export function resetSpeedCurve() {
 }
 
 // ========================================
-// STAGE TRANSITIONS
-// ========================================
-
-export function showLiveStatus(phase) {
-    // No longer needed - gauge stays visible in split layout
-}
-
-export function updateLiveStatus(speed, unit = 'Mbps') {
-    // No longer needed - gauge shows live values
-}
-
-export function hideLiveStatus() {
-    // No longer needed - gauge stays visible in split layout
-}
-
 // ========================================
 // TRAY CARD HIGHLIGHTING
 // ========================================
