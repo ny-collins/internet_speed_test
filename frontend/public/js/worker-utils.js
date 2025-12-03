@@ -42,6 +42,7 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
 
             if (intervalBytes > 0) {
                 const intervalSpeed = (intervalBytes * 8) / intervalDuration / 1_000_000;
+                console.log(`[${testType} Worker] Interval: ${intervalBytes} bytes in ${intervalDuration.toFixed(2)}s = ${intervalSpeed.toFixed(2)} Mbps`);
                 speedSamples.push(intervalSpeed);
                 lastIntervalSpeedRef.value = intervalSpeed; // Update current speed display
 
