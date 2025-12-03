@@ -5,7 +5,7 @@
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
 import { scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
-import { updateGauge, setProgress, announceToScreenReader, startSpeedCurve, updateSpeedCurve, stopSpeedCurve, showLiveStatus, updateLiveStatus, hideLiveStatus, highlightTrayCard } from './ui.js';
+import { updateGauge, setProgress, announceToScreenReader, startSpeedCurve, updateSpeedCurve, stopSpeedCurve, highlightTrayCard } from './ui.js';
 
 export async function measureDownload() {
     const threadCount = CONFIG.threads.download;
@@ -131,7 +131,6 @@ export async function measureDownload() {
 
                 // Stop speed curve
                 stopSpeedCurve();
-                hideLiveStatus();
 
                 // Cleanup immediately (don't wait for loaded latency)
                 cleanup();
