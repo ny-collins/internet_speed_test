@@ -551,51 +551,12 @@ const speedCurveSamples = [];
 const MAX_CURVE_SAMPLES = 100;
 
 export function initStageSpeedCurve() {
-    const canvas = DOM.stageSpeedCurve;
-    if (!canvas) return;
-
-    const resizeCanvas = () => {
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-        canvas._ctx = ctx;
-        canvas._width = rect.width;
-        canvas._height = rect.height;
-        
-        // Redraw if we have data
-        if (speedCurveSamples.length > 0) {
-            drawSpeedCurve();
-        }
-    };
-
-    // Initial sizing
-    resizeCanvas();
-
-    // Handle window resizing
-    window.addEventListener('resize', resizeCanvas);
+    // No longer needed - mini graphs are initialized on demand
 }
 
 export function startSpeedCurve(phase) {
     speedCurvePhase = phase; // 'download' or 'upload'
     speedCurveSamples.length = 0; // Clear samples
-    
-    if (DOM.stageSpeedCurve) {
-        DOM.stageSpeedCurve.classList.add('active');
-        // Re-init to ensure correct size on start
-        const canvas = DOM.stageSpeedCurve;
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-        canvas._ctx = ctx;
-        canvas._width = rect.width;
-        canvas._height = rect.height;
-    }
 }
 
 export function updateSpeedCurve(speed) {
@@ -610,26 +571,19 @@ export function updateSpeedCurve(speed) {
 }
 
 function drawSpeedCurve() {
-    const canvas = DOM.stageSpeedCurve;
-    if (!canvas || !canvas._ctx || speedCurveSamples.length < 2) return;
-
-    // Also draw to mini graph
+    // Only draw to mini graphs now (no stage canvas)
     const miniCanvas = speedCurvePhase === 'download' ? DOM.downloadMiniGraph : DOM.uploadMiniGraph;
 
-    // Draw to stage canvas
-    drawToCanvas(canvas, canvas._ctx, canvas._width, canvas._height);
+    if (!miniCanvas || speedCurveSamples.length < 2) return;
     
-    // Draw to mini canvas if available
-    if (miniCanvas) {
-        const miniCtx = miniCanvas.getContext('2d');
-        const dpr = window.devicePixelRatio || 1;
-        const rect = miniCanvas.getBoundingClientRect();
-        miniCanvas.width = rect.width * dpr;
-        miniCanvas.height = rect.height * dpr;
-        miniCtx.scale(dpr, dpr);
-        drawToCanvas(miniCanvas, miniCtx, rect.width, rect.height);
-        miniCanvas.classList.add('visible');
-    }
+    const miniCtx = miniCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = miniCanvas.getBoundingClientRect();
+    miniCanvas.width = rect.width * dpr;
+    miniCanvas.height = rect.height * dpr;
+    miniCtx.scale(dpr, dpr);
+    drawToCanvas(miniCanvas, miniCtx, rect.width, rect.height);
+    miniCanvas.classList.add('visible');
 }
 
 function drawToCanvas(canvas, ctx, width, height) {
@@ -714,14 +668,6 @@ export function resetSpeedCurve() {
     speedCurvePhase = null;
     speedCurveSamples.length = 0;
     
-    const canvas = DOM.stageSpeedCurve;
-    if (canvas) {
-        canvas.classList.remove('active');
-        if (canvas._ctx) {
-            canvas._ctx.clearRect(0, 0, canvas._width, canvas._height);
-        }
-    }
-    
     // Clear mini graphs
     [DOM.downloadMiniGraph, DOM.uploadMiniGraph].forEach(miniCanvas => {
         if (miniCanvas) {
@@ -739,69 +685,15 @@ export function resetSpeedCurve() {
 // ========================================
 
 export function showLiveStatus(phase) {
-    if (!DOM.liveStatus) return;
-    
-    // Google Fiber approach: Hide entire gauge (circle + inner), show only graph + live numbers
-    if (DOM.gaugeCircle) {
-        DOM.gaugeCircle.hidden = true;
-        DOM.gaugeCircle.style.display = 'none';
-    }
-    if (DOM.gaugeInner) {
-        DOM.gaugeInner.hidden = true;
-        DOM.gaugeInner.style.display = 'none';
-    }
-    
-    // Update phase name
-    if (DOM.livePhaseName) {
-        const phaseNames = {
-            'download': 'Downloading',
-            'upload': 'Uploading',
-            'latency': 'Measuring Latency'
-        };
-        DOM.livePhaseName.textContent = phaseNames[phase] || phase;
-    }
-    
-    // Show live status with fade-in
-    DOM.liveStatus.hidden = false;
-    requestAnimationFrame(() => {
-        DOM.liveStatus.classList.add('visible');
-    });
+    // No longer needed - gauge stays visible in split layout
 }
 
 export function updateLiveStatus(speed, unit = 'Mbps') {
-    if (!DOM.liveSpeedValue) return;
-    
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
-    if (prefersReducedMotion) {
-        DOM.liveSpeedValue.textContent = speed.toFixed(1);
-    } else {
-        // Smooth transition
-        DOM.liveSpeedValue.textContent = speed.toFixed(1);
-    }
-    
-    if (DOM.liveSpeedUnit) {
-        DOM.liveSpeedUnit.textContent = unit;
-    }
+    // No longer needed - gauge shows live values
 }
 
 export function hideLiveStatus() {
-    if (!DOM.liveStatus) return;
-    
-    DOM.liveStatus.classList.remove('visible');
-    setTimeout(() => {
-        DOM.liveStatus.hidden = true;
-    }, 300);
-    
-    // Restore gauge visibility (only when test completes)
-    if (DOM.gaugeCircle) {
-        DOM.gaugeCircle.hidden = false;
-        DOM.gaugeCircle.style.display = '';
-    }
-    if (DOM.gaugeInner) {
-        DOM.gaugeInner.hidden = false;
-        DOM.gaugeInner.style.display = '';
-    }
+    // No longer needed - gauge stays visible in split layout
 }
 
 // ========================================

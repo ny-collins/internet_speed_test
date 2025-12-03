@@ -195,43 +195,35 @@
         </div>
 
         <main class="test-section" id="main-content">
-            <!-- Stage & Tray Layout -->
-            <section class="active-stage" id="activeStage" aria-label="Active speed test display">
-                <!-- Real-time speed curve graph (background layer) -->
-                <canvas id="stageSpeedCurve" class="stage-graph" aria-label="Real-time speed curve"></canvas>
-                
-                <!-- Gauge overlay (foreground layer) -->
-                <div class="gauge-overlay">
-                    <button class="gauge-start-button" id="gaugeStartButton" aria-label="Start speed test">
-                        <span class="start-button-text">START</span>
-                        <span class="start-button-subtitle">~25 sec · Tests to Amsterdam</span>
-                    </button>
-                    
-                    <div class="gauge-circle" id="gaugeCircle" hidden>
-                        <div class="gauge-progress" id="gaugeProgress"></div>
+            <!-- Split Layout: Gauge Left, Cards Right -->\n            <div class="split-layout" id="splitLayout">
+                <!-- Left Side: Gauge -->
+                <div class="gauge-section">
+                    <div class="gauge-container-split">
+                        <button class="gauge-start-button" id="gaugeStartButton" aria-label="Start speed test">
+                            <span class="start-button-text">START</span>
+                            <span class="start-button-subtitle">~25 sec · Tests to Amsterdam</span>
+                        </button>
+                        
+                        <div class="gauge-circle" id="gaugeCircle" hidden>
+                            <div class="gauge-progress" id="gaugeProgress"></div>
+                        </div>
+                        
+                        <div class="gauge-inner" id="gaugeInner" hidden aria-live="polite" aria-atomic="true">
+                            <div class="gauge-value-live" id="gaugeValue" aria-label="Current speed measurement">0</div>
+                            <div class="gauge-unit" id="gaugeUnit" aria-label="Speed unit">Mbps</div>
+                            <div class="gauge-phase-label" id="gaugePhase" aria-label="Current test phase">Ready</div>
+                        </div>
                     </div>
                     
-                    <div class="gauge-inner" id="gaugeInner" hidden aria-live="polite" aria-atomic="true">
-                        <div class="gauge-value-live" id="gaugeValue" aria-label="Current speed measurement">0</div>
-                        <div class="gauge-unit" id="gaugeUnit" aria-label="Speed unit">Mbps</div>
-                        <div class="gauge-phase-label" id="gaugePhase" aria-label="Current test phase">Ready</div>
+                    <!-- Test Timer (Below Gauge) -->
+                    <div class="test-timer" id="testTimer" hidden aria-live="polite" aria-atomic="true">
+                        <span class="timer-text">Time: <strong id="timerValue" aria-label="Time elapsed">0s</strong></span>
                     </div>
                 </div>
-                
-                <!-- Live status text (large numbers during test) -->
-                <div class="live-status" id="liveStatus" hidden aria-live="polite">
-                    <span class="live-speed-value" id="liveSpeedValue">0.0</span>
-                    <span class="live-speed-unit" id="liveSpeedUnit">Mbps</span>
-                    <span class="live-phase-name" id="livePhaseName">Download</span>
-                </div>
-                
-                <div class="test-timer" id="testTimer" hidden aria-live="polite" aria-atomic="true">
-                    <span class="timer-text">Time remaining: <strong id="timerValue" aria-label="Time remaining">10s</strong></span>
-                </div>
-            </section>
 
-            <!-- Results Tray (4 cards horizontal) -->
-            <section class="results-tray" id="resultsTray" role="region" aria-label="Test results">
+                <!-- Right Side: Measurement Cards -->
+                <div class="cards-section">
+                    <div class="cards-grid">\n            <!-- Results Tray (4 cards) -->
                 <div class="tray-card" data-metric="latency" role="group" aria-labelledby="latency-label">
                     <div class="matrix-icon">
                         <i data-lucide="activity" aria-hidden="true"></i>
@@ -297,7 +289,9 @@
                         </div>
                     </div>
                 </div>
-            </section>
+                    </div>
+                </div>
+            </div>
 
             <div class="controls">
                 <button class="btn-secondary btn-cancel" id="cancelTest" hidden>

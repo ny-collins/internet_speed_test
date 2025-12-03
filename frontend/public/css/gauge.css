@@ -5,7 +5,14 @@
     padding: var(--spacing-2xl) var(--spacing-xl);
 }
 
-.gauge-wrapper {
+/* Gauge container for split layout (no extra padding) */
+.gauge-container-split {
+    position: relative;
+    width: 100%;
+}
+
+.gauge-wrapper,
+.gauge-container-split {
     position: relative;
     width: 100%;
     max-width: 240px; /* Reduced from 340px for 100vh layout */

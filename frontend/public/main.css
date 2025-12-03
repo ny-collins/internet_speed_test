@@ -1683,9 +1683,60 @@ input[type="range"]::-moz-range-track {
     font-weight: 600;
 }
 /* ========================================
-   STAGE & TRAY LAYOUT (Google Fiber Style)
+   SPLIT LAYOUT (Gauge Left, Cards Right)
    ======================================== */
 
+/* Main Split Container */
+.split-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--spacing-xl);
+    width: 100%;
+    min-height: 70vh;
+    max-height: 75vh;
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Left Side: Gauge Section */
+.gauge-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.gauge-container-split {
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Right Side: Cards Section */
+.cards-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    overflow: hidden;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    height: 100%;
+}
+
+/* OLD STAGE-TRAY SYSTEM - DEPRECATED */
 /* Active Stage - Hero Section */
 .active-stage {
     position: relative;
@@ -1803,13 +1854,14 @@ input[type="range"]::-moz-range-track {
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-md); /* Reduced from lg */
+    padding: var(--spacing-lg);
     transition: all var(--transition-base);
     cursor: default;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm); /* Reduced from md */
-    min-height: 160px; /* Increased from 140px to fit mini graphs */
+    gap: var(--spacing-md);
+    min-height: unset; /* Remove min-height for grid layout */
+    height: 100%;
 }
 
 .tray-card:hover {
@@ -1877,8 +1929,8 @@ input[type="range"]::-moz-range-track {
 /* Mini Graph in Tray Cards */
 .tray-mini-graph {
     width: 100%;
-    height: 60px;
-    margin-top: var(--spacing-xs);
+    height: 80px; /* Increased from 60px for better visibility */
+    margin-top: auto; /* Push to bottom of card */
     border-radius: var(--radius-md);
     background: rgba(0, 0, 0, 0.2);
     opacity: 0;
@@ -1889,17 +1941,34 @@ input[type="range"]::-moz-range-track {
     opacity: 1;
 }
 
-/* Responsive: Mobile 2x2 Grid */
+/* Responsive: Mobile Stack Layout */
 @media (max-width: 768px) {
-    .results-tray {
-        grid-template-columns: repeat(2, 1fr);
+    .split-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        min-height: 85vh;
+        max-height: 90vh;
         gap: var(--spacing-md);
     }
     
-    .active-stage {
-        min-height: 280px; /* Reduced from 350px */
-        height: 40vh; /* Reduced from 50vh for mobile 100vh layout */
+    .gauge-section {
+        padding: var(--spacing-lg);
     }
+    
+    .gauge-container-split {
+        max-width: 200px;
+    }
+    
+    .cards-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+        gap: var(--spacing-md);
+    }
+    
+    .tray-mini-graph {
+        height: 60px;
+    }
+}
     
     .live-speed-value {
         font-size: clamp(3rem, 12vw, 5rem);
@@ -1956,7 +2025,14 @@ input[type="range"]::-moz-range-track {
     padding: var(--spacing-2xl) var(--spacing-xl);
 }
 
-.gauge-wrapper {
+/* Gauge container for split layout (no extra padding) */
+.gauge-container-split {
+    position: relative;
+    width: 100%;
+}
+
+.gauge-wrapper,
+.gauge-container-split {
     position: relative;
     width: 100%;
     max-width: 240px; /* Reduced from 340px for 100vh layout */
