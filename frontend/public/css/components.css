@@ -291,12 +291,13 @@
 
 /* --- Gauge Specifics (Overrides from layout.css if needed) --- */
 .gauge-start-button {
-    width: 340px;
-    height: 340px;
+    width: 240px; /* Reduced from 340px to fit split layout */
+    height: 240px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: white;
-    border: none;
+    border: none; /* Ensure no border */
+    outline: none; /* Remove outline */
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -305,7 +306,7 @@
     gap: var(--spacing-sm);
     font-weight: 700;
     font-size: var(--font-size-2xl);
-    box-shadow: 0 8px 32px var(--color-primary-glow);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4); /* Circular glow only */
     transition: all var(--transition-base);
     position: relative;
     overflow: hidden;
@@ -342,7 +343,7 @@
 
 .gauge-start-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 12px 48px var(--color-primary-glow);
+    box-shadow: 0 12px 48px rgba(59, 130, 246, 0.5); /* Circular glow only */
 }
 
 .gauge-start-button:active {
@@ -350,13 +351,13 @@
 }
 
 .start-button-text {
-    font-size: var(--font-size-4xl);
+    font-size: var(--font-size-3xl); /* Reduced from 4xl */
     font-weight: 800;
     letter-spacing: 0.1em;
 }
 
 .start-button-subtitle {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs); /* Reduced from sm */
     font-weight: 500;
     opacity: 0.9;
     letter-spacing: 0.02em;
