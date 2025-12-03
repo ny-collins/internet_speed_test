@@ -276,6 +276,8 @@ app.get('/api/download', circuitBreaker, (req, res) => {
   if (isNaN(chunkKB) || chunkKB < 16) chunkKB = 64;
   if (chunkKB > 1024) chunkKB = 1024;
   const chunkSize = chunkKB * 1024;
+  
+  logger.debug({ chunkKB, chunkSize, streamParam }, 'Download request parameters');
 
   res.setHeader('Content-Type', 'application/octet-stream');
   if (!streamParam) {
@@ -289,10 +291,13 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 
   let sent = 0;
   let clientDisconnected = false;
+  let chunksSent = 0;
+  const startTime = Date.now();
 
   req.on('close', () => {
     clientDisconnected = true;
-    logger.debug({ sent, sizeInBytes, streamParam }, 'Client disconnected during download');
+    const duration = (Date.now() - startTime) / 1000;
+    logger.debug({ sent, chunksSent, duration, avgSpeed: (sent * 8 / duration / 1_000_000).toFixed(2) + ' Mbps' }, 'Client disconnected during download');
   });
 
   const sendChunk = () => {
@@ -317,12 +322,18 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 
     const canContinue = res.write(chunk);
     sent += currentChunkSize;
+    chunksSent++;
+    
+    if (chunksSent <= 3) {
+      logger.debug({ chunksSent, chunkSize: currentChunkSize, sent, canContinue }, 'Sent chunk');
+    }
 
     if (canContinue) {
       // Continue sending immediately if buffer not full
       setImmediate(sendChunk);
     } else {
       // Wait for drain event if buffer is full
+      logger.debug({ chunksSent, sent }, 'Write buffer full, waiting for drain');
       res.once('drain', sendChunk);
     }
   };

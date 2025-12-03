@@ -78,14 +78,16 @@ async function downloadThread(threadId, byteCounter) {
 
             const reader = response.body.getReader();
             let chunkCount = 0;
+            let totalReceived = 0;
 
             while (isRunning && !abortController.signal.aborted) {
                 const { done, value } = await reader.read();
                 if (done) break;
                 byteCounter.bytes += value.length;
+                totalReceived += value.length;
                 chunkCount++;
-                if (chunkCount <= 5) {
-                    console.log(`[Download Worker] Thread ${threadId} received chunk #${chunkCount}: ${value.length} bytes`);
+                if (chunkCount <= 10) {
+                    console.log(`[Download Worker] Thread ${threadId} chunk #${chunkCount}: ${value.length} bytes (total: ${totalReceived} bytes)`);
                 }
             }
 
