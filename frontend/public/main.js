@@ -88,6 +88,39 @@ async function initializeApp() {
 }
 
 // ========================================
+// LATENCY-BASED OPTIMIZATION
+// ========================================
+
+function optimizeThreadCount() {
+    const latencyResult = STATE.testResults.latency;
+    if (!latencyResult || !latencyResult.avg) return;
+    
+    const avgLatency = latencyResult.avg;
+    let optimalThreads;
+    
+    // High latency (>200ms): Use fewer threads to avoid HTTP/2 stream contention
+    // TCP throughput over high-latency links suffers when multiple streams compete
+    if (avgLatency > 200) {
+        optimalThreads = 1;
+        console.log(`[Optimization] High latency detected (${avgLatency.toFixed(0)}ms) - using 1 thread for optimal throughput`);
+    } 
+    // Medium latency (100-200ms): Use 2 threads
+    else if (avgLatency > 100) {
+        optimalThreads = 2;
+        console.log(`[Optimization] Medium latency detected (${avgLatency.toFixed(0)}ms) - using 2 threads`);
+    }
+    // Low latency (<100ms): Use default 4 threads
+    else {
+        optimalThreads = 4;
+        console.log(`[Optimization] Low latency detected (${avgLatency.toFixed(0)}ms) - using 4 threads`);
+    }
+    
+    // Update CONFIG for download and upload tests
+    CONFIG.threads.download = optimalThreads;
+    CONFIG.threads.upload = optimalThreads;
+}
+
+// ========================================
 // TEST ORCHESTRATION
 // ========================================
 
@@ -138,6 +171,9 @@ async function startTest() {
         // Phase 1: Latency
         await runPhase('latency', measureLatency);
         if (STATE.cancelling) return;
+        
+        // Optimize thread count based on measured latency
+        optimizeThreadCount();
         
         // Phase 2: Download
         await runPhase('download', measureDownload);
