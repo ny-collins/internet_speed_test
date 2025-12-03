@@ -93,9 +93,12 @@ async function initializeApp() {
 
 function optimizeThreadCount() {
     const latencyResult = STATE.testResults.latency;
-    if (!latencyResult || !latencyResult.avg) return;
+    if (!latencyResult || !latencyResult.average) {
+        console.log('[Optimization] No latency data available, using default thread count');
+        return;
+    }
     
-    const avgLatency = latencyResult.avg;
+    const avgLatency = latencyResult.average;
     let optimalThreads;
     
     // High latency (>200ms): Use fewer threads to avoid HTTP/2 stream contention
