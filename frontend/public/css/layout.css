@@ -345,33 +345,14 @@
 }
 
 @media (min-width: 769px) {
-    .test-display {
-        grid-template-columns: minmax(300px, 400px) 1fr;
-        gap: var(--spacing-2xl);
-    }
+    /* Tablet and above - maintain stage-tray layout */
 }
 
 @media (min-width: 1024px) {
-    /* Desktop - Two column layout */
+    /* Desktop - Stage-tray is already responsive */
     .app-container {
         padding: var(--spacing-3xl) var(--spacing-xl);
         max-width: 1400px;
-    }
-    
-    .test-display {
-        display: grid;
-        grid-template-columns: 45% 55%;
-        gap: var(--spacing-3xl);
-        align-items: start;
-    }
-    
-    .gauge-container {
-        position: sticky;
-        top: var(--spacing-xl);
-    }
-    
-    .results-matrix {
-        min-height: 400px;
     }
 }
 
