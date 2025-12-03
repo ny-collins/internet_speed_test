@@ -1126,9 +1126,148 @@ input[type="range"]::-moz-range-track {
 .settings-content {
     padding: var(--spacing-xl);
 }
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
 .settings-header h2 {
     color: var(--color-text-primary);
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    margin: 0;
 }
+
+.settings-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.setting-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.setting-section-title {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.setting-section-description {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.setting-group-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.setting-info label {
+    color: var(--color-text-primary);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+}
+
+.setting-description {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.setting-control {
+    width: 100%;
+}
+
+.setting-control-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.setting-control input[type="range"] {
+    flex: 1;
+    height: 6px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-full);
+    outline: none;
+    border: 1px solid var(--color-border);
+}
+
+.setting-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    cursor: pointer;
+    border: 2px solid var(--color-bg-elevated);
+    box-shadow: var(--shadow-md);
+}
+
+.setting-control input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    cursor: pointer;
+    border: 2px solid var(--color-bg-elevated);
+    box-shadow: var(--shadow-md);
+}
+
+.setting-value {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    min-width: 3rem;
+    text-align: right;
+}
+
+.theme-toggle-inline {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+}
+
+.theme-toggle-inline:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+}
+
 .settings-close {
     width: 2.75rem; /* Match btn-icon-small */
     height: 2.75rem;
@@ -1142,20 +1281,13 @@ input[type="range"]::-moz-range-track {
     justify-content: center;
     transition: all var(--transition-base);
 }
+
 .settings-close:hover {
     background: var(--color-danger);
     color: white;
     border-color: var(--color-danger);
 }
-.setting-section-title {
-    color: var(--color-text-primary);
-}
-.setting-info label {
-    color: var(--color-text-primary);
-}
-.setting-value {
-    color: var(--color-primary);
-}
+
 .btn-reset {
     width: 100%;
     padding: var(--spacing-md);
@@ -1173,6 +1305,7 @@ input[type="range"]::-moz-range-track {
     gap: var(--spacing-sm);
     margin-top: var(--spacing-xl);
 }
+
 .btn-reset:hover {
     background: var(--color-danger);
     color: white;
