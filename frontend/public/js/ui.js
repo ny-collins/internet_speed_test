@@ -543,16 +543,12 @@ function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numbe
 }
 
 // ========================================
-// STAGE SPEED CURVE GRAPH
+// STAGE SPEED CURVE GRAPH (Mini graphs in cards)
 // ========================================
 
 let speedCurvePhase = null; // 'download' or 'upload'
 const speedCurveSamples = [];
 const MAX_CURVE_SAMPLES = 100;
-
-export function initStageSpeedCurve() {
-    // No longer needed - mini graphs are initialized on demand
-}
 
 export function startSpeedCurve(phase) {
     speedCurvePhase = phase; // 'download' or 'upload'

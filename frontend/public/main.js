@@ -5,7 +5,7 @@
 import { queryDOMElements, DOM } from './js/dom.js';
 import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './js/events.js';
 import { registerServiceWorker } from './js/worker.js';
-import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, initStageSpeedCurve, resetSpeedCurve, clearTrayHighlights } from './js/ui.js';
+import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, resetSpeedCurve, clearTrayHighlights } from './js/ui.js';
 import { updateTestContext, updateHistoryStats, displayHistoryStats, animateNumber } from './js/ui-enhancements.js';
 import { getFriendlyError, getConnectionType, performanceMonitor } from './js/utils.js';
 import { drawHistoryChart } from './js/chart.js';
@@ -60,7 +60,6 @@ async function initializeApp() {
         loadConfiguration();
         updateConfigSummary();
         buildMainGauge();
-        initStageSpeedCurve(); // Initialize stage speed curve canvas
         resetSpeedCurve(); // Set initial state
         loadHistory();
         await fetchServerInfo();
