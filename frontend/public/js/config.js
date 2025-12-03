@@ -31,20 +31,20 @@ export const CONFIG = {
     },
     duration: {
         download: {
-            min: 3.5,
-            max: 10,
-            default: 10
+            min: 8,      // Increased from 3.5s to allow TCP ramp-up on high-latency links
+            max: 20,     // Increased from 10s to give TCP time to reach full speed
+            default: 15  // Increased from 10s for international connections
         },
         upload: {
-            min: 3,
-            max: 10,
-            default: 10
+            min: 8,      // Match download for consistency
+            max: 20,
+            default: 15
         }
     },
     stability: {
         sampleCount: 5,          // Minimum samples required before checking stability
         checkWindow: 10,         // Analyze last 10 samples for more reliable detection
-        varianceThreshold: 0.15  // Increased from 0.05 (5%) to 0.15 (15%) for more realistic stability detection
+        varianceThreshold: 0.30  // Increased from 0.15 (15%) to 0.30 (30%) - TCP over international links is noisy
     },
     // Measurement accuracy
     warmupDuration: 2.0,        // Seconds to exclude from final speed calculation (TCP slow start)
