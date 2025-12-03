@@ -1,0 +1,75 @@
+# Final Deep Review: SpeedCheck (Non-UI Aspects)
+
+**Date:** December 2, 2025
+**Reviewer:** Gemini Agent
+**Scope:** Backend, Workers, Measurement Logic, DevOps, & Docs
+
+---
+
+## 1. Backend Architecture (`backend/server.js`)
+
+**Status:** 🟢 **Strong Production-Grade**
+
+*   **Security:** The implementation of `helmet` with strict HSTS (`maxAge: 31536000`) and a custom minimal CSP is excellent.
+*   **Resilience:**
+    *   **Circuit Breaker:** The `inflightCount` logic correctly sheds load (returns 503) when requests > `maxInflightRequests`. This protects the event loop from saturation.
+    *   **Rate Limiting:** `express-rate-limit` is correctly applied to sensitive endpoints.
+*   **Observability:**
+    *   **Metrics:** The Prometheus endpoint (`/metrics`) tracks `http_requests_inflight` and duration histograms. This is gold-standard for SRE.
+    *   **Logging:** `pino-http` ensures structured JSON logs in production.
+*   **Performance:**
+    *   **Download Buffer:** `RANDOM_BUFFER` (1MB) is pre-generated. The download loop uses `RANDOM_BUFFER.slice()` and `res.write()`, avoiding expensive crypto operations during the request.
+    *   **Upload Handling:** The upload endpoint correctly uses streams (`req.on('data')`) and *avoids* body parsing middleware for the upload route, preventing memory bloat.
+
+**Minor Note:** The `setImmediate(sendChunk)` loop in `/api/download` is good for fairness but might limit single-connection throughput on 10Gbps interfaces. For standard internet (1Gbps), it is perfectly fine.
+
+---
+
+## 2. Measurement Logic (Workers)
+
+**Status:** 🟢 **Scientifically Accurate**
+
+*   **Thread Management:** Both `download-worker.js` and `upload-worker.js` correctly spawn parallel threads.
+*   **Byte Counting (The Critical Part):**
+    *   **Download:** Uses `reader.read()` stream processing. Logic is `byteCounter.bytes += value.length`. Correct.
+    *   **Upload:** The fix for "Amnesiac Upload" is present: `byteCounter.bytes = previousBytes + event.loaded`. This correctly handles the XHR restart cycle.
+*   **Warmup Exclusion:** `worker-utils.js` implements a `warmupDuration` (2s). The final calculation:
+    ```javascript
+    const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
+    const effectiveDuration = Math.max(totalDuration - warmupPeriod, 1.0);
+    ```
+    This correctly filters out the TCP Slow Start ramp-up phase.
+
+---
+
+## 3. DevOps & Reliability (`audit.sh`)
+
+**Status:** 🟢 **Masterpiece**
+
+The `audit.sh` script is exceptional. It covers:
+1.  **Latency Triangulation:** Verifies the user is routed to the correct edge node (Nairobi vs Amsterdam).
+2.  **CORS Matrix:** Explicitly tests cross-origin access (Good) and malicious origin access (Bad).
+3.  **Load Testing:** Runs concurrent `curl` requests to verify the node server doesn't crash under pressure.
+4.  **SSL/Headers:** Validates security posture automatically.
+
+**Verdict:** This script should be part of your CI pipeline (GitHub Actions).
+
+---
+
+## 4. Documentation
+
+**Status:** 🟡 **Needs Update**
+
+*   **TECHNICAL_NOTES.md:** Accurately reflects the "Fixed-Duration" decision.
+*   **FUNCTIONALITY.md:** Accurately describes the Web Worker architecture.
+*   **Discrepancy:** The docs still reference the "Two-Column Layout" in some places, whereas you have moved to the "Stage & Tray" (Split) layout.
+    *   *Correction:* You should update the "UI Architecture" section in `FUNCTIONALITY.md` to describe the new "Split Layout (Gauge Left, Cards Right)" to avoid confusion for future developers.
+
+---
+
+## 5. Conclusion
+
+The non-UI aspects of SpeedCheck are engineered to a very high standard. The backend is secure and observable. The measurement logic is mathematically correct and handles edge cases (slow start, upload chunking) properly. The audit tooling is superior to most open-source projects.
+
+**Final Recommendation:**
+Just update the "UI Architecture" section in your docs to match the new "Split Layout" reality, and you are 100% done.

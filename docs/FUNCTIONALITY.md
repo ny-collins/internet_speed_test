@@ -112,43 +112,81 @@ SpeedCheck uses a **tri-service architecture** with geographic distribution:
 
 ### Main Speed Test Page
 
-**Stage & Tray Layout** (Google Fiber inspired):
+**Split Layout** (Dashboard-style, optimized for horizontal space):
 
 ```
+Desktop (>768px):
+┌──────────────┬──────────────────────────────────────┐
+│    Gauge     │         Results Grid (2×2)           │
+│   Section    │  ┌──────────┬──────────┐             │
+│   (320px)    │  │ Latency  │ Download │             │
+│              │  │   ms     │   Mbps   │             │
+│  ┌────────┐  │  │ 🔵Mini   │ 🔵Mini   │             │
+│  │        │  │  │  Graph   │  Graph   │             │
+│  │ START  │  │  ├──────────┼──────────┤             │
+│  │ BUTTON │  │  │  Upload  │  Jitter  │             │
+│  │        │  │  │   Mbps   │    ms    │             │
+│  │ 240px  │  │  │ 🟣Mini   │          │             │
+│  │Circular│  │  │  Graph   │          │             │
+│  │ Gauge  │  │  └──────────┴──────────┘             │
+│  │        │  │                                       │
+│  └────────┘  │  Server Info, Connection Type,       │
+│              │  Test History Chart                   │
+│  Status Text │                                       │
+└──────────────┴──────────────────────────────────────┘
+
+Mobile (<768px): Stacked Layout
 ┌─────────────────────────────────────┐
-│         Active Stage (60vh)         │
+│          Gauge Section              │
 │  ┌───────────────────────────────┐  │
-│  │  Live Speed Display / Graph   │  │
-│  │  (Canvas-based visualization) │  │
+│  │  START BUTTON (240px gauge)   │  │
+│  │  Status Text                  │  │
 │  └───────────────────────────────┘  │
-└─────────────────────────────────────┘
-┌─────────────────────────────────────┐
-│          Results Tray               │
-│  ┌────────┬────────┬────────┬────┐  │
-│  │Latency │Download│ Upload │Jitr│  │
-│  │  ms    │  Mbps  │  Mbps  │ ms │  │
-│  └────────┴────────┴────────┴────┘  │
+├─────────────────────────────────────┤
+│         Results Grid (2×2)          │
+│  ┌──────────┬──────────┐            │
+│  │ Latency  │ Download │            │
+│  │ + Graph  │ + Graph  │            │
+│  ├──────────┼──────────┤            │
+│  │  Upload  │  Jitter  │            │
+│  │ + Graph  │          │            │
+│  └──────────┴──────────┘            │
 └─────────────────────────────────────┘
 ```
 
 **Components:**
-- **Active Stage**: 60vh height area displaying:
-  - Live speed value during tests (5-6rem font)
-  - Speed curve graph (blue download, purple upload gradients)
-  - Live status text ("Testing Download Speed...")
+- **Gauge Section** (Left sidebar on desktop, top on mobile):
+  - START button (240px diameter, circular with glow)
+  - Circular progress gauge (conic-gradient animation, 0-270°)
+  - Live speed value during tests (2-3rem font)
+  - Status text ("Testing Download Speed...")
   - Hidden during idle, visible during active tests
 
-- **Results Tray**: 4-card horizontal grid showing:
-  - Latency (ms) - First test, highlighted during latency phase
-  - Download (Mbps) - Highlighted during download test
-  - Upload (Mbps) - Highlighted during upload test
-  - Jitter (ms) - Calculated after latency test
-  - Each card includes icon, label, value, and unit
+- **Results Cards Grid** (2×2 responsive grid):
+  - **Latency Card** (ms) - First test, highlighted during latency phase
+  - **Download Card** (Mbps) - Highlighted during download test, includes 80px mini-graph
+  - **Upload Card** (Mbps) - Highlighted during upload test, includes 80px mini-graph
+  - **Jitter Card** (ms) - Calculated after latency test
+  - Each card includes icon, label, value, unit, and optional mini-graph canvas
+  - Mini-graphs show speed progression over time using `quadraticCurveTo` for smooth curves
+
+- **Additional Components**:
+  - Server info display (location, latency)
+  - Connection type indicator (4G, WiFi, etc.)
+  - Test history chart (last 10 tests)
 
 **Responsive Behavior:**
-- Desktop (>1024px): Full Stage + Tray layout
-- Tablet (769-1024px): Adjusted spacing, 4-column tray maintained
-- Mobile (≤768px): 2×2 grid for tray cards, reduced stage height (50vh)
+- Desktop (>768px): Split layout - 320px gauge sidebar + flexible results grid
+- Mobile (≤768px): Stacked layout - gauge on top (85-90vh total height), cards below in 2×2 grid
+- Total height fits within 100vh on desktop (70-75vh), slightly taller on mobile (85-90vh)
+
+**Performance Optimization:**
+- Latency-based thread adjustment:
+  - High latency (>200ms): 1 thread, 15s duration - prevents HTTP/2 stream contention
+  - Medium latency (100-200ms): 2 threads, 12s duration
+  - Low latency (<100ms): 4 threads, 8s duration
+- Dynamic variance thresholds for stability detection on high-latency links
+- Extended test duration for TCP congestion control ramp-up on long-distance connections
 
 ### Learn Center
 
