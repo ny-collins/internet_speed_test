@@ -2059,6 +2059,10 @@ input[type="range"]::-moz-range-track {
     justify-content: center;
 }
 
+.gauge-circle[hidden] {
+    pointer-events: none;
+}
+
 .gauge-progress {
     position: absolute;
     inset: 0;
@@ -2097,6 +2101,10 @@ input[type="range"]::-moz-range-track {
     text-align: center;
     z-index: 2;
     box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.gauge-inner[hidden] {
+    pointer-events: none;
 }
 
 .gauge-value-live {
