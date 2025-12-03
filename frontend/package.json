@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "node build-version.js",
-    "build:css": "cat public/css/variables.css public/css/base.css public/css/layout.css public/css/components.css public/css/pages.css public/css/utils.css > public/main.css",
+    "build:css": "cat public/css/variables.css public/css/base.css public/css/layout.css public/css/components.css public/css/stage-tray.css public/css/gauge.css public/css/pages.css public/css/utils.css > public/main.css",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",

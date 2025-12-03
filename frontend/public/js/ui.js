@@ -613,9 +613,27 @@ function drawSpeedCurve() {
     const canvas = DOM.stageSpeedCurve;
     if (!canvas || !canvas._ctx || speedCurveSamples.length < 2) return;
 
-    const ctx = canvas._ctx;
-    const width = canvas._width;
-    const height = canvas._height;
+    // Also draw to mini graph
+    const miniCanvas = speedCurvePhase === 'download' ? DOM.downloadMiniGraph : DOM.uploadMiniGraph;
+
+    // Draw to stage canvas
+    drawToCanvas(canvas, canvas._ctx, canvas._width, canvas._height);
+    
+    // Draw to mini canvas if available
+    if (miniCanvas) {
+        const miniCtx = miniCanvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = miniCanvas.getBoundingClientRect();
+        miniCanvas.width = rect.width * dpr;
+        miniCanvas.height = rect.height * dpr;
+        miniCtx.scale(dpr, dpr);
+        drawToCanvas(miniCanvas, miniCtx, rect.width, rect.height);
+        miniCanvas.classList.add('visible');
+    }
+}
+
+function drawToCanvas(canvas, ctx, width, height) {
+    if (!ctx || speedCurveSamples.length < 2) return;
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
@@ -703,6 +721,17 @@ export function resetSpeedCurve() {
             canvas._ctx.clearRect(0, 0, canvas._width, canvas._height);
         }
     }
+    
+    // Clear mini graphs
+    [DOM.downloadMiniGraph, DOM.uploadMiniGraph].forEach(miniCanvas => {
+        if (miniCanvas) {
+            miniCanvas.classList.remove('visible');
+            const ctx = miniCanvas.getContext('2d');
+            if (ctx) {
+                ctx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+            }
+        }
+    });
 }
 
 // ========================================

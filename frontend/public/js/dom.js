@@ -34,6 +34,8 @@ export const DOM = {
     activeStage: null,
     resultsTray: null,
     stageSpeedCurve: null,
+    downloadMiniGraph: null,
+    uploadMiniGraph: null,
     liveStatus: null,
     liveSpeedValue: null,
     liveSpeedUnit: null,
@@ -95,6 +97,8 @@ export function queryDOMElements() {
     DOM.activeStage = document.getElementById('activeStage');
     DOM.resultsTray = document.getElementById('resultsTray');
     DOM.stageSpeedCurve = document.getElementById('stageSpeedCurve');
+    DOM.downloadMiniGraph = document.getElementById('downloadMiniGraph');
+    DOM.uploadMiniGraph = document.getElementById('uploadMiniGraph');
     DOM.liveStatus = document.getElementById('liveStatus');
     DOM.liveSpeedValue = document.getElementById('liveSpeedValue');
     DOM.liveSpeedUnit = document.getElementById('liveSpeedUnit');

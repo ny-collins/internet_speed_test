@@ -6,8 +6,8 @@
 .active-stage {
     position: relative;
     width: 100%;
-    min-height: 400px;
-    height: clamp(400px, 60vh, 600px);
+    min-height: 280px; /* Reduced from 400px */
+    height: clamp(280px, 35vh, 400px); /* Reduced from 60vh to 35vh for 100vh layout */
     background: linear-gradient(180deg, 
         var(--color-bg-secondary) 0%, 
         var(--color-bg-primary) 100%
@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--spacing-2xl);
+    margin-bottom: var(--spacing-lg); /* Reduced from 2xl */
     box-shadow: var(--shadow-lg);
 }
 
@@ -68,7 +68,7 @@
 
 .live-speed-value {
     display: block;
-    font-size: clamp(4rem, 10vw, 8rem);
+    font-size: clamp(3rem, 8vw, 6rem); /* Reduced from 4rem/10vw/8rem */
     font-weight: 200;
     letter-spacing: -0.04em;
     color: var(--color-text-primary);
@@ -119,13 +119,13 @@
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md); /* Reduced from lg */
     transition: all var(--transition-base);
     cursor: default;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
-    min-height: 140px;
+    gap: var(--spacing-sm); /* Reduced from md */
+    min-height: 160px; /* Increased from 140px to fit mini graphs */
 }
 
 .tray-card:hover {
@@ -190,6 +190,21 @@
     opacity: 1;
 }
 
+/* Mini Graph in Tray Cards */
+.tray-mini-graph {
+    width: 100%;
+    height: 60px;
+    margin-top: var(--spacing-xs);
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.3s ease-in;
+}
+
+.tray-mini-graph.visible {
+    opacity: 1;
+}
+
 /* Responsive: Mobile 2x2 Grid */
 @media (max-width: 768px) {
     .results-tray {
@@ -198,8 +213,8 @@
     }
     
     .active-stage {
-        min-height: 350px;
-        height: 50vh;
+        min-height: 280px; /* Reduced from 350px */
+        height: 40vh; /* Reduced from 50vh for mobile 100vh layout */
     }
     
     .live-speed-value {
