@@ -243,7 +243,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **UI/UX Architecture:**
 - **State Management**: Added `varianceGraph` state with 50-sample buffer and active tracking
-- **Modular CSS**: Renamed `features.css` to `gauge.css` for clearer component organization
+- **Modular CSS**: Organized into css/pages/ folder with home.css (merged stage-tray + gauge)
 - **Display Logic**: Integrated variance tracking into download/upload test flows
   - `startVarianceTracking()` called at test start
   - `updateVarianceGraph()` called every 100ms with raw speed data
@@ -277,12 +277,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard navigation support maintained
 
 **File Structure:**
-- `frontend/css/gauge.css` (renamed from features.css)
-- `frontend/css/layout.css` (two-column grid, results matrix)
-- `frontend/css/components.css` (variance graph, badges, accordion)
-- `frontend/js/state.js` (variance graph state)
-- `frontend/js/ui.js` (graph drawing, badges, context)
-- `frontend/js/events.js` (accordion handlers)
+- `frontend/public/css/pages/home.css` (merged stage-tray.css + gauge.css)
+- `frontend/public/css/layout.css` (two-column grid, results matrix)
+- `frontend/public/css/components.css` (variance graph, badges, accordion)
+- `frontend/public/js/state.js` (variance graph state)
+- `frontend/public/js/ui.js` (graph drawing, badges, context)
+- `frontend/public/js/engine.js` (accordion handlers)
 
 ## [1.65.0] - 2025-11-29
 

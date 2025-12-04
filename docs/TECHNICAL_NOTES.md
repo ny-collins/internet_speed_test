@@ -459,24 +459,25 @@ button.addEventListener('click', () => {
 
 **Problem:** `features.css` was ambiguous - contained gauge styles but name didn't reflect this.
 
-**Solution:** Renamed to `gauge.css` for clarity:
+**Solution:** Merged CSS files into organized structure:
 
 ```bash
-# Build pipeline
-variables.css → \
-base.css → \
-layout.css → \
-components.css → \
-gauge.css →      # Renamed from features.css
-pages.css → \
-utils.css → \
-main.css (output)
+# Build pipeline (build-css.sh)
+vars.css → 
+base.css → 
+layout.css → 
+components.css → 
+pages/home.css →  # Merged stage-tray.css + gauge.css
+pages.css → 
+utils.css → 
+/css/main.css (output)
 ```
 
 **Benefits:**
 - Clear file purpose identification
+- Organized folder structure (css/pages/)
 - Easier maintenance and navigation
-- Consistent naming convention
+- Consistent naming convention (vars.css not variables.css)
 - No functional changes to build pipeline
 
 ## Performance Optimizations (v1.64.0)
@@ -488,14 +489,14 @@ main.css (output)
 **Solution:** Implemented dedicated Web Workers for computational intensive tasks:
 
 ```javascript
-// download-worker.js - Handles stream processing off main thread
+// workers/download.worker.js - Handles stream processing off main thread
 // - Reads response.body.getReader() chunks
 // - Calculates speed metrics in real-time
 // - Sends progress updates to main thread via postMessage
 // - Prevents main thread blocking for smooth 60fps UI
 
 // Main thread integration
-const worker = new Worker('./js/download-worker.js');
+const worker = new Worker('/js/workers/download.worker.js');
 worker.postMessage({ type: 'start_download', config: CONFIG, threadCount: 4 });
 
 // Worker responds with progress updates, main thread updates UI

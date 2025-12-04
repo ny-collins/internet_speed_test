@@ -852,8 +852,8 @@ document.addEventListener('DOMContentLoaded', () => {
 ┌─► Installation
 │     ├─ Cache critical assets
 │     │   • index.html
-│     │   • main.js?v=1.60.0
-│     │   • main.css?v=1.60.0
+│     │   • /js/app.js?v=1.65.0
+│     │   • /css/main.css?v=1.65.0
 │     │   • icons, fonts
 │     └─ Skip waiting (activate immediately)
 │
@@ -979,7 +979,7 @@ GET /api/download?size=50&chunk=512&t=1697481234567
 
 ## Configuration
 
-### Frontend Config (main.js)
+### Frontend Config (config.js)
 
 ```javascript
 CONFIG = {

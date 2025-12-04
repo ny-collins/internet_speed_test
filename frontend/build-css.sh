@@ -10,7 +10,7 @@ cat public/css/vars.css \
     public/css/pages/home.css \
     public/css/components.css \
     public/css/pages.css \
-    public/css/utils.css > public/main.css
+    public/css/utils.css > public/css/main.css
 
 echo "✅ main.css rebuilt successfully!"
-echo "File size: $(wc -l < public/main.css) lines"
+echo "File size: $(wc -l < public/css/main.css) lines"

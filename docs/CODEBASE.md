@@ -873,8 +873,8 @@ crypto.getRandomValues(view);
 - `#historyChart` - Canvas for history chart
 
 **Scripts:**
-- `/init.js` - API base URL configuration
-- `/settings-helper.js` - Settings management
+- `/js/init.js` - API base URL configuration
+- `/js/settings-helper.js` - Settings management
 - `/js/app.js` - Main application entry point (ES module)
 
 **Line Count:** ~645 lines  
@@ -900,10 +900,11 @@ crypto.getRandomValues(view);
 - Links to `learn/*.html` pages
 
 **Scripts:**
-- `/learn-init.js` - Learn page initialization
+- `/js/learn-init.js` - Learn page initialization
+- `/js/shared.js` - Theme toggle, PWA install, Lucide icons
 
 **Line Count:** ~243 lines  
-**Dependencies:** main.css, learn-shared.css
+**Dependencies:** /css/main.css
 
 ---
 
@@ -922,30 +923,34 @@ crypto.getRandomValues(view);
 - Footer
 
 **Line Count:** ~400-600 lines per page  
-**Dependencies:** main.css, /css/pages/learn.css
+**Dependencies:** /css/main.css, /css/learn-shared.css, /css/pages/learn.css
 
 ---
 
 ## Utilities & Helpers
 
-### 26. **init.js** - API Configuration
+### 26. **js/init.js** - API Configuration
 **Purpose:** Set API base URL before app loads  
 **Responsibilities:**
 - Define global `API_BASE_URL` variable
+- Detect localhost for development (fallback to Railway)
+- Emergency fallback if API_BASE_URL not set
 - Used by config.js to set backend endpoint
 - Allows easy environment switching (dev/prod)
 
 **Code:**
 ```javascript
-window.API_BASE_URL = 'https://speed-test-backend.up.railway.app';
+window.API_BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000'
+  : (window.API_BASE_URL || 'https://speed-test-backend.up.railway.app');
 ```
 
-**Line Count:** ~5 lines  
+**Line Count:** ~15 lines  
 **Used by:** config.js (reads global variable)
 
 ---
 
-### 27. **settings-helper.js** - Settings Management
+### 27. **js/settings-helper.js** - Settings Management
 **Purpose:** Load/save user settings from localStorage  
 **Responsibilities:**
 - Load settings on page load
@@ -1320,7 +1325,7 @@ DOM.startTest.addEventListener('click', () => startTestFn());
 ## Build & Deployment
 
 **Build Scripts:**
-- `build-css.sh` - Concatenate CSS files into main.css
+- `build-css.sh` - Concatenate CSS source files into /css/main.css
 - `build-version.js` - Inject version into files (sw.js, index.html)
 
 **Deployment Targets:**
