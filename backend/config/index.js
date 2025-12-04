@@ -1,47 +1,38 @@
-/**
- * Centralized Configuration Management
- *
- * All environment variables are loaded and validated here.
- * Provides a single source of truth for application configuration.
- */
-
 require('dotenv').config();
 
+// ========================================
+// Configuration
+// ========================================
+
 const config = {
-  // Server
   port: parseInt(process.env.PORT, 10) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  // Download/Upload Limits
   maxDownloadSizeMB: parseInt(process.env.MAX_DOWNLOAD_SIZE_MB || '50', 10),
   maxUploadSizeMB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10),
 
-  // Rate Limiting
   rateLimit: {
     enabled: (process.env.ENABLE_RATE_LIMIT || 'true').toLowerCase() === 'true',
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
     max: parseInt(process.env.RATE_LIMIT_MAX || '120', 10),
   },
 
-  // Circuit Breaker
   maxInflightRequests: parseInt(process.env.MAX_INFLIGHT_REQUESTS || '100', 10),
 
-  // CORS
   corsOrigin: process.env.CORS_ORIGIN || '*',
 
-  // Logging
   logLevel: process.env.LOG_LEVEL || 'info',
 
-  // Metrics
   metrics: {
     enabled: (process.env.ENABLE_METRICS || 'true').toLowerCase() === 'true',
   },
 
-  // Server Location
   serverLocation: process.env.SERVER_LOCATION || 'EU WEST (Amsterdam, Netherlands)',
 };
 
+// ========================================
 // Validation
+// ========================================
 const validateConfig = (cfg) => {
   const errors = [];
 
@@ -74,7 +65,6 @@ const validateConfig = (cfg) => {
   }
 };
 
-// Validate on load
 validateConfig(config);
 
 module.exports = config;

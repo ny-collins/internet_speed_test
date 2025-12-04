@@ -21,8 +21,11 @@ const logger = pino({
   } : undefined
 });
 
-// Pre-generate a large random buffer for download tests to avoid CPU blocking
-const RANDOM_BUFFER_SIZE = 1024 * 1024; // 1MB
+// ========================================
+// Buffer Pre-generation
+// ========================================
+
+const RANDOM_BUFFER_SIZE = 1024 * 1024;
 const RANDOM_BUFFER = crypto.randomBytes(RANDOM_BUFFER_SIZE);
 logger.info({ bufferSize: RANDOM_BUFFER_SIZE }, 'Pre-generated random buffer for download tests');
 
@@ -88,9 +91,10 @@ if (config.metrics.enabled) {
   };
 }
 
-// Circuit breaker: Track concurrent requests
-// NOTE: This counter is per-instance. When horizontally scaled across multiple
-// replicas, the effective limit is (maxInflightRequests × replicas).
+// ========================================
+// Circuit Breaker
+// ========================================
+
 let inflightCount = 0;
 
 function trackInflight(req, res, next) {
@@ -122,27 +126,27 @@ function circuitBreaker(req, res, next) {
   next();
 }
 
-// Remove X-Powered-By header (information leak)
+// ========================================
+// Security Headers
+// ========================================
+
 app.disable('x-powered-by');
 
-// Enhanced security headers with helmet
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable helmet's CSP (we set custom minimal API CSP below)
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // Relaxed for API usage
+  contentSecurityPolicy: false,
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
-    maxAge: 31536000, // 1 year
+    maxAge: 31536000,
     includeSubDomains: true,
     preload: true
   },
   referrerPolicy: {
     policy: 'strict-origin-when-cross-origin'
   },
-  // Don't set X-XSS-Protection (obsolete header, rely on CSP instead)
   xssFilter: false
 }));
 
-// Minimal CSP for API - no font-src, img-src, script-src, style-src needed for JSON endpoints
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy',
     'default-src \'none\'; ' +
@@ -153,6 +157,10 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+// ========================================
+// Middleware
+// ========================================
 
 app.use(httpLogger);
 
@@ -187,7 +195,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// ========================================
 // CORS Configuration
+// ========================================
+
 if (config.corsOrigin === '*') {
   app.use(cors());
 } else {
@@ -233,6 +244,10 @@ app.use((req, res, next) => {
   express.json()(req, res, next);
 });
 
+// ========================================
+// Metrics Endpoint
+// ========================================
+
 if (config.metrics.enabled) {
   app.get('/metrics', async (req, res) => {
     try {
@@ -245,6 +260,10 @@ if (config.metrics.enabled) {
     }
   });
 }
+
+// ========================================
+// API Endpoints
+// ========================================
 
 app.get('/api/ping', (req, res) => {
   const timestamp = Date.now();
@@ -299,8 +318,6 @@ app.get('/api/download', circuitBreaker, (req, res) => {
       return;
     }
 
-    // In streaming mode, continue until client disconnects
-    // In fixed-size mode, stop when size limit is reached
     if (!streamParam && sent >= sizeInBytes) {
       if (config.metrics.enabled) {
         app.locals.metrics.downloadBytesTotal.inc(sizeInBytes);
@@ -310,23 +327,18 @@ app.get('/api/download', circuitBreaker, (req, res) => {
     }
 
     const currentChunkSize = chunkSize;
-
-    // Use pre-generated buffer instead of blocking crypto.randomBytes()
     const chunk = RANDOM_BUFFER.slice(0, currentChunkSize);
 
     const canContinue = res.write(chunk);
     sent += currentChunkSize;
 
     if (canContinue) {
-      // Continue sending immediately if buffer not full
       setImmediate(sendChunk);
     } else {
-      // Wait for drain event if buffer is full
       res.once('drain', sendChunk);
     }
   };
 
-  // Start sending data
   sendChunk();
 });
 
@@ -348,7 +360,6 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
   req.on('data', (chunk) => {
     if (aborted || clientDisconnected) return;
 
-    // Track time of first byte for more accurate timing
     if (firstByteTime === null && chunk.length > 0) {
       firstByteTime = Date.now();
     }
@@ -421,7 +432,11 @@ app.get('/api/info', (req, res) => {
   });
 });
 
-app.get('/api/config', (req, res) => {
+// ========================================
+// Utility Endpoints
+// ========================================
+
+app.get('/api/info', (req, res) => {
   res.json({
     downloadSize: config.maxDownloadSizeMB,
     uploadSize: config.maxUploadSizeMB,
@@ -438,7 +453,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root endpoint - human-readable backend info
 app.get('/', (req, res) => {
   res.json({
     name: 'SpeedCheck API',
@@ -502,11 +516,13 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Global error handler - must include CORS headers
+// ========================================
+// Error Handlers
+// ========================================
+
 app.use((err, req, res, _next) => {
   logger.error({ err, path: req.path, method: req.method }, 'Unhandled error');
 
-  // Ensure CORS headers are sent even on errors
   if (config.corsOrigin === '*') {
     res.header('Access-Control-Allow-Origin', '*');
   } else {
@@ -525,10 +541,13 @@ app.use((err, req, res, _next) => {
   });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
+
+// ========================================
+// Server Startup
+// ========================================
 
 let server;
 if (require.main === module) {
