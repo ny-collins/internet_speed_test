@@ -14,9 +14,8 @@ export async function measureDownload() {
     console.log(`[Download] Starting with ${threadCount} threads (Web Worker)`);
     announceToScreenReader(`Starting download test with ${threadCount} threads`);
 
-    // Start speed curve and live status
+    // Start speed curve
     startSpeedCurve('download');
-    showLiveStatus('download');
     highlightTrayCard('download');
 
     return new Promise((resolve, reject) => {
@@ -73,7 +72,6 @@ export async function measureDownload() {
                 if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
                     updateGauge(smoothedSpeed, 'download');
                     updateSpeedCurve(currentSpeed); // Track raw speed for curve
-                    updateLiveStatus(smoothedSpeed, 'Mbps');
                     lastUiUpdate = now;
 
                     // Schedule memory monitoring as idle task (non-critical)

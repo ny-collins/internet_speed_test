@@ -14,9 +14,8 @@ export async function measureUpload() {
     console.log(`[Upload] Starting with ${threadCount} threads (Web Worker)`);
     announceToScreenReader(`Starting upload test with ${threadCount} threads`);
 
-    // Start speed curve and live status
+    // Start speed curve
     startSpeedCurve('upload');
-    showLiveStatus('upload');
     highlightTrayCard('upload');
 
     return new Promise((resolve, reject) => {
@@ -73,7 +72,6 @@ export async function measureUpload() {
                 if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
                     updateGauge(smoothedSpeed, 'upload');
                     updateSpeedCurve(currentSpeed); // Track raw speed for curve
-                    updateLiveStatus(smoothedSpeed, 'Mbps');
                     lastUiUpdate = now;
 
                     // Schedule memory monitoring as idle task (non-critical)
