@@ -4,14 +4,13 @@
 
 echo "Building main.css from source files..."
 
-cat css/variables.css \
-    css/base.css \
-    css/layout.css \
-    css/stage-tray.css \
-    css/components.css \
-    css/gauge.css \
-    css/pages.css \
-    css/utils.css > main.css
+cat public/css/vars.css \
+    public/css/base.css \
+    public/css/layout.css \
+    public/css/pages/home.css \
+    public/css/components.css \
+    public/css/pages.css \
+    public/css/utils.css > public/main.css
 
 echo "✅ main.css rebuilt successfully!"
-echo "File size: $(wc -l < main.css) lines"
+echo "File size: $(wc -l < public/main.css) lines"

@@ -2,7 +2,7 @@
  * Unit tests for state management
  */
 
-import { STATE } from '../js/state.js';
+import { STATE } from '../public/js/state.js';
 
 describe('STATE', () => {
     beforeEach(() => {

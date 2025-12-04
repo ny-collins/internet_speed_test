@@ -2,7 +2,7 @@
  * Unit tests for main application logic
  */
 
-import { getFriendlyError } from '../js/utils.js';
+import { getFriendlyError } from '../public/js/utils.js';
 
 // Mock DOM elements
 const mockDOM = {

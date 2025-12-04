@@ -2,7 +2,7 @@
  * Unit tests for UI component functions
  */
 
-import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality } from '../js/utils.js';
+import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality } from '../public/js/utils.js';
 
 describe('UI Component Functions', () => {
     describe('Result Display Formatting', () => {

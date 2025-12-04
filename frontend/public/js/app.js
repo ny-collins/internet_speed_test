@@ -49,7 +49,7 @@ async function initializeApp() {
         queryDOMElements();
     }
     
-    // 4. Register Test Functions (so events.js can call them without circular deps)
+    // 4. Register Test Functions (so engine.js can call them without circular deps)
     registerTestFunctions(startTest, cancelTest, retryTest, clearHistory, exportHistory);
     
     // 5. Setup Interaction Listeners (after DOM is queried)
@@ -564,5 +564,5 @@ function initializeModalHandlers() {
     });
 }
 
-// Export updateConfigSummary so events.js can call it
+// Export updateConfigSummary so engine.js can call it
 window.updateConfigSummary = updateConfigSummary;

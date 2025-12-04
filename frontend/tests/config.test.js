@@ -2,7 +2,7 @@
  * Unit tests for configuration
  */
 
-import { CONFIG } from '../js/config.js';
+import { CONFIG } from '../public/js/config.js';
 
 describe('CONFIG', () => {
     test('has correct thread configuration', () => {
@@ -15,19 +15,19 @@ describe('CONFIG', () => {
 
     test('has correct duration configuration', () => {
         expect(CONFIG.duration).toBeDefined();
-        expect(CONFIG.duration.download.min).toBe(3.5);
-        expect(CONFIG.duration.download.max).toBe(10);
-        expect(CONFIG.duration.download.default).toBe(10);
-        expect(CONFIG.duration.upload.min).toBe(3);
-        expect(CONFIG.duration.upload.max).toBe(10);
-        expect(CONFIG.duration.upload.default).toBe(10);
+        expect(CONFIG.duration.download.min).toBe(8); // Updated from 3.5 to 8 for latency-based optimization
+        expect(CONFIG.duration.download.max).toBe(20); // Updated from 10 to 20 for high-latency connections
+        expect(CONFIG.duration.download.default).toBe(15); // Updated from 10 to 15 for international links
+        expect(CONFIG.duration.upload.min).toBe(8); // Match download for consistency
+        expect(CONFIG.duration.upload.max).toBe(20);
+        expect(CONFIG.duration.upload.default).toBe(15);
     });
 
     test('has correct stability configuration', () => {
         expect(CONFIG.stability).toBeDefined();
         expect(CONFIG.stability.sampleCount).toBe(5);
         expect(CONFIG.stability.checkWindow).toBe(10);
-        expect(CONFIG.stability.varianceThreshold).toBe(0.15); // Updated from 0.05 to 0.15 for more realistic stability detection
+        expect(CONFIG.stability.varianceThreshold).toBe(0.3); // Updated from 0.15 to 0.3 for latency-based optimization
     });
 
     test('has correct performance configuration', () => {

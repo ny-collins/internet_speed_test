@@ -2,7 +2,7 @@
  * Unit tests for utility functions
  */
 
-import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, sleep } from '../js/utils.js';
+import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, sleep } from '../public/js/utils.js';
 
 describe('formatBytes', () => {
     test('formats 0 bytes correctly', () => {
