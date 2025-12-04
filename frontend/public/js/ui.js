@@ -464,7 +464,7 @@ function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
 }
 
-function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numberAnimationDuration) {
+function animateVarianceNumber(elementId, targetValue, stateKey, duration = CONFIG.numberAnimationDuration) {
     const element = document.getElementById(elementId);
     if (!element) return;
 
@@ -695,10 +695,10 @@ function drawVarianceGraph() {
     const range = max - min || 1;
     const variance = ((range / avg) * 100);
 
-    animateNumber('varianceAvg', avg, 'avg');
-    animateNumber('varianceMin', min, 'min');
-    animateNumber('varianceMax', max, 'max');
-    animateNumber('variancePercent', variance, 'percent');
+    animateVarianceNumber('varianceAvg', avg, 'avg');
+    animateVarianceNumber('varianceMin', min, 'min');
+    animateVarianceNumber('varianceMax', max, 'max');
+    animateVarianceNumber('variancePercent', variance, 'percent');
 
     const qualityEl = document.querySelector('.variance-quality');
     if (qualityEl) {
