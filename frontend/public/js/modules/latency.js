@@ -9,7 +9,7 @@ import {
     drawSparkline,
     announceToScreenReader,
     highlightTrayCard
-} from './ui.js';
+} from '../ui.js';
 
 export async function measureLatency() {
     const sampleCount = 10;
