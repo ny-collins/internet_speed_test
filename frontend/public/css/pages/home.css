@@ -447,17 +447,6 @@
 }
 
 .start-button-subtitle {
-    font-size: var(--font-size-sm);
-    font-weight: 400;
-    opacity: 0.9;
-    letter-spacing: normal;
-}
-
-.test-timer {
-    display: none !important;
-}
-
-.start-button-subtitle {
     font-size: var(--font-size-xs);
     font-weight: 400;
     opacity: 0.9;
