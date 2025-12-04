@@ -6,9 +6,9 @@
     const EDGE_DOMAIN = 'speed-test-ahc.pages.dev';
     const CURRENT_DOMAIN = window.location.hostname;
     
-    if (CURRENT_DOMAIN === EDGE_DOMAIN) return;
+    if (CURRENT_DOMAIN.includes(EDGE_DOMAIN)) return;
 
-    const banner = document.getElementById('edgeBanner');
+    const banner = document.getElementById('africa-banner');
     if (!banner) return;
 
     const dismissed = localStorage.getItem('edgeBannerDismissed');
@@ -21,7 +21,7 @@
         banner.style.display = 'flex';
     }, 2000);
 
-    const dismissBtn = document.getElementById('edgeDismissBtn');
+    const dismissBtn = document.getElementById('close-banner');
     if (dismissBtn) {
         dismissBtn.addEventListener('click', () => {
             localStorage.setItem('edgeBannerDismissed', 'true');
