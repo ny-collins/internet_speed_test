@@ -8,7 +8,7 @@
     padding: 0;
 }
 
-/* Error Message Styling */
+
 .error-message {
     color: var(--color-danger);
     padding: 20px;
@@ -24,7 +24,7 @@
 }
 
 html {
-    font-size: 16px;
+    font-size: 100%;
     scroll-behavior: smooth;
     width: 100%;
 }
@@ -35,13 +35,13 @@ body {
     line-height: 1.6;
     color: var(--color-text-primary);
     background: var(--color-bg-primary);
-    min-height: 100vh;
+    min-height: 100dvh;
     transition: background-color var(--transition-base), color var(--transition-base);
     overflow-x: hidden;
     position: relative;
 }
 
-/* Subtle scanline texture overlay for terminal/sci-fi aesthetic */
+
 body::before {
     content: '';
     position: fixed;
@@ -57,11 +57,11 @@ body::before {
         rgba(0, 0, 0, 0.02) 4px
     );
     pointer-events: none;
-    z-index: 9999;
+    z-index: var(--z-modal, 100);
     opacity: 0.4;
 }
 
-/* Skip Link for Accessibility */
+
 .skip-link {
     position: absolute;
     top: -40px;
@@ -80,7 +80,7 @@ body::before {
     top: 6px;
 }
 
-/* Links */
+
 a {
     color: var(--color-primary);
     text-decoration: none;
@@ -93,7 +93,7 @@ a:focus-visible {
     border-radius: 2px;
 }
 
-/* Headings */
+
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-text-primary);
     font-weight: 700;

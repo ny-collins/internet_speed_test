@@ -1,22 +1,16 @@
-// ========================================
-// UTILITY FUNCTIONS
-// ========================================
 
 export function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// RequestIdleCallback wrapper for non-critical tasks
 export function scheduleIdleTask(callback, timeout = 5000) {
     if ('requestIdleCallback' in window) {
         return requestIdleCallback(callback, { timeout });
     } else {
-        // Fallback for browsers without requestIdleCallback
         return setTimeout(callback, 0);
     }
 }
 
-// Cancel idle task
 export function cancelIdleTask(id) {
     if ('cancelIdleCallback' in window) {
         cancelIdleCallback(id);
@@ -97,7 +91,6 @@ export function getFriendlyError(errorMessage) {
         'Circuit breaker': 'Server is temporarily busy. Please wait a moment and try again.'
     };
 
-    // Check for HTTP status codes in the message
     const statusMatch = errorMessage.match(/Status (\d+)/);
     if (statusMatch) {
         const statusCode = statusMatch[1];
@@ -135,11 +128,7 @@ export function getConnectionType() {
     return types[type] || 'Unknown';
 }
 
-// ========================================
-// LOADED LATENCY MEASUREMENT
-// ========================================
 
-// Measure latency during active network transfers (detects bufferbloat)
 export async function measureLoadedLatency(config, abortController, durationMs = 10000) {
     const samples = [];
     const startTime = performance.now();
@@ -149,11 +138,9 @@ export async function measureLoadedLatency(config, abortController, durationMs =
         try {
             const pingStart = performance.now();
             
-            // Create timeout controller for this specific ping
             const timeoutController = new AbortController();
             const timeoutId = setTimeout(() => timeoutController.abort(), 10000);
             
-            // Combine abort signals
             const combinedSignal = AbortSignal.any ? 
                 AbortSignal.any([abortController.signal, timeoutController.signal]) :
                 abortController.signal;
@@ -168,7 +155,6 @@ export async function measureLoadedLatency(config, abortController, durationMs =
             const pingDuration = performance.now() - pingStart;
             samples.push(pingDuration);
 
-            // Wait 500ms between pings to avoid overwhelming the connection
             await sleep(500);
         } catch (error) {
             if (error.name === 'AbortError') break;
@@ -193,7 +179,6 @@ export async function measureLoadedLatency(config, abortController, durationMs =
     };
 }
 
-// Calculate jitter (variation in latency)
 function calculateJitter(samples) {
     if (samples.length < 2) return 0;
 
@@ -205,9 +190,6 @@ function calculateJitter(samples) {
     return totalJitter / (samples.length - 1);
 }
 
-// ========================================
-// PERFORMANCE MONITORING
-// ========================================
 
 export class PerformanceMonitor {
     constructor() {
@@ -246,7 +228,6 @@ export class PerformanceMonitor {
             if (this.metrics.lastFrameTime !== null) {
                 const frameTime = timestamp - this.metrics.lastFrameTime;
 
-                // Detect frame drops (frames taking > 17ms at 60fps)
                 if (frameTime > 17) {
                     this.metrics.threadBlocks++;
                     this.metrics.threadBlockTime += (frameTime - 16.67); // Time over budget
@@ -333,5 +314,4 @@ export class PerformanceMonitor {
     }
 }
 
-// Global performance monitor instance
 export const performanceMonitor = new PerformanceMonitor();

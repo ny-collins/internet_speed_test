@@ -1,9 +1,4 @@
-// ========================================
-// SHARED WORKER UTILITIES
-// Common functions used by download and upload workers
-// ========================================
 
-// Shared monitor loop function for both download and upload workers
 export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortSignal) {
     const maxDuration = config.duration[testType].max * 1000;
     const minDuration = config.duration[testType].min * 1000;
@@ -16,17 +11,14 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
         const elapsed = performance.now() - startTime;
         const currentTotalBytes = byteCounters.reduce((sum, counter) => sum + counter.bytes, 0);
 
-        // Track bytes transferred during warm-up period
         if (elapsed <= warmupDuration) {
             warmupBytesRef.value = currentTotalBytes;
         }
 
         totalBytesRef.value = currentTotalBytes;
 
-        // Use the most recent interval speed for current display
         const currentSpeed = lastIntervalSpeedRef.value;
 
-        // Send progress update to main thread
         self.postMessage({
             type: messageTypes.PROGRESS_UPDATE,
             elapsed,
@@ -35,7 +27,6 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
             speedSamples: speedSamples.slice(-3) // Send recent samples for smoothing
         });
 
-        // Stability check
         if (elapsed - lastSampleTimeRef.value >= 500) {
             const intervalBytes = totalBytesRef.value - lastBytesRef.value;
             const intervalDuration = (elapsed - lastSampleTimeRef.value) / 1000;
@@ -45,7 +36,6 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
                 speedSamples.push(intervalSpeed);
                 lastIntervalSpeedRef.value = intervalSpeed; // Update current speed display
 
-                // Memory management for upload worker (prevents unbounded growth)
                 if (testType === 'upload' && speedSamples.length > 100) {
                     speedSamples.shift();
                 }
@@ -63,7 +53,6 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
             lastBytesRef.value = totalBytesRef.value;
         }
 
-        // Check duration limits
         if (elapsed >= maxDuration) {
             console.log(`[${testType.charAt(0).toUpperCase() + testType.slice(1)} Worker] Max duration reached`);
             isRunningRef.value = false;
@@ -71,11 +60,9 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
         }
     }
 
-    // Calculate final results and send completion message
     const totalDuration = (performance.now() - startTime) / 1000;
     const finalResults = calculateFinalResults(config, testType, totalBytesRef.value, warmupBytesRef.value, totalDuration, speedSamples, calculateStability);
 
-    // Send completion message
     const messageType = testType === 'download' ? messageTypes.DOWNLOAD_COMPLETE : messageTypes.UPLOAD_COMPLETE;
     self.postMessage({
         type: messageType,
@@ -91,14 +78,11 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
 export function calculateFinalResults(config, testType, totalBytes, warmupBytes, totalDuration, speedSamples, calculateStability) {
     const warmUpPeriod = config.warmupDuration; // Exclude warm-up period
 
-    // Use only bytes transferred after warm-up period
     const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
     const effectiveDuration = Math.max(totalDuration - warmUpPeriod, 1.0); // Minimum 1 second
 
-    // Calculate speed based on post-warmup performance only
     const speedMbps = postWarmupBytes > 0 ? (postWarmupBytes * 8) / effectiveDuration / 1_000_000 : 0;
 
-    // Calculate confidence score based on multiple factors
     const confidence = calculateConfidenceScore(
         speedSamples,
         postWarmupBytes,
@@ -107,7 +91,6 @@ export function calculateFinalResults(config, testType, totalBytes, warmupBytes,
         warmUpPeriod
     );
 
-    // Detect potential measurement issues
     const warnings = [];
     if (confidence < 70) warnings.push('Low confidence in measurement');
     if (effectiveDuration < 3) warnings.push('Short test duration may affect accuracy');
@@ -130,18 +113,15 @@ export function calculateFinalResults(config, testType, totalBytes, warmupBytes,
     };
 }
 
-// Calculate confidence score (0-100) based on measurement quality indicators
 function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, warmupPeriod) {
     let score = 100;
 
-    // Factor 1: Sample count (more samples = higher confidence)
     if (speedSamples.length < 5) {
         score -= 20;
     } else if (speedSamples.length < 10) {
         score -= 10;
     }
 
-    // Factor 2: Test duration (longer tests = higher confidence)
     const testDuration = duration;
     if (testDuration < 3) {
         score -= 30;
@@ -149,7 +129,6 @@ function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, 
         score -= 15;
     }
 
-    // Factor 3: Data volume (more data = higher confidence)
     const mbTransferred = bytes / 1024 / 1024;
     if (mbTransferred < 5) {
         score -= 20;
@@ -157,7 +136,6 @@ function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, 
         score -= 10;
     }
 
-    // Factor 4: Speed variance (lower variance = higher confidence)
     if (speedSamples.length >= 3) {
         const mean = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
         const variance = speedSamples.reduce((sum, speed) => {
@@ -172,7 +150,6 @@ function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, 
         }
     }
 
-    // Factor 5: Warmup ratio (proper warmup period used)
     const warmupRatio = (warmupPeriod / totalDuration);
     if (warmupRatio > 0.5) {
         score -= 10; // Too much time spent in warmup

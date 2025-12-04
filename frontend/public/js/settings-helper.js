@@ -1,5 +1,5 @@
 // ========================================
-// SETTINGS HELPER - Quick access to settings
+// SETTINGS HELPER
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -25,58 +25,47 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     console.log('[App] Initializing SpeedCheck (Modular)...');
     
-    // Hide loading skeleton, show app
     const skeleton = document.getElementById('loadingSkeleton');
     const appContainer = document.querySelector('.app-container');
     if (skeleton) skeleton.style.display = 'none';
     if (appContainer) appContainer.style.opacity = '1';
     
-    // 1. Setup PWA & Theme
     registerServiceWorker();
     initializeTheme();
     
-    // 2. Initialize Icons (Lucide)
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
     
-    // 3. Check Page Type (Speed Test vs Learn)
     const isSpeedTestPage = document.getElementById('splitLayout') !== null;
     
     if (isSpeedTestPage) {
         console.log('[App] Speed test page detected');
-        // Query DOM elements FIRST before attaching listeners
         queryDOMElements();
     }
     
-    // 4. Register Test Functions (so engine.js can call them without circular deps)
     registerTestFunctions(startTest, cancelTest, retryTest, clearHistory, exportHistory);
     
-    // 5. Setup Interaction Listeners (after DOM is queried)
     initializeEventListeners();
 
     if (isSpeedTestPage) {
         loadConfiguration();
         updateConfigSummary();
         buildMainGauge();
-        resetSpeedCurve(); // Set initial state
+        resetSpeedCurve();
         loadHistory();
         await fetchServerInfo();
         
-        // Initialize Accessibility
         initializeAccessibility();
         
-        // Initialize modal close handlers
         initializeModalHandlers();
         
-        // Listen for resize events to redraw history chart
         window.addEventListener('resize', () => {
             if (STATE.history.length > 0) {
                 drawHistoryChart(STATE.history);
             }
         });
         
-        // Setup global error handling
         setupGlobalErrorHandling();
         
         console.log('[App] Speed test initialization complete');
@@ -100,18 +89,13 @@ function optimizeThreadCount() {
     const avgLatency = latencyResult.average;
     let optimalThreads;
     
-    // High latency (>200ms): Use fewer threads to avoid HTTP/2 stream contention
-    // TCP throughput over high-latency links suffers when multiple streams compete
     if (avgLatency > 200) {
         optimalThreads = 1;
-        // Also increase minimum test duration for high-latency links to allow TCP ramp-up
         CONFIG.duration.download.min = 15;
         CONFIG.duration.upload.min = 15;
-        // Increase variance threshold - high-latency links are naturally more variable
         CONFIG.stability.varianceThreshold = 0.40;
         console.log(`[Optimization] High latency detected (${avgLatency.toFixed(0)}ms) - using 1 thread, extended duration, relaxed stability`);
     } 
-    // Medium latency (100-200ms): Use 2 threads
     else if (avgLatency > 100) {
         optimalThreads = 2;
         CONFIG.duration.download.min = 12;
@@ -119,13 +103,11 @@ function optimizeThreadCount() {
         CONFIG.stability.varianceThreshold = 0.35;
         console.log(`[Optimization] Medium latency detected (${avgLatency.toFixed(0)}ms) - using 2 threads`);
     }
-    // Low latency (<100ms): Use default 4 threads
     else {
         optimalThreads = 4;
         console.log(`[Optimization] Low latency detected (${avgLatency.toFixed(0)}ms) - using 4 threads`);
     }
     
-    // Update CONFIG for download and upload tests
     CONFIG.threads.download = optimalThreads;
     CONFIG.threads.upload = optimalThreads;
 }
@@ -137,7 +119,6 @@ function optimizeThreadCount() {
 async function startTest() {
     if (STATE.testing) return;
     
-    // Rate limiting (10s cooldown)
     const now = Date.now();
     const timeSinceLastTest = now - STATE.lastTestTime;
     const cooldownMs = 10000;
@@ -153,16 +134,12 @@ async function startTest() {
     STATE.cancelling = false;
     STATE.abortControllers = [];
     
-    // Start performance monitoring
     performanceMonitor.startTest();
     
-    // Hide retry button when starting a new test
     if (DOM.retryTest) DOM.retryTest.hidden = true;
     
-    // Reset Results
     STATE.testResults = { download: null, upload: null, latency: null, jitter: null };
     
-    // Reset UI
     showGauge();
     clearResultsDisplay();
     setProgress(0);
@@ -178,29 +155,23 @@ async function startTest() {
     announceToScreenReader('Speed test started');
     
     try {
-        // Phase 1: Latency
         await runPhase('latency', measureLatency);
         if (STATE.cancelling) return;
         
-        // Optimize thread count based on measured latency
         optimizeThreadCount();
         
-        // Phase 2: Download
         await runPhase('download', measureDownload);
         if (STATE.cancelling) return;
         
-        // Phase 3: Upload
         await runPhase('upload', measureUpload);
         if (STATE.cancelling) return;
         
-        // Complete
         await completeTest();
         
     } catch (error) {
         console.error('[Test] Error:', error);
         showStatus(getFriendlyError(error.message), 'error');
         
-        // Show retry button for failed tests
         if (DOM.retryTest) DOM.retryTest.hidden = false;
     } finally {
         cleanupTest();
@@ -211,7 +182,6 @@ async function runPhase(name, testFn, maxRetries = 2) {
     STATE.currentPhase = name;
     updatePhaseUI(name, 'active');
     
-    // Show countdown timer
     const duration = name === 'latency' ? 3 : 10;
     startCountdown(duration);
     
@@ -221,7 +191,6 @@ async function runPhase(name, testFn, maxRetries = 2) {
             console.log(`[Test] Starting ${name} (attempt ${attempt + 1}/${maxRetries + 1})`);
             const result = await testFn();
             
-            // Hide countdown timer
             hideCountdown();
             
             if (!STATE.cancelling) {
@@ -229,13 +198,12 @@ async function runPhase(name, testFn, maxRetries = 2) {
                 updatePhaseUI(name, 'complete');
                 updateResultCard(name, result);
             }
-            return; // Success, exit retry loop
+            return;
             
         } catch (error) {
             lastError = error;
             console.warn(`[Test] ${name} attempt ${attempt + 1} failed:`, error.message);
             
-            // Don't retry on user cancellation or certain errors
             if (STATE.cancelling || 
                 error.message.includes('cancelled') || 
                 error.message.includes('Invalid') ||
@@ -243,16 +211,14 @@ async function runPhase(name, testFn, maxRetries = 2) {
                 break;
             }
             
-            // Wait before retry (exponential backoff)
             if (attempt < maxRetries) {
-                const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s...
+                const delay = Math.pow(2, attempt) * 1000;
                 await new Promise(resolve => setTimeout(resolve, delay));
                 continue;
             }
         }
     }
     
-    // All retries failed
     hideCountdown();
     throw lastError;
 }
@@ -262,7 +228,6 @@ function cancelTest() {
     console.log('[Test] Cancelling...');
     STATE.cancelling = true;
 
-    // Abort all active controllers
     STATE.abortControllers.forEach(c => {
         try { c.abort(); } catch (e) { /* Ignore errors */ }
     });
@@ -273,7 +238,6 @@ function cancelTest() {
         STATE.rafId = null;
     }
 
-    // Force immediate cleanup
     STATE.testing = false;
     resetGauge();
 
@@ -287,27 +251,22 @@ function cancelTest() {
 }async function retryTest() {
     console.log('[Test] Retrying...');
     
-    // Hide retry button
     if (DOM.retryTest) DOM.retryTest.hidden = true;
     
-    // Clear any error status and start fresh
     showStatus('Retrying speed test...', 'info');
     
-    // Start a new test
     startTest();
 }
 
 async function completeTest() {
     console.log('[Test] Complete');
     
-    // End performance monitoring
     performanceMonitor.endTest();
     
     setProgress(100);
     showStatus('Test completed successfully!', 'success');
     resetAllPhases();
     
-    // Show share button
     const shareBtn = document.getElementById('shareResultBtn');
     if (shareBtn) shareBtn.hidden = false;
     
@@ -322,7 +281,6 @@ async function completeTest() {
     
     saveToHistory(testResult);
     
-    // Update test context panel with detailed test information
     updateTestContext({
         download: STATE.testResults.download,
         upload: STATE.testResults.upload,
@@ -368,7 +326,6 @@ function updateConfigSummary() {
         if (threadsEl) threadsEl.textContent = `${CONFIG.threads.download} threads`;
         if (durationEl) durationEl.textContent = `${CONFIG.duration.download.max}s duration`;
         
-        // Add badge to settings button
         const settingsToggle = document.getElementById('settingsToggle');
         if (settingsToggle) {
             let customCount = 0;
@@ -388,7 +345,7 @@ function updateConfigSummary() {
 async function fetchServerInfo() {
     try {
         const response = await fetch(`${CONFIG.apiBase}/api/info`, {
-            signal: AbortSignal.timeout(5000) // 5 second timeout
+            signal: AbortSignal.timeout(5000)
         });
         if (response.ok) {
             STATE.serverInfo = await response.json();
@@ -398,12 +355,10 @@ async function fetchServerInfo() {
             }
             if (DOM.serverInfo) DOM.serverInfo.hidden = false;
         } else {
-            // Update UI even if fetch fails
             if (DOM.serverLocation) DOM.serverLocation.textContent = 'Amsterdam, Netherlands';
         }
     } catch (e) {
         console.warn('[Server] Info fetch failed', e);
-        // Always update the placeholder text even on error
         if (DOM.serverLocation) DOM.serverLocation.textContent = 'Amsterdam, Netherlands';
     }
 }
@@ -430,10 +385,8 @@ function loadHistory() {
 async function updateHistoryUI() {
     if (!DOM.historyList) return;
     
-    // Draw Chart
     drawHistoryChart(STATE.history);
     
-    // Calculate and display statistics
     const stats = updateHistoryStats(STATE.history);
     if (stats) {
         displayHistoryStats(stats);
@@ -495,32 +448,27 @@ async function initializeAccessibility() {
 }
 
 function setupGlobalErrorHandling() {
-    // Global error handler for unhandled errors
     window.addEventListener('error', (event) => {
         console.error('[Global Error]', event.error);
         performanceMonitor.recordError(event.error, 'global');
         
-        // Show user-friendly error message for critical errors
         if (!STATE.testing) {
             showStatus('An unexpected error occurred. Please refresh the page.', 'error');
         }
     });
 
-    // Global promise rejection handler
     window.addEventListener('unhandledrejection', (event) => {
         console.error('[Unhandled Promise Rejection]', event.reason);
         performanceMonitor.recordError(event.reason, 'promise');
         
-        // Prevent the default browser behavior (logging to console)
         event.preventDefault();
     });
 
-    // Performance monitoring for long tasks
     if ('PerformanceObserver' in window) {
         try {
             const observer = new PerformanceObserver((list) => {
                 for (const entry of list.getEntries()) {
-                    if (entry.duration > 50) { // Tasks longer than 50ms
+                    if (entry.duration > 50) {
                         console.warn('[Performance] Long task detected:', entry.duration.toFixed(2) + 'ms');
                         performanceMonitor.recordError(`Long task: ${entry.duration.toFixed(2)}ms`, 'performance');
                     }
@@ -541,7 +489,6 @@ function initializeModalHandlers() {
     const modal = document.getElementById('measurement-details-modal');
     if (!modal) return;
     
-    // Close button
     const closeBtn = modal.querySelector('.modal-close');
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
@@ -549,14 +496,12 @@ function initializeModalHandlers() {
         });
     }
     
-    // Click outside to close
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.remove('active');
         }
     });
     
-    // ESC key to close
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.classList.contains('active')) {
             modal.classList.remove('active');
@@ -564,5 +509,4 @@ function initializeModalHandlers() {
     });
 }
 
-// Export updateConfigSummary so engine.js can call it
 window.updateConfigSummary = updateConfigSummary;

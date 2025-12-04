@@ -1,11 +1,6 @@
-// ========================================
-// UPLOAD WORKER
-// Handles heavy upload processing off the main thread
-// ========================================
 
-import { monitorLoop } from './worker-utils.js';
+import { monitorLoop } from '../worker-utils.js';
 
-// Worker message types
 const MESSAGE_TYPES = {
     START_UPLOAD: 'start_upload',
     PROGRESS_UPDATE: 'progress_update',
@@ -25,13 +20,10 @@ let lastBytes = 0;
 let lastIntervalSpeed = 0;
 let warmupPeriodEnd = 0; // When warm-up period ends
 
-// Configuration (passed from main thread)
 let config = {};
 
-// Pre-built blob for upload tests (created in worker)
 let uploadBlob = null;
 
-// Stability tracking functions
 function isSpeedStable(samples) {
     if (samples.length < config.stability.sampleCount) return false;
     const checkWindow = Math.min(samples.length, config.stability.checkWindow);
@@ -54,14 +46,12 @@ function calculateStability(samples) {
     return Math.max(0, Math.min(100, (1 - variance * 10) * 100));
 }
 
-// Create reusable upload blob
 function createUploadBlob() {
     const totalSize = config.uploadSize * 1024 * 1024;
     const chunkSize = 65536; // 64KB chunks
     const chunksNeeded = Math.ceil(totalSize / chunkSize);
     const chunks = [];
 
-    // Create random data chunks
     for (let i = 0; i < chunksNeeded; i++) {
         const chunk = new Uint8Array(chunkSize);
         crypto.getRandomValues(chunk);
@@ -71,20 +61,16 @@ function createUploadBlob() {
     return new Blob(chunks, { type: 'application/octet-stream' });
 }
 
-// Upload thread function (runs in worker)
 async function uploadThread(threadId, byteCounter) {
     let previousBytes = 0; // Track bytes from completed requests
 
     try {
-        // Loop uploads until time limit reached or aborted
         while (isRunning && !abortController.signal.aborted) {
-            // XHR Promise for upload with progress tracking
             await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 let finished = false;
                 let lastLoaded = 0; // Track loaded bytes for this specific request
 
-                // Set timeout for this XHR request
                 const timeoutId = setTimeout(() => {
                     if (!finished) {
                         xhr.abort();
@@ -99,7 +85,6 @@ async function uploadThread(threadId, byteCounter) {
                     if (error) {
                         reject(error);
                     } else {
-                        // Request complete: add this request's total to previousBytes
                         previousBytes += lastLoaded;
                         resolve();
                     }
@@ -108,7 +93,6 @@ async function uploadThread(threadId, byteCounter) {
                 xhr.upload.onprogress = (event) => {
                     if (event.lengthComputable) {
                         lastLoaded = event.loaded;
-                        // Total for this thread = bytes from old requests + bytes from current request
                         byteCounter.bytes = previousBytes + event.loaded;
                     }
                 };
@@ -129,7 +113,6 @@ async function uploadThread(threadId, byteCounter) {
                 xhr.send(uploadBlob);
             });
 
-            // Check if we should continue looping
             if (!isRunning || abortController.signal.aborted) {
                 break;
             }
@@ -147,9 +130,7 @@ async function uploadThread(threadId, byteCounter) {
     }
 }
 
-// Monitor loop (runs in worker)
 async function monitorLoopWrapper(threadCount, byteCounters) {
-    // Create refs for mutable variables
     const isRunningRef = { value: isRunning };
     const totalBytesRef = { value: totalBytes };
     const warmupBytesRef = { value: warmupBytes };
@@ -160,7 +141,6 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
 
     await monitorLoop(config, 'upload', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortController.signal);
 
-    // Update local variables from refs
     isRunning = isRunningRef.value;
     totalBytes = totalBytesRef.value;
     warmupBytes = warmupBytesRef.value;
@@ -170,7 +150,6 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
     lastIntervalSpeed = lastIntervalSpeedRef.value;
 }
 
-// Message handler
 self.onmessage = function(e) {
     const { type, config: workerConfig, threadCount } = e.data;
 
@@ -185,21 +164,17 @@ self.onmessage = function(e) {
         lastSampleTime = 0;
         lastBytes = 0;
 
-        // Create upload blob
         uploadBlob = createUploadBlob();
 
-        // Create byte counters for each thread
         const byteCounters = [];
         for (let i = 0; i < threadCount; i++) {
             byteCounters.push({ bytes: 0 });
         }
 
-        // Start upload threads
         for (let i = 0; i < threadCount; i++) {
             uploadThread(i, byteCounters[i]);
         }
 
-        // Start monitor loop
         monitorLoopWrapper(threadCount, byteCounters);
         break;
     }

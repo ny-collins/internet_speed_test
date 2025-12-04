@@ -11,19 +11,16 @@
     const banner = document.getElementById('edgeBanner');
     if (!banner) return;
 
-    // Check if banner was dismissed
     const dismissed = localStorage.getItem('edgeBannerDismissed');
     if (dismissed === 'true') {
         banner.remove();
         return;
     }
 
-    // Show banner after delay
     setTimeout(() => {
         banner.style.display = 'flex';
     }, 2000);
 
-    // Handle dismiss
     const dismissBtn = document.getElementById('edgeDismissBtn');
     if (dismissBtn) {
         dismissBtn.addEventListener('click', () => {

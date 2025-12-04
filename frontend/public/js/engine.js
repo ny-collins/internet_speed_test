@@ -1,14 +1,9 @@
-// ========================================
-// EVENT HANDLERS
-// ========================================
 
 import { DOM } from './dom.js';
 import { CONFIG } from './config.js';
 import { STATE } from './state.js';
 import { showStatus, announceToScreenReader } from './ui.js';
 
-// We will export the startTest and cancelTest functions so main.js can pass them in
-// because they depend on the test logic modules (circular dependency avoidance)
 let startTestFn;
 let cancelTestFn;
 let retryTestFn;
@@ -24,16 +19,13 @@ export function registerTestFunctions(start, cancel, retry, clear, exportHist) {
 }
 
 export function initializeEventListeners() {
-    // Theme
     DOM.themeToggleSwitch?.addEventListener('click', toggleTheme);
     const headerThemeToggle = document.getElementById('themeToggle'); // From header
     headerThemeToggle?.addEventListener('click', toggleTheme);
 
-    // Settings Panel
     DOM.settingsToggle?.addEventListener('click', toggleSettings);
     DOM.settingsClose?.addEventListener('click', toggleSettings);
 
-    // Click outside settings panel content to close
     document.addEventListener('click', (e) => {
         const isOpen = DOM.settingsPanel?.getAttribute('data-open') === 'true';
         const settingsContent = DOM.settingsPanel?.querySelector('.settings-content');
@@ -42,19 +34,16 @@ export function initializeEventListeners() {
         }
     });
 
-    // Prevent clicks inside settings content from triggering document click
     DOM.settingsPanel?.querySelector('.settings-content')?.addEventListener('click', (e) => {
         e.stopPropagation();
     });
 
-    // ESC key to close settings panel
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && DOM.settingsPanel?.getAttribute('data-open') === 'true') {
             toggleSettings();
         }
     });
 
-    // Settings Controls
     if (DOM.downloadThreads) {
         DOM.downloadThreads.addEventListener('input', (e) => {
             updateSettingValue('downloadThreads', e.target.value);
@@ -71,26 +60,20 @@ export function initializeEventListeners() {
 
     DOM.resetSettings?.addEventListener('click', resetSettings);
 
-    // Test Controls
     DOM.startTest?.addEventListener('click', () => startTestFn());
     DOM.cancelTest?.addEventListener('click', () => cancelTestFn());
     DOM.retryTest?.addEventListener('click', () => retryTestFn());
     DOM.gaugeStartButton?.addEventListener('click', () => startTestFn());
 
-    // History Actions
     DOM.clearHistory?.addEventListener('click', () => clearHistoryFn());
     DOM.exportHistory?.addEventListener('click', () => exportHistoryFn());
 
-    // Keyboard
     document.addEventListener('keydown', handleKeyboardShortcuts);
 
-    // Sidebar (if present)
     initializeTabNavigation();
 
-    // Accordion functionality
     initializeAccordion();
 
-    // Help modal with focus trapping
     const helpModal = document.getElementById('helpModal');
     const closeHelpBtn = document.getElementById('closeHelpModal');
 
@@ -98,7 +81,6 @@ export function initializeEventListeners() {
         closeHelpBtn.addEventListener('click', () => {
             if (helpModal) {
                 helpModal.hidden = true;
-                // Return focus to trigger element
                 DOM.settingsToggle?.focus();
             }
         });
@@ -112,7 +94,6 @@ export function initializeEventListeners() {
             }
         });
 
-        // Focus trapping for accessibility
         helpModal.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
                 const focusableElements = helpModal.querySelectorAll(
@@ -136,7 +117,6 @@ export function initializeEventListeners() {
         });
     }
 
-    // Share modal with focus trapping
     const shareModal = document.getElementById('shareModal');
     const closeShareBtn = document.getElementById('closeShareModal');
     const shareResultBtn = document.getElementById('shareResultBtn');
@@ -149,7 +129,6 @@ export function initializeEventListeners() {
         closeShareBtn.addEventListener('click', () => {
             if (shareModal) {
                 shareModal.hidden = true;
-                // Return focus to trigger element
                 document.getElementById('shareResultBtn')?.focus();
             }
         });
@@ -163,7 +142,6 @@ export function initializeEventListeners() {
             }
         });
 
-        // Focus trapping for accessibility
         shareModal.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
                 const focusableElements = shareModal.querySelectorAll(
@@ -187,12 +165,10 @@ export function initializeEventListeners() {
         });
     }
 
-    // Share options
     document.getElementById('copyLinkBtn')?.addEventListener('click', copyResultLink);
     document.getElementById('downloadImageBtn')?.addEventListener('click', downloadResultImage);
     document.getElementById('copyTextBtn')?.addEventListener('click', copyResultText);
 
-    // Initialize Lucide icons after all DOM updates
     setTimeout(() => {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -200,7 +176,6 @@ export function initializeEventListeners() {
     }, 100);
 }
 
-// --- Settings Logic ---
 
 function toggleSettings() {
     if (!DOM.settingsPanel || !DOM.settingsToggle) return;
@@ -208,11 +183,9 @@ function toggleSettings() {
     DOM.settingsPanel.setAttribute('data-open', !isOpen);
     DOM.settingsToggle.setAttribute('aria-expanded', !isOpen);
 
-    // Prevent body scrolling when settings panel is open
     document.body.style.overflow = !isOpen ? 'hidden' : '';
 
     if (!isOpen) {
-        // Remove auto-focus on downloadThreads to prevent autoscrolling
         announceToScreenReader('Settings panel opened');
     } else {
         DOM.settingsToggle?.focus();
@@ -240,7 +213,6 @@ async function saveSettings() {
 
     localStorage.setItem('config', JSON.stringify(CONFIG));
 
-    // Update config summary
     if (typeof window.updateConfigSummary === 'function') {
         window.updateConfigSummary();
     }
@@ -289,7 +261,6 @@ export function loadConfiguration() {
     }
 }
 
-// --- Theme Logic ---
 
 export function initializeTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -315,12 +286,10 @@ function updateThemeIcon(theme) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// --- Keyboard & Sidebar ---
 
 function handleKeyboardShortcuts(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    // Show help modal on '?'
     if (e.key === '?' && !e.shiftKey) {
         e.preventDefault();
         const helpModal = document.getElementById('helpModal');
@@ -334,7 +303,6 @@ function handleKeyboardShortcuts(e) {
     }
 
     if (e.key === 'Escape') {
-        // Close modals first
         const helpModal = document.getElementById('helpModal');
         const shareModal = document.getElementById('shareModal');
 
@@ -438,13 +406,11 @@ function initializeTabNavigation() {
     });
 }
 
-// === Share Functionality ===
 
 function openShareModal() {
     const shareModal = document.getElementById('shareModal');
     if (shareModal) {
         shareModal.hidden = false;
-        // Reinitialize icons in the modal
         setTimeout(() => {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
@@ -472,27 +438,23 @@ function copyResultLink() {
 }
 
 function downloadResultImage() {
-    // Create a canvas with result card
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
     canvas.width = 1200;
     canvas.height = 630;
 
-    // Background gradient
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, '#1e293b');
     gradient.addColorStop(1, '#0f172a');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Title
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 48px system-ui';
     ctx.textAlign = 'center';
     ctx.fillText('SpeedCheck Results', canvas.width / 2, 100);
 
-    // Results
     const results = STATE.testResults;
     ctx.font = '32px system-ui';
     ctx.fillStyle = '#cbd5e1';
@@ -505,12 +467,10 @@ function downloadResultImage() {
     ctx.fillText(`Latency: ${results.latency?.average?.toFixed(0) || 0} ms`, canvas.width / 2, y + spacing * 2);
     ctx.fillText(`Jitter: ${results.jitter?.value?.toFixed(1) || 0} ms`, canvas.width / 2, y + spacing * 3);
 
-    // Date
     ctx.font = '24px system-ui';
     ctx.fillStyle = '#64748b';
     ctx.fillText(new Date().toLocaleString(), canvas.width / 2, canvas.height - 50);
 
-    // Download
     canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -542,9 +502,6 @@ Tested: ${new Date().toLocaleString()}
     });
 }
 
-// ========================================
-// ACCORDION FUNCTIONALITY
-// ========================================
 
 function initializeAccordion() {
     const accordionItems = document.querySelectorAll('.accordion-item');
@@ -558,12 +515,9 @@ function initializeAccordion() {
         button.addEventListener('click', () => {
             const isExpanded = button.getAttribute('aria-expanded') === 'true';
 
-            // Toggle this item
             button.setAttribute('aria-expanded', !isExpanded);
             content.hidden = isExpanded;
 
-            // Optional: Close other items (accordion behavior)
-            // Comment out the lines below if you want multiple sections open at once
             accordionItems.forEach(otherItem => {
                 if (otherItem !== item) {
                     const otherButton = otherItem.querySelector('.accordion-header');

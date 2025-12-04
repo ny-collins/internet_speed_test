@@ -8,7 +8,7 @@ export const STATE = {
     currentPhase: null,
     gaugeElement: null,
     lastMaxScale: 100,
-    lastTestTime: 0, // Track last test timestamp for rate limiting
+    lastTestTime: 0,
     testResults: {
         download: null,
         upload: null,
@@ -19,24 +19,20 @@ export const STATE = {
     serverInfo: null,
     history: [],
     rafId: null,
-    // Performance monitoring
     performance: {
         monitoring: false,
         lastCheck: 0,
         blockWarnings: 0,
         maxBlockTime: 0
     },
-    // PWA update management
     pwa: {
         updateAvailable: false,
         newWorker: null
     },
-    // Variance graph tracking
     varianceGraph: {
         samples: [],
-        maxSamples: 50, // 50 samples at 100ms = 5 seconds of data
+        maxSamples: 50,
         active: false,
-        // Animation state for smooth number transitions
         animations: {
             avg: { current: 0, target: 0, rafId: null },
             min: { current: 0, target: 0, rafId: null },

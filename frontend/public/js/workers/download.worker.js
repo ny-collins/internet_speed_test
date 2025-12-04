@@ -1,11 +1,6 @@
-// ========================================
-// DOWNLOAD WORKER
-// Handles heavy download processing off the main thread
-// ========================================
 
 import { monitorLoop } from '../worker-utils.js';
 
-// Worker message types
 const MESSAGE_TYPES = {
     START_DOWNLOAD: 'start_download',
     PROGRESS_UPDATE: 'progress_update',
@@ -25,10 +20,8 @@ let lastBytes = 0;
 let lastIntervalSpeed = 0;
 let warmupPeriodEnd = 0; // When warm-up period ends
 
-// Configuration (passed from main thread)
 let config = {};
 
-// Stability tracking functions
 function isSpeedStable(samples) {
     if (samples.length < config.stability.sampleCount) return false;
     const checkWindow = Math.min(samples.length, config.stability.checkWindow);
@@ -51,7 +44,6 @@ function calculateStability(samples) {
     return Math.max(0, Math.min(100, (1 - variance * 10) * 100));
 }
 
-// Download thread function (runs in worker)
 async function downloadThread(threadId, byteCounter) {
     let retryCount = 0;
     const maxRetries = config.maxRetries || 2;
@@ -60,7 +52,6 @@ async function downloadThread(threadId, byteCounter) {
         try {
             const url = `${config.apiBase}/api/download?stream=true&chunk=${config.chunkSize}&t=${Date.now()}`;
             
-            // Create abort controller with timeout
             const timeoutMs = config.connectionTimeout || 10000;
             const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
             
@@ -86,12 +77,10 @@ async function downloadThread(threadId, byteCounter) {
 
             try { await reader.cancel(); } catch (e) { /* Ignore cancel errors */ }
             
-            // Success - exit retry loop
             break;
 
         } catch (error) {
             if (error.name === 'AbortError' || STATE.cancelling) {
-                // User cancelled or timeout - don't retry
                 break;
             }
             
@@ -112,9 +101,7 @@ async function downloadThread(threadId, byteCounter) {
     }
 }
 
-// Monitor loop (runs in worker)
 async function monitorLoopWrapper(threadCount, byteCounters) {
-    // Create refs for mutable variables
     const isRunningRef = { value: isRunning };
     const totalBytesRef = { value: totalBytes };
     const warmupBytesRef = { value: warmupBytes };
@@ -125,7 +112,6 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
 
     await monitorLoop(config, 'download', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortController.signal);
 
-    // Update local variables from refs
     isRunning = isRunningRef.value;
     totalBytes = totalBytesRef.value;
     warmupBytes = warmupBytesRef.value;
@@ -135,7 +121,6 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
     lastIntervalSpeed = lastIntervalSpeedRef.value;
 }
 
-// Message handler
 self.onmessage = async function(e) {
     const { type, config: workerConfig, threadCount } = e.data;
 
@@ -150,15 +135,12 @@ self.onmessage = async function(e) {
         lastSampleTime = 0;
         lastBytes = 0;
 
-        // Initialize byte counters for each thread
         const byteCounters = Array.from({ length: threadCount }, () => ({ bytes: 0 }));
 
-        // Start download threads
         byteCounters.forEach((counter, i) => {
             downloadThread(i, counter);
         });
 
-        // Start monitor loop
         monitorLoopWrapper(threadCount, byteCounters);
         break;
     }

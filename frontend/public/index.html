@@ -12,10 +12,10 @@
     
     <meta property="fb:app_id" content="24685616031079978">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://speed-test.up.railway.app/">
+    <meta property="og:url" content="" id="og-url">
     <meta property="og:title" content="SpeedCheck - Internet Speed Test">
     <meta property="og:description" content="Accurate internet speed testing with detailed metrics. Measure download, upload, ping, and jitter.">
-    <meta property="og:image" content="https://speed-test.up.railway.app/assets/social-preview.png">
+    <meta property="og:image" content="" id="og-image">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="SpeedCheck - Internet Speed Test Interface">
@@ -24,12 +24,12 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="SpeedCheck - Internet Speed Test">
     <meta name="twitter:description" content="Test your internet speed with accurate measurements">
-    <meta name="twitter:image" content="https://speed-test.up.railway.app/assets/social-preview.png">
+    <meta name="twitter:image" content="" id="twitter-image">
     <meta name="twitter:image:alt" content="SpeedCheck - Internet Speed Test Interface">
     
     <title>SpeedCheck - Internet Speed Test</title>
     
-    <link rel="canonical" href="https://speed-test.up.railway.app/">
+    <link rel="canonical" href="" id="canonical-url">
     
     <link rel="stylesheet" href="/css/main.css?v=1.67.0">
     <link rel="stylesheet" href="/css/pages/home.css?v=1.67.0">
@@ -41,37 +41,52 @@
     <meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "SpeedCheck",
-      "url": "https://speed-test.up.railway.app/",
-      "description": "Test your internet speed with SpeedCheck. Measure download, upload, ping, and jitter with real-world international connectivity to Amsterdam, Netherlands.",
-      "applicationCategory": "UtilityApplication",
-      "operatingSystem": "Any",
-      "browserRequirements": "Requires JavaScript. Works with modern browsers.",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "creator": {
-        "@type": "Organization",
+    <script>
+    (function() {
+      const currentUrl = window.location.origin + window.location.pathname;
+      const imageUrl = window.location.origin + '/assets/social-preview.png';
+      
+      document.getElementById('og-url').setAttribute('content', currentUrl);
+      document.getElementById('og-image').setAttribute('content', imageUrl);
+      document.getElementById('twitter-image').setAttribute('content', imageUrl);
+      document.getElementById('canonical-url').setAttribute('href', currentUrl);
+      
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
         "name": "SpeedCheck",
-        "url": "https://speed-test.up.railway.app/"
-      },
-      "featureList": [
-        "Real-time speed measurements",
-        "Download speed testing",
-        "Upload speed testing",
-        "Ping/latency testing",
-        "Jitter analysis",
-        "Dark/Light theme",
-        "Mobile responsive design",
-        "European server testing (Amsterdam)"
-      ]
-    }
+        "url": currentUrl,
+        "description": "Test your internet speed with SpeedCheck. Measure download, upload, ping, and jitter with real-world international connectivity to Amsterdam, Netherlands.",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript. Works with modern browsers.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "creator": {
+          "@type": "Organization",
+          "name": "SpeedCheck",
+          "url": currentUrl
+        },
+        "featureList": [
+          "Real-time speed measurements",
+          "Download speed testing",
+          "Upload speed testing",
+          "Ping/latency testing",
+          "Jitter analysis",
+          "Dark/Light theme",
+          "Mobile responsive design",
+          "European server testing (Amsterdam)"
+        ]
+      };
+      
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(schema, null, 2);
+      document.head.appendChild(script);
+    })();
     </script>
     
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -93,7 +108,6 @@
         <i data-lucide="settings" class="settings-icon"></i>
     </button>
 
-    <!-- Loading Skeleton (shown while JS loads) -->
     <div class="loading-skeleton" id="loadingSkeleton">
         <div class="skeleton-gauge"></div>
         <div class="skeleton-cards">
@@ -196,9 +210,7 @@
         </div>
 
         <main class="test-section" id="main-content">
-            <!-- Split Layout: Gauge Left, Cards Right -->
             <div class="split-layout" id="splitLayout">
-                <!-- Left Side: Gauge -->
                 <div class="gauge-section">
                     <div class="gauge-container-split">
                         <button class="gauge-start-button" id="gaugeStartButton" aria-label="Start speed test">
@@ -217,13 +229,11 @@
                         </div>
                     </div>
                     
-                    <!-- Test Timer (Below Gauge) -->
                     <div class="test-timer" id="testTimer" hidden aria-live="polite" aria-atomic="true">
                         <span class="timer-text">Time: <strong id="timerValue" aria-label="Time elapsed">0s</strong></span>
                     </div>
                 </div>
 
-                <!-- Right Side: Measurement Cards -->
                 <div class="cards-section">
                     <div class="cards-grid">
                 <div class="tray-card" data-metric="latency" role="group" aria-labelledby="latency-label">
@@ -254,7 +264,6 @@
                             <span class="matrix-unit" id="download-unit">Mbps</span>
                         </div>
                         <div class="matrix-context" id="download-context"></div>
-                        <!-- Mini speed graph for download -->
                         <canvas class="tray-mini-graph" id="downloadMiniGraph" width="280" height="80" aria-label="Download speed curve"></canvas>
                     </div>
                 </div>
@@ -270,7 +279,6 @@
                             <span class="matrix-unit" id="upload-unit">Mbps</span>
                         </div>
                         <div class="matrix-context" id="upload-context"></div>
-                        <!-- Mini speed graph for upload -->
                         <canvas class="tray-mini-graph" id="uploadMiniGraph" width="280" height="80" aria-label="Upload speed curve"></canvas>
                     </div>
                 </div>
@@ -331,7 +339,6 @@
             </div>
         </main>
 
-        <!-- Test Context Panel (shown after test completes) -->
         <aside class="test-context-panel" id="testContextPanel" hidden>
             <h3>Test Information</h3>
             <dl class="context-list">
@@ -384,7 +391,6 @@
             </div>
         </main>
 
-        <!-- Measurement Details Modal -->
         <div class="modal" id="measurementDetailsModal" role="dialog" aria-labelledby="modalTitle" aria-modal="true" hidden>
             <div class="modal-overlay"></div>
             <div class="modal-content">
@@ -395,7 +401,6 @@
                     </button>
                 </div>
                 <div class="modal-body" id="modalBody">
-                    <!-- Content populated dynamically -->
                 </div>
             </div>
         </div>
@@ -414,7 +419,6 @@
             </div>
             
             <div class="history-stats" id="historyStats" hidden>
-                <!-- Stats populated by JavaScript -->
             </div>
             
             <div class="history-chart-container">
@@ -433,7 +437,6 @@
         <footer class="footer">
             <div class="footer-content">
                 <div class="server-info" id="serverInfo" hidden>
-                    <!-- Server info moved to header, this block can be simplified or removed -->
                     <div class="server-info-item">
                         <i data-lucide="database" class="info-icon"></i>
                         <span id="serverLimits">—</span>
@@ -456,7 +459,6 @@
                     </div>
                 </div>
 
-                <!-- Accordion for technical details -->
                 <div class="footer-accordion">
                     <div class="accordion-item" data-expanded="true">
                         <button class="accordion-header" aria-expanded="true">
@@ -562,7 +564,6 @@
 
     <div id="ariaLiveRegion" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
-    <!-- Help Modal -->
     <div class="help-modal" id="helpModal" hidden>
         <div class="help-modal-content">
             <div class="help-modal-header">
@@ -596,7 +597,6 @@
         </div>
     </div>
 
-    <!-- Share Modal -->
     <div class="share-modal" id="shareModal" hidden>
         <div class="share-modal-content">
             <div class="help-modal-header">
@@ -622,7 +622,6 @@
         </div>
     </div>
 
-    <!-- PWA Update Banner -->
     <div id="update-banner" hidden>
         <div class="update-banner-wrapper">
             <span class="update-banner-message">
@@ -637,7 +636,6 @@
         </div>
     </div>
 
-    <!-- API Configuration: Set API_BASE_URL before loading app.js -->
     <script src="/js/init.js?v=1.67.0"></script>
     <script src="/js/settings-helper.js?v=1.67.0"></script>
     <script type="module" src="/js/app.js?v=1.67.0"></script>

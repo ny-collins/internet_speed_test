@@ -1,6 +1,3 @@
-// ========================================
-// SERVICE WORKER & PWA
-// ========================================
 
 import { STATE } from './state.js';
 
@@ -14,10 +11,8 @@ export function registerServiceWorker() {
         .then((registration) => {
             console.log('[PWA] Service Worker registered:', registration.scope);
 
-            // Check for updates on page load
             registration.update();
 
-            // Check for updates periodically (every 60 seconds)
             let updateInterval;
 
             const startUpdateChecks = () => {
@@ -47,7 +42,6 @@ export function registerServiceWorker() {
                 }
             });
 
-            // Listen for updates
             registration.addEventListener('updatefound', () => {
                 STATE.pwa.newWorker = registration.installing;
                 console.log('[PWA] Service Worker update found');

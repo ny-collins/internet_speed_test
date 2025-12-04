@@ -2,7 +2,7 @@
    SPLIT LAYOUT (Gauge Left, Cards Right)
    ======================================== */
 
-/* Main Split Container */
+
 .split-layout {
     display: grid;
     grid-template-columns: 320px 1fr;
@@ -13,7 +13,7 @@
     margin-bottom: var(--spacing-lg);
 }
 
-/* Left Side: Gauge Section */
+
 .gauge-section {
     display: flex;
     flex-direction: column;
@@ -36,7 +36,7 @@
     justify-content: center;
 }
 
-/* Right Side: Cards Section */
+
 .cards-section {
     display: flex;
     flex-direction: column;
@@ -53,12 +53,12 @@
 }
 
 /* OLD STAGE-TRAY SYSTEM - DEPRECATED */
-/* Active Stage - Hero Section */
+
 .active-stage {
     position: relative;
     width: 100%;
-    min-height: 280px; /* Reduced from 400px */
-    height: clamp(280px, 35vh, 400px); /* Reduced from 60vh to 35vh for 100vh layout */
+    min-height: 280px; 
+    height: clamp(280px, 35vh, 400px); 
     background: linear-gradient(180deg, 
         var(--color-bg-secondary) 0%, 
         var(--color-bg-primary) 100%
@@ -68,11 +68,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--spacing-lg); /* Reduced from 2xl */
+    margin-bottom: var(--spacing-lg); 
     box-shadow: var(--shadow-lg);
 }
 
-/* Speed Curve Graph (Background Layer) */
+
 .stage-graph {
     position: absolute;
     inset: 0;
@@ -81,14 +81,14 @@
     z-index: 1;
     opacity: 0;
     transition: opacity 0.4s ease-out;
-    pointer-events: none; /* Allow clicks to pass through to gauge button */
+    pointer-events: none; 
 }
 
 .stage-graph.active {
     opacity: 1;
 }
 
-/* Gauge Overlay (Foreground Layer) */
+
 .gauge-overlay {
     position: relative;
     z-index: 2;
@@ -99,7 +99,7 @@
     height: 100%;
 }
 
-/* Live Status Text (Large Numbers) */
+
 .live-status {
     position: absolute;
     top: 50%;
@@ -109,17 +109,17 @@
     text-align: center;
     opacity: 0;
     transition: opacity 0.3s ease-out;
-    pointer-events: none; /* Don't block clicks when hidden */
+    pointer-events: none; 
 }
 
 .live-status.visible {
     opacity: 1;
-    pointer-events: auto; /* Allow interactions when visible */
+    pointer-events: auto; 
 }
 
 .live-speed-value {
     display: block;
-    font-size: clamp(3rem, 8vw, 6rem); /* Reduced from 4rem/10vw/8rem */
+    font-size: clamp(3rem, 8vw, 6rem); 
     font-weight: 200;
     letter-spacing: -0.04em;
     color: var(--color-text-primary);
@@ -146,7 +146,7 @@
     margin-top: var(--spacing-md);
 }
 
-/* Test Timer in Stage */
+
 .active-stage .test-timer {
     position: absolute;
     bottom: var(--spacing-xl);
@@ -155,7 +155,7 @@
     z-index: 4;
 }
 
-/* Results Tray - Bottom Section */
+
 .results-tray {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -164,19 +164,19 @@
     margin-bottom: var(--spacing-2xl);
 }
 
-/* Tray Card Styles */
+
 .tray-card {
     position: relative;
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), opacity var(--transition-base);
     cursor: default;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    min-height: unset; /* Remove min-height for grid layout */
+    min-height: unset; 
     height: 100%;
 }
 
@@ -186,7 +186,7 @@
     transform: translateY(-2px);
 }
 
-/* Active Tray Card Highlight */
+
 .tray-card[data-status="measuring"] {
     border-color: var(--color-primary);
     background: linear-gradient(
@@ -197,7 +197,7 @@
     box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-lg);
 }
 
-/* Additional highlighting for active metric */
+
 .tray-card.active-metric {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px var(--color-primary), 
@@ -216,7 +216,7 @@
     color: var(--color-primary);
 }
 
-/* Progress Ring for Tray Cards (keep existing system) */
+
 .tray-card::before {
     content: '';
     position: absolute;
@@ -242,11 +242,11 @@
     opacity: 1;
 }
 
-/* Mini Graph in Tray Cards */
+
 .tray-mini-graph {
     width: 100%;
-    height: 80px; /* Increased from 60px for better visibility */
-    margin-top: auto; /* Push to bottom of card */
+    height: 80px; 
+    margin-top: auto; 
     border-radius: var(--radius-md);
     background: rgba(0, 0, 0, 0.2);
     opacity: 0;
@@ -257,7 +257,7 @@
     opacity: 1;
 }
 
-/* Responsive: Mobile Stack Layout */
+
 @media (max-width: 768px) {
     .split-layout {
         grid-template-columns: 1fr;
@@ -296,7 +296,7 @@
     }
 }
 
-/* Tablet: Adjust Spacing */
+
 @media (min-width: 769px) and (max-width: 1024px) {
     .results-tray {
         gap: var(--spacing-md);
@@ -307,7 +307,7 @@
     }
 }
 
-/* Desktop: Optimal Layout */
+
 @media (min-width: 1440px) {
     .active-stage {
         max-width: 1600px;
@@ -322,7 +322,7 @@
     }
 }
 
-/* Accessibility: Reduced Motion */
+
 @media (prefers-reduced-motion: reduce) {
     .stage-graph,
     .live-status,
@@ -341,7 +341,7 @@
     padding: var(--spacing-2xl) var(--spacing-xl);
 }
 
-/* Gauge container for split layout (no extra padding) */
+
 .gauge-container-split {
     position: relative;
     width: 100%;
@@ -351,7 +351,7 @@
 .gauge-container-split {
     position: relative;
     width: 100%;
-    max-width: 240px; /* Reduced from 340px for 100vh layout */
+    max-width: 240px; 
     aspect-ratio: 1 / 1;
 }
 
@@ -423,7 +423,7 @@
 }
 
 .gauge-value-live {
-    font-size: clamp(2rem, 6vw, 3rem); /* Reduced from 3rem/8vw/4.5rem */
+    font-size: clamp(2rem, 6vw, 3rem); 
     font-weight: 300;
     letter-spacing: -0.03em;
     color: var(--color-text-primary);
@@ -438,7 +438,7 @@
     100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
 
-/* Gauge start button is now handled in layout.css */
+
 
 .gauge-start-button:focus-visible {
     outline: 4px solid var(--color-primary);
@@ -500,7 +500,7 @@ canvas#historyChart {
     display: block;
 }
 
-/* Test Context Panel */
+
 .test-context-panel {
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
@@ -594,7 +594,7 @@ canvas#historyChart {
     gap: var(--spacing-sm);
 }
 
-/* Modal */
+
 .modal {
     position: fixed;
     inset: 0;
@@ -649,7 +649,7 @@ canvas#historyChart {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .modal-close:hover {
@@ -734,7 +734,7 @@ canvas#historyChart {
     }
 }
 
-/* Loading Skeleton */
+
 .skeleton {
     background: linear-gradient(
         90deg,
@@ -766,12 +766,12 @@ canvas#historyChart {
     width: 120px;
 }
 
-/* Number Count Animation */
+
 .counting {
     animation: countUp 0.3s ease;
 }
 
-/* Tooltip Enhancement */
+
 .tooltip {
     position: absolute;
     background: var(--bg-primary);
@@ -834,7 +834,7 @@ canvas#historyChart {
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .history-item:hover {
@@ -878,7 +878,7 @@ canvas#historyChart {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s, background 0.1s ease-out;
-    z-index: -1; /* Place behind content to prevent blocking interactions */
+    z-index: -1; 
 }
 
 .matrix-card[data-status="measuring"]::before {
@@ -906,7 +906,7 @@ canvas#historyChart {
     height: 12px;
     border-radius: var(--radius-full);
     background: var(--color-border-strong);
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), opacity var(--transition-base);
 }
 
 .phase[data-status="active"] .phase-dot {
@@ -924,7 +924,7 @@ canvas#historyChart {
     50% { transform: scale(1.1); }
 }
 
-/* Mobile Optimizations */
+
 @media (max-width: 600px) {
     .gauge-container {
         padding: var(--spacing-lg) var(--spacing-sm);
@@ -946,7 +946,7 @@ canvas#historyChart {
         font-size: var(--font-size-sm);
     }
     
-    /* Improve progress phases on mobile */
+    
     .progress-phases {
         gap: var(--spacing-md);
     }
@@ -956,7 +956,7 @@ canvas#historyChart {
     }
 }
 }
-/* Number Count Animation */
+
 @keyframes countUp {
     from {
         opacity: 0;
@@ -972,7 +972,7 @@ canvas#historyChart {
     animation: countUp 0.3s ease;
 }
 
-/* Loading Skeleton */
+
 @keyframes shimmer {
     0% {
         background-position: 200% 0;
@@ -1004,7 +1004,7 @@ canvas#historyChart {
     width: 120px;
 }
 
-/* Tooltip Enhancement */
+
 .tooltip {
     position: absolute;
     background: var(--color-bg-primary);
@@ -1038,7 +1038,7 @@ canvas#historyChart {
     border-bottom: 1px solid var(--color-border);
 }
 
-/* Pulse Animation for Loading States */
+
 @keyframes pulse {
     0%, 100% {
         opacity: 1;
@@ -1052,7 +1052,7 @@ canvas#historyChart {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* History Stats */
+
 .history-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

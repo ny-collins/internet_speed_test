@@ -1,28 +1,21 @@
-// ========================================
-// DOM ELEMENTS
-// ========================================
 
 export const DOM = {
-    // Theme & Settings
     themeToggleSwitch: null,
     settingsToggle: null,
     settingsPanel: null,
     settingsClose: null,
 
-    // Settings controls
     downloadThreads: null,
     downloadThreadsValue: null,
     maxDuration: null,
     maxDurationValue: null,
     resetSettings: null,
 
-    // Test controls
     startTest: null,
     cancelTest: null,
     retryTest: null,
     gaugeStartButton: null,
 
-    // Gauge elements
     gaugeCircle: null,
     gaugeInner: null,
     gaugeProgress: null,
@@ -30,56 +23,46 @@ export const DOM = {
     gaugeUnit: null,
     gaugePhase: null,
     
-    // Stage & Tray
     splitLayout: null,
     downloadMiniGraph: null,
     uploadMiniGraph: null,
 
-    // Results
     resultsMatrix: null,
 
-    // Server info
     serverLocation: null,
     serverLimits: null,
     serverInfo: null,
 
-    // Progress & Status
     progressBar: null,
     statusBar: null,
     statusText: null,
     testTimer: null,
     timerValue: null,
 
-    // History
     historyList: null,
     clearHistory: null,
     exportHistory: null,
 
-    // Accessibility
     ariaLiveRegion: null
 };
 
 export function queryDOMElements() {
-    // Theme & Settings
     DOM.themeToggleSwitch = document.getElementById('themeToggleSwitch');
     DOM.settingsToggle = document.querySelector('.settings-toggle');
     DOM.settingsPanel = document.getElementById('settingsPanel');
     DOM.settingsClose = document.getElementById('settingsClose');
 
-    // Settings controls
     DOM.downloadThreads = document.getElementById('downloadThreads');
     DOM.downloadThreadsValue = document.getElementById('downloadThreadsValue');
     DOM.maxDuration = document.getElementById('maxDuration');
     DOM.maxDurationValue = document.getElementById('maxDurationValue');
     DOM.resetSettings = document.getElementById('resetSettings');
 
-    // Test controls
     DOM.startTest = document.getElementById('startTest');
     DOM.cancelTest = document.getElementById('cancelTest');
     DOM.retryTest = document.getElementById('retryTest');
     DOM.gaugeStartButton = document.getElementById('gaugeStartButton');
 
-    // Gauge elements
     DOM.gaugeCircle = document.getElementById('gaugeCircle');
     DOM.gaugeInner = document.getElementById('gaugeInner');
     DOM.gaugeProgress = document.getElementById('gaugeProgress');
@@ -87,27 +70,22 @@ export function queryDOMElements() {
     DOM.gaugeUnit = document.getElementById('gaugeUnit');
     DOM.gaugePhase = document.getElementById('gaugePhase');
     
-    // Stage & Tray
     DOM.splitLayout = document.getElementById('splitLayout');
     DOM.downloadMiniGraph = document.getElementById('downloadMiniGraph');
     DOM.uploadMiniGraph = document.getElementById('uploadMiniGraph');
 
-    // Results
     DOM.resultsMatrix = document.getElementById('resultsMatrix');
 
-    // Server info
     DOM.serverLocation = document.getElementById('serverLocation');
     DOM.serverLimits = document.getElementById('serverLimits');
     DOM.serverInfo = document.getElementById('serverInfo');
 
-    // Progress & Status
     DOM.progressBar = document.querySelector('.progress-fill');
     DOM.statusBar = document.getElementById('statusBar');
     DOM.statusText = DOM.statusBar?.querySelector('.status-text');
     DOM.testTimer = document.getElementById('testTimer');
     DOM.timerValue = document.getElementById('timerValue');
 
-    // History
     DOM.historyList = document.getElementById('historyList');
     DOM.clearHistory = document.getElementById('clearHistory');
     DOM.exportHistory = document.getElementById('exportHistory');

@@ -17,7 +17,7 @@
     position: sticky;
     top: 2rem;
     height: fit-content;
-    max-height: calc(100vh - 4rem);
+    max-height: calc(100dvh - 4rem);
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -61,7 +61,7 @@
     text-decoration: none;
     font-size: 0.9375rem;
     border-radius: var(--radius-md);
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
     border-left: 2px solid transparent;
 }
 
@@ -98,7 +98,7 @@
     text-decoration: none;
     font-size: 0.875rem;
     border-left: 2px solid transparent;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
 }
 
 .toc-link:hover,
@@ -113,7 +113,7 @@
     border-top: 1px solid var(--color-border);
 }
 
-/* Article with Sidebar */
+
 .learn-article {
     max-width: 800px;
     padding: 0;
@@ -154,7 +154,7 @@
     height: 16px;
 }
 
-/* Article Navigation Cards */
+
 .article-navigation {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -171,7 +171,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     text-decoration: none;
-    transition: all 0.25s ease;
+    transition: transform 0.25s ease, opacity 0.25s ease, background 0.25s ease;
 }
 
 .nav-card:hover {
@@ -203,7 +203,7 @@
     color: var(--color-primary);
 }
 
-/* Mobile Responsiveness for Sidebar Layout */
+
 @media (max-width: 1024px) {
     .learn-layout {
         grid-template-columns: 1fr;
@@ -268,7 +268,7 @@
     padding: 0.5rem 0.75rem;
     display: block;
     border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
     border-left: 2px solid transparent;
 }
 
@@ -284,7 +284,7 @@
     box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
-/* Mobile responsiveness for TOC */
+
 @media (max-width: 768px) {
     .toc-nav {
         position: static;
@@ -327,7 +327,7 @@ body.page-learn {
     margin-bottom: 3rem;
 }
 
-/* Article Link Cards (replacing path-card grid) */
+
 .article-links-list {
     display: flex;
     flex-direction: column;
@@ -345,7 +345,7 @@ body.page-learn {
     border-radius: var(--radius-lg);
     text-decoration: none;
     color: inherit;
-    transition: all 0.25s ease;
+    transition: transform 0.25s ease, opacity 0.25s ease, background 0.25s ease;
 }
 
 .article-link-card:hover {
@@ -392,7 +392,7 @@ body.page-learn {
     font-weight: 500;
 }
 
-/* Callout variants */
+
 .callout-info {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
     border-left-color: var(--color-primary);
@@ -402,7 +402,7 @@ body.page-learn {
     color: var(--color-primary);
 }
 
-/* Learn CTA */
+
 .learn-cta {
     text-align: center;
     margin: 5rem auto 4rem;
@@ -419,7 +419,7 @@ body.page-learn {
 }
 
 .article-content {
-    max-width: 800px; /* Optimal reading width */
+    max-width: 800px; 
     margin: 0 auto;
     padding: 4rem 1.5rem;
 }
@@ -558,7 +558,7 @@ body.page-learn {
 
 /* --- 404 Page --- */
 .page-404 {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -693,7 +693,7 @@ body.page-learn {
     font-size: 0.9rem;
 }
 
-/* Conversion Table Styling */
+
 .conversion-table tbody tr:nth-child(4) {
     background: var(--color-primary-dim);
     font-weight: 600;
@@ -704,7 +704,7 @@ body.page-learn {
     font-weight: 600;
 }
 
-/* Conversion Callout */
+
 .conversion-callout {
     text-align: center;
     padding: 1.5rem;
@@ -723,7 +723,7 @@ body.page-learn {
     margin-bottom: 0.5rem;
 }
 
-/* Mobile Table Responsiveness */
+
 @media (max-width: 768px) {
     .data-table {
         font-size: 0.85rem;

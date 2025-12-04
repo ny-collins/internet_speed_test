@@ -1,6 +1,3 @@
-// ========================================
-// UPLOAD TEST MODULE (Web Worker Version)
-// ========================================
 
 import { CONFIG } from '../config.js';
 import { STATE } from '../state.js';
@@ -14,12 +11,10 @@ export async function measureUpload() {
     console.log(`[Upload] Starting with ${threadCount} threads (Web Worker)`);
     announceToScreenReader(`Starting upload test with ${threadCount} threads`);
 
-    // Start speed curve
     startSpeedCurve('upload');
     highlightTrayCard('upload');
 
     return new Promise((resolve, reject) => {
-        // Create abort controller for this test
         const abortController = new AbortController();
         const controllerIndex = STATE.abortControllers.push(abortController) - 1;
         let cleanupDone = false;
@@ -32,7 +27,6 @@ export async function measureUpload() {
             }
         };
 
-        // Create Web Worker
         const worker = new Worker('/js/workers/upload.worker.js', { type: 'module' });
 
         let idleTaskId = null;
@@ -41,17 +35,14 @@ export async function measureUpload() {
         const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
         const testStartTime = performance.now(); // Track when test actually started
 
-        // Start the upload test
         worker.postMessage({
             type: 'start_upload',
             config: CONFIG,
             threadCount: threadCount
         });
 
-        // Start loaded latency measurement concurrently
         const loadedLatencyPromise = measureLoadedLatency(CONFIG, abortController, maxDuration);
 
-        // Handle worker messages
         worker.onmessage = async function(e) {
             const { type, ...data } = e.data;
 
@@ -60,33 +51,27 @@ export async function measureUpload() {
                 const { currentSpeed } = data;
                 const now = performance.now();
 
-                // Update smoothed speed using exponential moving average
                 if (smoothedSpeed === 0) {
                     smoothedSpeed = currentSpeed;
                 } else {
-                    // Alpha = 0.3 for responsive but smooth updates
                     smoothedSpeed = smoothedSpeed * 0.7 + currentSpeed * 0.3;
                 }
 
-                // Throttle UI updates for smooth animation
                 if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
                     updateGauge(smoothedSpeed, 'upload');
                     updateSpeedCurve(currentSpeed); // Track raw speed for curve
                     lastUiUpdate = now;
 
-                    // Schedule memory monitoring as idle task (non-critical)
                     if (idleTaskId) cancelIdleTask(idleTaskId);
                     idleTaskId = scheduleIdleTask(() => {
                         performanceMonitor.recordMemoryUsage();
                     });
                 }
 
-                // Update Progress (60% -> 95%) - always update progress for smooth bar
                 const testElapsed = now - testStartTime;
                 const progressPercent = 60 + (testElapsed / maxDuration) * 35;
                 setProgress(Math.min(progressPercent, 95));
 
-                // Update Matrix Card Border - use test elapsed time for consistent animation
                 const uploadCard = document.querySelector('.tray-card[data-metric="upload"]');
                 if (uploadCard) {
                     const progress = Math.min((testElapsed / maxDuration) * 100, 100);
@@ -99,7 +84,6 @@ export async function measureUpload() {
             case 'upload_complete': {
                 const { speed, bytesTransferred, duration, effectiveDuration, stability, confidence, warnings } = data;
 
-                // Continue main progress bar animation to target (95%) smoothly
                 const continueMainProgressAnimation = () => {
                     const now = performance.now();
                     const testElapsed = now - testStartTime;
@@ -117,20 +101,16 @@ export async function measureUpload() {
                 };
                 requestAnimationFrame(continueMainProgressAnimation);
 
-                // Handle loaded latency asynchronously (don't block UI)
                 loadedLatencyPromise.then(loadedLatency => {
                     console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
 
-                    // Store loaded latency in state for later use
                     STATE.loadedLatency = loadedLatency;
                 }).catch(error => {
                     console.warn('[Upload] Loaded latency measurement failed:', error);
                 });
 
-                // Stop speed curve
                 stopSpeedCurve();
 
-                // Cleanup immediately (don't wait for loaded latency)
                 cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
@@ -138,7 +118,6 @@ export async function measureUpload() {
                 }
                 worker.terminate();
 
-                // Validate result
                 if (speed > 10000 || speed < 0 || !isFinite(speed)) {
                     console.warn('[Upload] Invalid speed measurement:', speed);
                     reject(new Error('Invalid upload measurement result'));
@@ -186,7 +165,6 @@ export async function measureUpload() {
             reject(new Error('Upload worker failed'));
         };
 
-        // Handle cancellation
         const checkCancellation = () => {
             if (STATE.cancelling) {
                 worker.postMessage({ type: 'abort' });

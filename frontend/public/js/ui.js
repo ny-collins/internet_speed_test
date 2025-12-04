@@ -1,21 +1,15 @@
-// ========================================
-// UI UPDATES & VISUALIZATION
-// ========================================
 
 import { DOM } from './dom.js';
 import { STATE } from './state.js';
 import { CONFIG } from './config.js';
 import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getSpeedContext } from './utils.js';
 
-// Gauge scale breakpoints for adaptive scaling
 const GAUGE_SCALES = [10, 25, 50, 100, 250, 500, 1000];
 
 function calculateMaxScale(currentSpeed) {
-    // Find the first scale that accommodates the current speed
     for (const scale of GAUGE_SCALES) {
         if (currentSpeed <= scale) return scale;
     }
-    // For speeds above 1000, round up to nearest 100
     return Math.ceil(currentSpeed / 100) * 100;
 }
 
@@ -56,7 +50,6 @@ export function updateGauge(speed, phase) {
     STATE.rafId = requestAnimationFrame(() => {
         const speedText = speed.toFixed(1);
 
-        // Only update if value changed (prevents unnecessary repaints)
         if (DOM.gaugeValue && DOM.gaugeValue.textContent !== speedText) {
             DOM.gaugeValue.textContent = speedText;
         }
@@ -97,7 +90,6 @@ export function updateMatrixCardLive(phase, speed) {
         const numberEl = trayCard.querySelector('.matrix-number');
         if (numberEl) {
             const speedText = speed.toFixed(1);
-            // Only update if value changed
             if (numberEl.textContent !== speedText) {
                 numberEl.textContent = speedText;
             }
@@ -119,10 +111,8 @@ export function resetGauge() {
 }
 
 export function updatePhaseUI(phase, status) {
-    // Update tray card with matching data-metric attribute
     const metricCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
     if (metricCard) {
-        // For active status, set to "measuring" and start progress animation
         if (status === 'active') {
             metricCard.setAttribute('data-status', 'measuring');
 
@@ -141,7 +131,6 @@ export function updatePhaseUI(phase, status) {
                 animateBorderProgress(metricCard, duration * 1000);
             }
         } else if (status === 'complete') {
-            // When complete, set to 100% and fade out
             metricCard.style.setProperty('--progress', '100');
             metricCard.setAttribute('data-status', 'complete');
 
@@ -199,15 +188,12 @@ export function updateResultCard(type, result) {
                 matrixUnit.id = `${type}-unit`; // Update ID for accessibility
             }
             
-            // Show confidence indicator if available
             if (result.confidence !== undefined) {
                 showConfidenceIndicator(type, result.confidence);
             }
             
-            // Show measurement info button
             showMeasurementInfoButton(type, result);
 
-            // Add quality badge
             const quality = getSpeedQuality(result.speed, type);
             let badge = trayCard.querySelector('.quality-badge');
             if (!badge) {
@@ -218,7 +204,6 @@ export function updateResultCard(type, result) {
             badge.textContent = quality;
             badge.className = `quality-badge ${quality.toLowerCase()}`;
 
-            // Add quality context
             let context = trayCard.querySelector('.matrix-context');
             if (!context) {
                 context = document.createElement('div');
@@ -266,15 +251,12 @@ export function updateResultCard(type, result) {
                 matrixUnit.id = 'latency-unit'; // Update ID for accessibility
             }
             
-            // Show confidence indicator if available
             if (result.confidence !== undefined) {
                 showConfidenceIndicator('latency', result.confidence);
             }
             
-            // Show measurement info button
             showMeasurementInfoButton('latency', result);
 
-            // Update quality badge and context
             updateQualityBadge('latency', result.average);
             updateLatencyContext(result.average);
         }
@@ -315,7 +297,6 @@ export function updateResultCard(type, result) {
                 matrixUnit.id = 'jitter-unit'; // Update ID for accessibility
             }
 
-            // Update quality badge
             updateQualityBadge('jitter', result.value);
         }
 
@@ -354,31 +335,25 @@ export function clearResultsDisplay() {
         if (qualityEl) qualityEl.textContent = '';
     });
 
-    // Reset sparkline
     const sparkline = document.querySelector('#jitterSparkline path');
     if (sparkline) sparkline.setAttribute('d', '');
     
-    // Hide quality badges
     document.querySelectorAll('[data-quality-badge]').forEach(badge => {
         badge.style.display = 'none';
     });
     
-    // Hide latency context
     const latencyContext = document.querySelector('[data-latency-context]');
     if (latencyContext) latencyContext.style.display = 'none';
     
-    // Hide variance graph
     const varianceContainer = document.getElementById('varianceGraphContainer');
     if (varianceContainer) varianceContainer.hidden = true;
     
-    // Reset variance graph
     resetVarianceGraph();
 }
 
 export function setProgress(percent) {
     if (DOM.progressBar) {
         DOM.progressBar.style.width = `${percent}%`;
-        // Update ARIA attributes for accessibility
         const progressContainer = document.getElementById('progressContainer');
         if (progressContainer) {
             progressContainer.setAttribute('aria-valuenow', percent.toString());
@@ -441,7 +416,6 @@ export function drawSparkline(data) {
     const path = svg.querySelector('path');
     if (!path) return;
 
-    // Don't draw sparkline if we don't have enough data points
     if (!data || data.length < 2) {
         svg.parentElement.style.visibility = 'hidden';
         return;
@@ -464,7 +438,6 @@ export function drawSparkline(data) {
     path.setAttribute('d', `M${points.join(' L')}`);
 }
 
-// Throttle screen reader announcements to avoid flooding speech buffer
 let lastAnnouncement = '';
 let lastAnnouncementTime = 0;
 
@@ -473,7 +446,6 @@ export function announceToScreenReader(message) {
     
     const now = Date.now();
     
-    // Skip if same message was announced within throttle period
     if (message === lastAnnouncement && (now - lastAnnouncementTime) < CONFIG.screenReaderThrottle) {
         return;
     }
@@ -481,16 +453,12 @@ export function announceToScreenReader(message) {
     lastAnnouncement = message;
     lastAnnouncementTime = now;
     
-    // Clear and re-announce for better screen reader compatibility
     DOM.ariaLiveRegion.textContent = '';
     setTimeout(() => {
         if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
     }, 100);
 }
 
-// ========================================
-// ANIMATION UTILITIES
-// ========================================
 
 function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
@@ -503,7 +471,6 @@ function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numbe
     const animState = STATE.varianceGraph.animations[stateKey];
     if (!animState) return;
 
-    // Cancel existing animation
     if (animState.rafId) {
         cancelAnimationFrame(animState.rafId);
     }
@@ -513,7 +480,6 @@ function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numbe
 
     animState.target = targetValue;
 
-    // Skip animation if user prefers reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
         animState.current = targetValue;
@@ -541,9 +507,6 @@ function animateNumber(elementId, targetValue, stateKey, duration = CONFIG.numbe
     animState.rafId = requestAnimationFrame(animate);
 }
 
-// ========================================
-// STAGE SPEED CURVE GRAPH (Mini graphs in cards)
-// ========================================
 
 let speedCurvePhase = null; // 'download' or 'upload'
 const speedCurveSamples = [];
@@ -566,7 +529,6 @@ export function updateSpeedCurve(speed) {
 }
 
 function drawSpeedCurve() {
-    // Only draw to mini graphs now (no stage canvas)
     const miniCanvas = speedCurvePhase === 'download' ? DOM.downloadMiniGraph : DOM.uploadMiniGraph;
 
     if (!miniCanvas || speedCurveSamples.length < 2) return;
@@ -584,7 +546,6 @@ function drawSpeedCurve() {
 function drawToCanvas(canvas, ctx, width, height) {
     if (!ctx || speedCurveSamples.length < 2) return;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
     const samples = speedCurveSamples;
@@ -592,7 +553,6 @@ function drawToCanvas(canvas, ctx, width, height) {
     const max = Math.max(...samples);
     const range = max - min || 1;
 
-    // Set colors based on phase
     let lineColor, gradientColorStart, gradientColorEnd;
     if (speedCurvePhase === 'download') {
         lineColor = '#3b82f6'; // Blue
@@ -604,12 +564,10 @@ function drawToCanvas(canvas, ctx, width, height) {
         gradientColorEnd = 'rgba(139, 92, 246, 0.0)';
     }
 
-    // Create gradient fill
     const gradient = ctx.createLinearGradient(0, 0, 0, height);
     gradient.addColorStop(0, gradientColorStart);
     gradient.addColorStop(1, gradientColorEnd);
 
-    // Draw smooth curve (Catmull-Rom Spline equivalent via quadratic curves)
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
@@ -617,7 +575,6 @@ function drawToCanvas(canvas, ctx, width, height) {
 
     ctx.beginPath();
     
-    // Map data points to canvas coordinates
     const points = samples.map((val, i) => {
         return {
             x: (i / (samples.length - 1)) * width,
@@ -627,27 +584,22 @@ function drawToCanvas(canvas, ctx, width, height) {
 
     ctx.moveTo(points[0].x, points[0].y);
 
-    // Use quadratic curves for smoothing
     for (let i = 0; i < points.length - 1; i++) {
         const p0 = points[i];
         const p1 = points[i + 1];
         
-        // Calculate control point (midpoint)
         const xc = (p0.x + p1.x) / 2;
         const yc = (p0.y + p1.y) / 2;
         
         ctx.quadraticCurveTo(p0.x, p0.y, xc, yc);
     }
     
-    // Draw the last segment
     ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
     
     ctx.stroke();
 
-    // Fill area under curve
     ctx.fillStyle = gradient;
     
-    // Complete the shape for filling
     ctx.lineTo(width, height); // Bottom right
     ctx.lineTo(0, height);     // Bottom left
     ctx.closePath();
@@ -656,14 +608,12 @@ function drawToCanvas(canvas, ctx, width, height) {
 
 export function stopSpeedCurve() {
     speedCurvePhase = null;
-    // Keep graph visible to show final result
 }
 
 export function resetSpeedCurve() {
     speedCurvePhase = null;
     speedCurveSamples.length = 0;
     
-    // Clear mini graphs
     [DOM.downloadMiniGraph, DOM.uploadMiniGraph].forEach(miniCanvas => {
         if (miniCanvas) {
             miniCanvas.classList.remove('visible');
@@ -675,18 +625,12 @@ export function resetSpeedCurve() {
     });
 }
 
-// ========================================
-// ========================================
-// TRAY CARD HIGHLIGHTING
-// ========================================
 
 export function highlightTrayCard(phase) {
-    // Remove highlight from all cards
     document.querySelectorAll('.tray-card').forEach(card => {
         card.classList.remove('active-metric');
     });
     
-    // Add highlight to active card
     const activeCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
     if (activeCard) {
         activeCard.classList.add('active-metric');
@@ -699,15 +643,11 @@ export function clearTrayHighlights() {
     });
 }
 
-// ========================================
-// VARIANCE GRAPH (Legacy - kept for reference)
-// ========================================
 
 export function initVarianceGraph() {
     const canvas = document.getElementById('varianceCanvas');
     if (!canvas) return;
 
-    // Set canvas resolution for crisp rendering
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * dpr;
@@ -715,7 +655,6 @@ export function initVarianceGraph() {
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // Store context for later use
     canvas._ctx = ctx;
     canvas._width = rect.width;
     canvas._height = rect.height;
@@ -724,7 +663,6 @@ export function initVarianceGraph() {
 export function updateVarianceGraph(speed) {
     if (!STATE.varianceGraph.active) return;
 
-    // Add sample
     STATE.varianceGraph.samples.push(speed);
     if (STATE.varianceGraph.samples.length > STATE.varianceGraph.maxSamples) {
         STATE.varianceGraph.samples.shift();
@@ -740,7 +678,6 @@ function drawVarianceGraph() {
     const samples = STATE.varianceGraph.samples;
     if (samples.length < 2) return;
 
-    // Remove loading state once we have data
     const container = document.getElementById('varianceGraphContainer');
     if (container && container.getAttribute('data-loading') === 'true') {
         container.removeAttribute('data-loading');
@@ -750,23 +687,19 @@ function drawVarianceGraph() {
     const width = canvas._width;
     const height = canvas._height;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Calculate stats
     const min = Math.min(...samples);
     const max = Math.max(...samples);
     const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
     const range = max - min || 1;
     const variance = ((range / avg) * 100);
 
-    // Update stats display with smooth animations
     animateNumber('varianceAvg', avg, 'avg');
     animateNumber('varianceMin', min, 'min');
     animateNumber('varianceMax', max, 'max');
     animateNumber('variancePercent', variance, 'percent');
 
-    // Update quality indicator
     const qualityEl = document.querySelector('.variance-quality');
     if (qualityEl) {
         let quality, text;
@@ -787,7 +720,6 @@ function drawVarianceGraph() {
         qualityEl.setAttribute('data-quality', quality);
     }
 
-    // Draw grid lines
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
@@ -798,7 +730,6 @@ function drawVarianceGraph() {
         ctx.stroke();
     }
 
-    // Draw line graph
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
@@ -816,7 +747,6 @@ function drawVarianceGraph() {
     });
     ctx.stroke();
 
-    // Draw filled area under line
     ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
     ctx.lineTo(width, height);
     ctx.lineTo(0, height);
@@ -829,7 +759,6 @@ export function startVarianceTracking() {
     STATE.varianceGraph.active = true;
     initVarianceGraph();
     
-    // Show variance graph container with fade-in
     const container = document.getElementById('varianceGraphContainer');
     if (container) {
         container.hidden = false;
@@ -838,14 +767,12 @@ export function startVarianceTracking() {
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         
         if (prefersReducedMotion) {
-            // No animation for reduced motion preference
             container.style.opacity = '1';
             container.style.transform = 'translateY(0)';
         } else {
             container.style.opacity = '0';
             container.style.transform = 'translateY(10px)';
             
-            // Trigger animation on next frame
             requestAnimationFrame(() => {
                 container.style.transition = `opacity ${CONFIG.fadeAnimationDuration}ms ease-out, transform ${CONFIG.fadeAnimationDuration}ms ease-out`;
                 container.style.opacity = '1';
@@ -857,7 +784,6 @@ export function startVarianceTracking() {
 
 export function stopVarianceTracking() {
     STATE.varianceGraph.active = false;
-    // Keep graph visible after test to show final results
 }
 
 export function resetVarianceGraph() {
@@ -867,7 +793,6 @@ export function resetVarianceGraph() {
         canvas._ctx.clearRect(0, 0, canvas._width, canvas._height);
     }
 
-    // Clear stats
     const avgEl = document.getElementById('varianceAvg');
     const minEl = document.getElementById('varianceMin');
     const maxEl = document.getElementById('varianceMax');
@@ -884,9 +809,6 @@ export function resetVarianceGraph() {
     }
 }
 
-// ========================================
-// QUALITY BADGES
-// ========================================
 
 export function updateQualityBadge(metric, value) {
     const badge = document.querySelector(`[data-quality-badge="${metric}"]`);
@@ -940,7 +862,6 @@ export function updateQualityBadge(metric, value) {
     if (iconEl) iconEl.textContent = icon;
     if (labelEl) labelEl.textContent = label;
 
-    // Animate badge appearance with stagger
     const delay = metric === 'latency' ? 0 : 100; // Jitter appears 100ms after latency
     badge.style.opacity = '0';
     badge.style.transform = 'translateY(10px)';
@@ -973,10 +894,6 @@ export function updateLatencyContext(latency) {
     contextEl.textContent = text;
     contextEl.style.display = 'block';
 }
-// ========================================
-// UI ENHANCEMENTS - Phase 1
-// Measurement quality visibility and context
-// ========================================
 
 /**
  * Show confidence indicator for a measurement
@@ -992,7 +909,6 @@ export function showConfidenceIndicator(metric, confidence) {
     if (fill) {
         fill.style.width = `${confidence}%`;
 
-        // Set confidence level for styling
         let level = 'very-low';
         if (confidence >= 85) level = 'high';
         else if (confidence >= 70) level = 'medium';
@@ -1015,10 +931,8 @@ export function showMeasurementInfoButton(metric, details) {
 
     button.hidden = false;
 
-    // Store details for modal
     button.dataset.details = JSON.stringify(details);
 
-    // Add click handler if not already added
     if (!button.dataset.handlerAdded) {
         button.addEventListener('click', () => showMeasurementDetailsModal(metric, details));
         button.dataset.handlerAdded = 'true';
@@ -1035,7 +949,6 @@ function showMeasurementDetailsModal(metric, details) {
 
     if (!modal || !modalBody || !modalTitle) return;
 
-    // Set title
     const metricNames = {
         download: 'Download',
         upload: 'Upload',
@@ -1044,7 +957,6 @@ function showMeasurementDetailsModal(metric, details) {
     };
     modalTitle.textContent = `${metricNames[metric]} Measurement Details`;
 
-    // Build content
     let content = '';
 
     if (metric === 'download' || metric === 'upload') {
@@ -1173,7 +1085,6 @@ function showMeasurementDetailsModal(metric, details) {
     modalBody.innerHTML = content;
     modal.hidden = false;
 
-    // Re-initialize Lucide icons in modal
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -1196,7 +1107,6 @@ export function initializeMeasurementModal() {
     closeBtn?.addEventListener('click', closeModal);
     overlay?.addEventListener('click', closeModal);
 
-    // ESC key to close
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !modal.hidden) {
             closeModal();
@@ -1213,13 +1123,11 @@ export function updateTestContext(testData) {
 
     panel.hidden = false;
 
-    // Update server location
     const serverLoc = document.getElementById('contextServerLocation');
     if (serverLoc && testData.serverLocation) {
         serverLoc.textContent = testData.serverLocation;
     }
 
-    // Update distance (calculate if coordinates available)
     const distance = document.getElementById('contextDistance');
     if (distance) {
         if (testData.distance) {
@@ -1229,13 +1137,11 @@ export function updateTestContext(testData) {
         }
     }
 
-    // Update connection type
     const connType = document.getElementById('contextConnectionType');
     if (connType && testData.connectionType) {
         connType.textContent = testData.connectionType;
     }
 
-    // Update timestamp
     const timestamp = document.getElementById('contextTimestamp');
     if (timestamp) {
         const date = new Date();
@@ -1252,7 +1158,6 @@ export function updateTestContext(testData) {
         timestamp.textContent = `${timeStr}, ${dateStr}`;
     }
 
-    // Update data used
     const dataUsed = document.getElementById('contextDataUsed');
     if (dataUsed && testData.totalBytes) {
         dataUsed.textContent = formatBytes(testData.totalBytes);
@@ -1359,7 +1264,6 @@ export function createLearnTooltip(element, text, learnUrl) {
         
         element.appendChild(tooltip);
         
-        // Position tooltip
         const rect = element.getBoundingClientRect();
         tooltip.style.top = '-40px';
         tooltip.style.left = '50%';
@@ -1387,7 +1291,6 @@ export function animateNumber(element, targetValue, duration = 1000, decimals = 
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing function (ease-out)
         const eased = 1 - Math.pow(1 - progress, 3);
         const current = startValue + (targetValue - startValue) * eased;
         

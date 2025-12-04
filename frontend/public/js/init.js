@@ -2,12 +2,10 @@
 // INITIALIZATION - Early setup before main app loads
 // ========================================
 
-// API Configuration
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     window.API_BASE_URL = 'http://localhost:3000';
 }
 
-// Emergency fallback: If JS doesn't load within 3 seconds, show the app anyway
 setTimeout(function() {
     const skeleton = document.getElementById('loadingSkeleton');
     const appContainer = document.querySelector('.app-container');
@@ -18,7 +16,6 @@ setTimeout(function() {
     }
 }, 3000);
 
-// Catch module loading errors
 window.addEventListener('error', function(e) {
     if (e.filename && e.filename.includes('.js')) {
         console.error('[Module Error]', e.message, e.filename);

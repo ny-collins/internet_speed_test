@@ -10,7 +10,7 @@
     width: 100%;
 }
 
-/* Header */
+
 .header {
     text-align: center;
     margin-bottom: var(--spacing-2xl);
@@ -38,7 +38,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: var(--color-primary); /* Fallback for gradient support */
+    color: var(--color-primary); 
     letter-spacing: -0.02em;
 }
 
@@ -47,17 +47,17 @@
     font-size: var(--font-size-lg);
 }
 
-/* Settings Panel */
+
 .settings-panel {
     position: fixed;
     top: 0;
     right: 0;
     width: 100%;
     max-width: 400px;
-    height: 100vh;
+    height: 100dvh;
     background: var(--color-bg-elevated);
     box-shadow: var(--shadow-xl);
-    z-index: 2000;
+    z-index: var(--z-modal, 100);
     transform: translateX(100%);
     transition: transform var(--transition-base);
     overflow-y: auto;
@@ -72,7 +72,7 @@
     position: fixed;
     top: var(--spacing-lg);
     right: var(--spacing-lg);
-    z-index: 1000;
+    z-index: var(--z-overlay, 50);
     width: 3rem;
     height: 3rem;
     border-radius: var(--radius-full);
@@ -84,7 +84,7 @@
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-md);
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
 }
 
 .settings-toggle[data-custom="true"]::after {
@@ -97,7 +97,7 @@
     background: var(--color-danger);
     color: white;
     border-radius: var(--radius-full);
-    font-size: 10px;
+    font-size: 0.625rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -137,9 +137,9 @@
     }
 }
 
-/* Legacy CSS removed - using Stage & Tray layout now */
 
-/* Footer */
+
+
 .footer {
     padding: var(--spacing-3xl) 0 var(--spacing-xl);
     border-top: 1px solid var(--color-border);
@@ -186,7 +186,7 @@
     cursor: pointer;
     font-size: var(--font-size-base);
     font-weight: 600;
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
 }
 
 .footer-toggle-btn:hover {
@@ -213,7 +213,7 @@
     color: var(--color-text-primary);
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
     margin-bottom: var(--spacing-xl);
 }
 
@@ -233,7 +233,7 @@
     gap: var(--spacing-lg);
 }
 
-/* Primary metrics (Download/Upload) - larger, top row */
+
 .matrix-card[data-metric="download"],
 .matrix-card[data-metric="upload"] {
     grid-column: span 1;
@@ -247,7 +247,7 @@
     font-weight: 800;
 }
 
-/* Quality metrics (Ping/Jitter) - compact, bottom row */
+
 .matrix-card[data-metric="latency"],
 .matrix-card[data-metric="jitter"] {
     grid-column: span 1;
@@ -261,9 +261,9 @@
 }
 
 
-/* Responsive Breakpoints */
+
 @media (max-width: 374px) {
-    /* Very small phones */
+    
     .results-matrix {
         grid-template-columns: 1fr;
     }
@@ -287,28 +287,28 @@
     }
     
     .footer-info-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
     
     .settings-toggle {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
-        top: var(--spacing-md) !important;
-        right: var(--spacing-md) !important;
+        width: 2.5rem;
+        height: 2.5rem;
+        top: var(--spacing-md);
+        right: var(--spacing-md);
     }
     
     .gauge-wrapper {
         max-width: 280px;
     }
     
-    /* Improve touch targets on mobile */
+    
     .btn-primary, .btn-secondary {
         min-height: 44px;
         padding: var(--spacing-lg) var(--spacing-xl);
         font-size: var(--font-size-base);
     }
     
-    /* Better spacing for controls on mobile */
+    
     .controls {
         flex-direction: column;
         gap: var(--spacing-sm);
@@ -320,7 +320,7 @@
         margin-top: var(--spacing-sm);
     }
     
-    /* Improve results matrix on mobile */
+    
     .results-matrix {
         gap: var(--spacing-md);
         padding: var(--spacing-lg) 0;
@@ -331,25 +331,25 @@
         border-radius: var(--radius-lg);
     }
     
-    /* Better gauge spacing on mobile */
+    
     .gauge-container {
         padding: var(--spacing-xl) var(--spacing-md);
     }
 }
 
 @media (min-width: 601px) and (max-width: 768px) {
-    /* Large phones / small tablets */
+    
     .gauge-wrapper {
         max-width: 320px;
     }
 }
 
 @media (min-width: 769px) {
-    /* Tablet and above - maintain stage-tray layout */
+    
 }
 
 @media (min-width: 1024px) {
-    /* Desktop - Stage-tray is already responsive */
+    
     .app-container {
         padding: var(--spacing-3xl) var(--spacing-xl);
         max-width: 1400px;
@@ -357,7 +357,7 @@
 }
 
 @media (min-width: 1440px) {
-    /* Large desktop */
+    
     .app-container {
         max-width: 1600px;
     }

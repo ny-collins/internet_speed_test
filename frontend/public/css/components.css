@@ -25,9 +25,8 @@
 }
 
 .btn-primary, .cta-button {
-    background: var(--color-primary);
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: white !important;
+    color: white;
     box-shadow: 0 4px 12px var(--color-primary-glow);
 }
 
@@ -61,7 +60,7 @@
 
 /* --- Icons --- */
 .btn-icon-small {
-    width: 2.75rem; /* 44px for better touch target */
+    width: 2.75rem; 
     height: 2.75rem;
     border: 1px solid var(--color-border);
     background: var(--color-bg-elevated);
@@ -71,7 +70,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .btn-icon-small:hover {
@@ -126,7 +125,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Confidence color coding */
+
 .confidence-fill[data-level="high"] {
     background: var(--color-success);
 }
@@ -162,11 +161,11 @@
 
 /* --- Data Strip Components --- */
 .data-strip {
-    /* Styles are mostly in layout.css, this is for contained elements */
+    
 }
 
 .data-group {
-    /* Grouping of data items */
+    
 }
 
 .data-item {
@@ -174,7 +173,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: var(--spacing-sm) var(--spacing-md);
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
     text-align: center;
     flex-grow: 1;
     display: flex;
@@ -277,27 +276,27 @@
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
     font-weight: 500;
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
 }
 
 .server-status-pill .status-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--color-info); /* Default for "Finding server" */
+    background: var(--color-info); 
     display: inline-block;
     flex-shrink: 0;
 }
 
 /* --- Gauge Specifics (Overrides from layout.css if needed) --- */
 .gauge-start-button {
-    width: 240px; /* Reduced from 340px to fit split layout */
+    width: 240px; 
     height: 240px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: white;
-    border: none; /* Ensure no border */
-    outline: none; /* Remove outline */
+    border: none; 
+    outline: none; 
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -306,8 +305,8 @@
     gap: var(--spacing-sm);
     font-weight: 700;
     font-size: var(--font-size-2xl);
-    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4); /* Circular glow only */
-    transition: all var(--transition-base);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4); 
+    transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
     position: relative;
     overflow: hidden;
     margin: 0 auto;
@@ -343,7 +342,7 @@
 
 .gauge-start-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 12px 48px rgba(59, 130, 246, 0.5); /* Circular glow only */
+    box-shadow: 0 12px 48px rgba(59, 130, 246, 0.5); 
 }
 
 .gauge-start-button:active {
@@ -351,19 +350,19 @@
 }
 
 .start-button-text {
-    font-size: var(--font-size-3xl); /* Reduced from 4xl */
+    font-size: var(--font-size-3xl); 
     font-weight: 800;
     letter-spacing: 0.1em;
 }
 
 .start-button-subtitle {
-    font-size: var(--font-size-xs); /* Reduced from sm */
+    font-size: var(--font-size-xs); 
     font-weight: 500;
     opacity: 0.9;
     letter-spacing: 0.02em;
 }
 
-/* Ripple effect on click */
+
 .gauge-start-button::after {
     content: '';
     position: absolute;
@@ -389,7 +388,7 @@
     }
 }
 
-/* Respect user's motion preferences */
+
 @media (prefers-reduced-motion: reduce) {
     .gauge-start-button::before {
         animation: none;
@@ -406,7 +405,7 @@
 }
 
 /* --- Typography Fixes --- */
-/* Ensure these apply to the new data strip values too */
+
 .gauge-value-live, .data-item .value, #timerValue {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
@@ -541,7 +540,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
     transform: scale(1.1);
 }
 
-/* Firefox */
+
 input[type="range"]::-moz-range-thumb {
     width: 20px;
     height: 20px;
@@ -708,7 +707,7 @@ input[type="range"]::-moz-range-track {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
 }
 
 .theme-toggle-inline:hover {
@@ -719,7 +718,7 @@ input[type="range"]::-moz-range-track {
 }
 
 .settings-close {
-    width: 2.75rem; /* Match btn-icon-small */
+    width: 2.75rem; 
     height: 2.75rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
@@ -729,7 +728,7 @@ input[type="range"]::-moz-range-track {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
 }
 
 .settings-close:hover {
@@ -748,7 +747,7 @@ input[type="range"]::-moz-range-track {
     font-weight: 600;
     color: var(--color-text-primary);
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -892,7 +891,7 @@ input[type="range"]::-moz-range-track {
         animation: none;
     }
 }
-/* Privacy Notice */
+
 .history-privacy-notice {
     display: flex;
     align-items: center;
@@ -913,7 +912,7 @@ input[type="range"]::-moz-range-track {
     height: 16px;
 }
 
-/* Number Enhancement - Tabular Figures */
+
 .matrix-number,
 .metric-value,
 .history-value {
@@ -922,7 +921,7 @@ input[type="range"]::-moz-range-track {
     letter-spacing: -0.02em;
 }
 
-/* Learn Link Tooltip */
+
 .learn-link-tooltip {
     position: relative;
     display: inline-flex;
@@ -943,7 +942,7 @@ input[type="range"]::-moz-range-track {
     height: 16px;
 }
 
-/* Button Ripple Effect */
+
 .btn::before {
     content: '';
     position: absolute;

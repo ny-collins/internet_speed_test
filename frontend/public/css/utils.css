@@ -18,7 +18,7 @@
     display: none !important;
 }
 
-/* Performance Warning Notification */
+
 .performance-warning {
     position: fixed;
     top: 20px;
@@ -27,8 +27,8 @@
     color: white;
     padding: 12px 20px;
     border-radius: 8px;
-    font-size: 14px;
-    z-index: 9999;
+    font-size: 0.875rem;
+    z-index: var(--z-modal, 100);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     animation: slideInRight 0.3s ease;
 }
@@ -47,18 +47,18 @@
     to { transform: translateX(400px); opacity: 0; }
 }
 
-/* App container fade-in */
+
 .app-container-loading {
     opacity: 0;
     transition: opacity 0.3s;
 }
 
-/* Hidden elements with display */
+
 .hidden-display {
     display: none;
 }
 
-/* Share button positioning */
+
 .share-btn-positioned {
     margin-left: auto;
 }
