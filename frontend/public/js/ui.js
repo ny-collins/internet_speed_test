@@ -555,11 +555,11 @@ function drawToCanvas(canvas, ctx, width, height) {
 
     let lineColor, gradientColorStart, gradientColorEnd;
     if (speedCurvePhase === 'download') {
-        lineColor = '#3b82f6'; // Blue
+        lineColor = '#3b82f6';
         gradientColorStart = 'rgba(59, 130, 246, 0.4)';
         gradientColorEnd = 'rgba(59, 130, 246, 0.0)';
     } else {
-        lineColor = '#8b5cf6'; // Purple
+        lineColor = '#8b5cf6';
         gradientColorStart = 'rgba(139, 92, 246, 0.4)';
         gradientColorEnd = 'rgba(139, 92, 246, 0.0)';
     }
@@ -569,16 +569,23 @@ function drawToCanvas(canvas, ctx, width, height) {
     gradient.addColorStop(1, gradientColorEnd);
 
     ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
+    const maxVisibleSamples = 50;
+    const displaySamples = samples.length > maxVisibleSamples 
+        ? samples.slice(-maxVisibleSamples) 
+        : samples;
+    
+    const stepX = width / Math.max(displaySamples.length - 1, 1);
+    
     ctx.beginPath();
     
-    const points = samples.map((val, i) => {
+    const points = displaySamples.map((val, i) => {
         return {
-            x: (i / (samples.length - 1)) * width,
-            y: height - ((val - min) / range) * (height * 0.8) - (height * 0.1)
+            x: i * stepX,
+            y: height - ((val - min) / range) * (height * 0.75) - (height * 0.15)
         };
     });
 
@@ -600,8 +607,8 @@ function drawToCanvas(canvas, ctx, width, height) {
 
     ctx.fillStyle = gradient;
     
-    ctx.lineTo(width, height); // Bottom right
-    ctx.lineTo(0, height);     // Bottom left
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
     ctx.closePath();
     ctx.fill();
 }

@@ -1691,6 +1691,26 @@ input[type="range"]::-moz-range-track {
     margin: var(--spacing-2xl) 0;
 }
 
+.accordion-intro {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding: 0 var(--spacing-lg);
+}
+
+.accordion-intro h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.accordion-intro p {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
 .accordion-item {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
@@ -1708,8 +1728,8 @@ input[type="range"]::-moz-range-track {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -1725,17 +1745,22 @@ input[type="range"]::-moz-range-track {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
     background: var(--color-bg-secondary);
     color: var(--color-primary);
     flex-shrink: 0;
 }
 
+.accordion-icon i {
+    width: 1rem;
+    height: 1rem;
+}
+
 .accordion-title {
     flex: 1;
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
     font-weight: 600;
     color: var(--color-text-primary);
 }
@@ -2141,17 +2166,21 @@ input[type="range"]::-moz-range-track {
 .gauge-container-split {
     position: relative;
     width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 .gauge-wrapper,
 .gauge-container-split {
     position: relative;
     width: 100%;
-    max-width: 240px; 
+    max-width: 240px;
     aspect-ratio: 1 / 1;
-}
-
-.gauge-circle {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}.gauge-circle {
     position: relative;
     width: 100%;
     height: 100%;
@@ -2302,6 +2331,7 @@ canvas#historyChart {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
+    margin-top: var(--spacing-2xl);
     margin-bottom: var(--spacing-xl);
 }
 
