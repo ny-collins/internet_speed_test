@@ -252,12 +252,6 @@
     height: 100%;
 }
 
-.tray-card:hover {
-    border-color: var(--color-border-strong);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
 
 .tray-card[data-status="measuring"] {
     border-color: var(--color-primary);
