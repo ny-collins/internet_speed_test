@@ -2,9 +2,9 @@
 // LATENCY TEST MODULE
 // ========================================
 
-import { CONFIG } from './config.js';
-import { STATE } from './state.js';
-import { sleep } from './utils.js';
+import { CONFIG } from '../config.js';
+import { STATE } from '../state.js';
+import { sleep } from '../utils.js';
 import {
     setProgress,
     updatePhaseUI,

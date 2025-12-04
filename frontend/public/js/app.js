@@ -2,18 +2,17 @@
 // SPEEDCHECK - MAIN ENTRY POINT
 // ========================================
 
-import { queryDOMElements, DOM } from './js/dom.js';
-import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './js/events.js';
-import { registerServiceWorker } from './js/worker.js';
-import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, resetSpeedCurve, clearTrayHighlights } from './js/ui.js';
-import { updateTestContext, updateHistoryStats, displayHistoryStats, animateNumber } from './js/ui-enhancements.js';
-import { getFriendlyError, getConnectionType, performanceMonitor } from './js/utils.js';
-import { drawHistoryChart } from './js/chart.js';
-import { measureLatency } from './js/test-latency.js';
-import { measureDownload } from './js/test-download.js';
-import { measureUpload } from './js/test-upload.js';
-import { CONFIG } from './js/config.js';
-import { STATE } from './js/state.js';
+import { queryDOMElements, DOM } from './dom.js';
+import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './engine.js';
+import { registerServiceWorker } from './worker.js';
+import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, resetSpeedCurve, clearTrayHighlights, updateTestContext, updateHistoryStats, displayHistoryStats, animateNumber } from './ui.js';
+import { getFriendlyError, getConnectionType, performanceMonitor } from './utils.js';
+import { drawHistoryChart } from './chart.js';
+import { measureLatency } from './modules/latency.js';
+import { measureDownload } from './modules/download.js';
+import { measureUpload } from './modules/upload.js';
+import { CONFIG } from './config.js';
+import { STATE } from './state.js';
 
 // ========================================
 // INITIALIZATION

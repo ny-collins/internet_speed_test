@@ -1,22 +1,22 @@
 // ========================================
-// DOWNLOAD TEST MODULE (Web Worker Version)
+// UPLOAD TEST MODULE (Web Worker Version)
 // ========================================
 
-import { CONFIG } from './config.js';
-import { STATE } from './state.js';
-import { scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from './utils.js';
-import { updateGauge, setProgress, announceToScreenReader, startSpeedCurve, updateSpeedCurve, stopSpeedCurve, highlightTrayCard } from './ui.js';
+import { CONFIG } from '../config.js';
+import { STATE } from '../state.js';
+import { scheduleIdleTask, cancelIdleTask, performanceMonitor, measureLoadedLatency } from '../utils.js';
+import { updateGauge, setProgress, announceToScreenReader, startSpeedCurve, updateSpeedCurve, stopSpeedCurve, highlightTrayCard } from '../ui.js';
 
-export async function measureDownload() {
-    const threadCount = CONFIG.threads.download;
-    const maxDuration = CONFIG.duration.download.max * 1000;
+export async function measureUpload() {
+    const threadCount = CONFIG.threads.upload;
+    const maxDuration = CONFIG.duration.upload.max * 1000;
 
-    console.log(`[Download] Starting with ${threadCount} threads (Web Worker)`);
-    announceToScreenReader(`Starting download test with ${threadCount} threads`);
+    console.log(`[Upload] Starting with ${threadCount} threads (Web Worker)`);
+    announceToScreenReader(`Starting upload test with ${threadCount} threads`);
 
     // Start speed curve
-    startSpeedCurve('download');
-    highlightTrayCard('download');
+    startSpeedCurve('upload');
+    highlightTrayCard('upload');
 
     return new Promise((resolve, reject) => {
         // Create abort controller for this test
@@ -33,7 +33,7 @@ export async function measureDownload() {
         };
 
         // Create Web Worker
-        const worker = new Worker('./js/download-worker.js', { type: 'module' });
+        const worker = new Worker('/js/workers/upload.worker.js', { type: 'module' });
 
         let idleTaskId = null;
         let smoothedSpeed = 0;
@@ -41,9 +41,9 @@ export async function measureDownload() {
         const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms for smooth animation
         const testStartTime = performance.now(); // Track when test actually started
 
-        // Start the download test
+        // Start the upload test
         worker.postMessage({
-            type: 'start_download',
+            type: 'start_upload',
             config: CONFIG,
             threadCount: threadCount
         });
@@ -70,7 +70,7 @@ export async function measureDownload() {
 
                 // Throttle UI updates for smooth animation
                 if (now - lastUiUpdate >= UI_UPDATE_INTERVAL) {
-                    updateGauge(smoothedSpeed, 'download');
+                    updateGauge(smoothedSpeed, 'upload');
                     updateSpeedCurve(currentSpeed); // Track raw speed for curve
                     lastUiUpdate = now;
 
@@ -81,30 +81,30 @@ export async function measureDownload() {
                     });
                 }
 
-                // Update Progress (25% -> 60%) - always update progress for smooth bar
+                // Update Progress (60% -> 95%) - always update progress for smooth bar
                 const testElapsed = now - testStartTime;
-                const progressPercent = 25 + (testElapsed / maxDuration) * 35;
-                setProgress(Math.min(progressPercent, 60));
+                const progressPercent = 60 + (testElapsed / maxDuration) * 35;
+                setProgress(Math.min(progressPercent, 95));
 
                 // Update Matrix Card Border - use test elapsed time for consistent animation
-                const downloadCard = document.querySelector('.tray-card[data-metric="download"]');
-                if (downloadCard) {
+                const uploadCard = document.querySelector('.tray-card[data-metric="upload"]');
+                if (uploadCard) {
                     const progress = Math.min((testElapsed / maxDuration) * 100, 100);
-                    downloadCard.style.setProperty('--progress', progress.toFixed(2));
+                    uploadCard.style.setProperty('--progress', progress.toFixed(2));
                 }
 
                 break;
             }
 
-            case 'download_complete': {
+            case 'upload_complete': {
                 const { speed, bytesTransferred, duration, effectiveDuration, stability, confidence, warnings } = data;
 
-                // Continue main progress bar animation to target (60%) smoothly
+                // Continue main progress bar animation to target (95%) smoothly
                 const continueMainProgressAnimation = () => {
                     const now = performance.now();
                     const testElapsed = now - testStartTime;
-                    const targetProgress = 60; // Download goes to 60%
-                    const startProgress = 25; // Download starts at 25%
+                    const targetProgress = 95; // Upload goes to 95%
+                    const startProgress = 60; // Upload starts at 60%
                     const progressRange = targetProgress - startProgress;
                     const currentProgress = startProgress + (testElapsed / maxDuration) * progressRange;
                     const finalProgress = Math.min(currentProgress, targetProgress);
@@ -119,12 +119,12 @@ export async function measureDownload() {
 
                 // Handle loaded latency asynchronously (don't block UI)
                 loadedLatencyPromise.then(loadedLatency => {
-                    console.log(`[Download] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
+                    console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
 
                     // Store loaded latency in state for later use
                     STATE.loadedLatency = loadedLatency;
                 }).catch(error => {
-                    console.warn('[Download] Loaded latency measurement failed:', error);
+                    console.warn('[Upload] Loaded latency measurement failed:', error);
                 });
 
                 // Stop speed curve
@@ -140,13 +140,13 @@ export async function measureDownload() {
 
                 // Validate result
                 if (speed > 10000 || speed < 0 || !isFinite(speed)) {
-                    console.warn('[Download] Invalid speed measurement:', speed);
-                    reject(new Error('Invalid download measurement result'));
+                    console.warn('[Upload] Invalid speed measurement:', speed);
+                    reject(new Error('Invalid upload measurement result'));
                     return;
                 }
 
-                console.log(`[Download] Speed measurement complete: ${speed.toFixed(2)} Mbps`);
-                announceToScreenReader(`Download complete: ${speed.toFixed(1)} megabits per second`);
+                console.log(`[Upload] Speed measurement complete: ${speed.toFixed(2)} Mbps`);
+                announceToScreenReader(`Upload complete: ${speed.toFixed(1)} megabits per second`);
 
                 resolve({
                     speed: speed,
@@ -159,28 +159,31 @@ export async function measureDownload() {
                     warnings: warnings || []
                 });
                 break;
-            }                case 'download_error':
-                console.error('[Download] Worker error:', data.error);
+            }
+
+            case 'upload_error': {
+                console.error('[Upload] Worker error:', data.error);
                 cleanup();
                 if (idleTaskId) {
                     cancelIdleTask(idleTaskId);
                     idleTaskId = null;
                 }
                 worker.terminate();
-                reject(new Error(`Download test failed: ${data.error}`));
+                reject(new Error(`Upload test failed: ${data.error}`));
                 break;
+            }
             }
         };
 
         worker.onerror = function(error) {
-            console.error('[Download] Worker error:', error);
+            console.error('[Upload] Worker error:', error);
             cleanup();
             if (idleTaskId) {
                 cancelIdleTask(idleTaskId);
                 idleTaskId = null;
             }
             worker.terminate();
-            reject(new Error('Download worker failed'));
+            reject(new Error('Upload worker failed'));
         };
 
         // Handle cancellation
@@ -193,7 +196,7 @@ export async function measureDownload() {
                     idleTaskId = null;
                 }
                 worker.terminate();
-                reject(new Error('Download test cancelled'));
+                reject(new Error('Upload test cancelled'));
             } else {
                 setTimeout(checkCancellation, 100);
             }

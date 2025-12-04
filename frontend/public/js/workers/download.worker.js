@@ -3,7 +3,7 @@
 // Handles heavy download processing off the main thread
 // ========================================
 
-import { monitorLoop } from './worker-utils.js';
+import { monitorLoop } from '../worker-utils.js';
 
 // Worker message types
 const MESSAGE_TYPES = {
