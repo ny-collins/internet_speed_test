@@ -285,8 +285,10 @@ async function completeTest() {
         download: STATE.testResults.download,
         upload: STATE.testResults.upload,
         latency: STATE.testResults.latency,
+        jitter: STATE.testResults.jitter,
         timestamp: testResult.timestamp,
-        connectionType: testResult.connectionType
+        connectionType: testResult.connectionType,
+        distance: STATE.distance
     });
     
     announceToScreenReader('Test complete');

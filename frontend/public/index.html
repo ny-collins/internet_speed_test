@@ -236,69 +236,65 @@
 
                 <div class="cards-section">
                     <div class="cards-grid">
-                <div class="tray-card" data-metric="latency" role="group" aria-labelledby="latency-label">
-                    <div class="matrix-icon">
-                        <i data-lucide="activity" aria-hidden="true"></i>
-                    </div>
-                    <div class="matrix-content">
-                        <div class="matrix-label" id="latency-label">Ping</div>
-                        <div class="matrix-value" aria-live="polite" aria-atomic="true">
-                            <span class="matrix-number" id="latency-value">—</span>
-                            <span class="matrix-unit" id="latency-unit">ms</span>
-                        </div>
-                        <div class="quality-badge-container hidden-display" data-quality-badge="latency">
-                            <span class="quality-icon">🟢</span>
-                            <span class="quality-label">Great</span>
-                        </div>
-                    </div>
-                </div>
+                        <div class="speed-cards-row">
+                            <div class="tray-card" data-metric="download" role="group" aria-labelledby="download-label">
+                                <div class="matrix-icon">
+                                    <i data-lucide="arrow-down-circle" aria-hidden="true"></i>
+                                </div>
+                                <div class="matrix-content">
+                                    <div class="matrix-label" id="download-label">Download</div>
+                                    <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                        <span class="matrix-number" id="download-value">—</span>
+                                        <span class="matrix-unit" id="download-unit">Mbps</span>
+                                    </div>
+                                    <div class="matrix-context" id="download-context"></div>
+                                    <canvas class="tray-mini-graph" id="downloadMiniGraph" width="280" height="80" aria-label="Download speed curve"></canvas>
+                                </div>
+                            </div>
 
-                <div class="tray-card" data-metric="download" role="group" aria-labelledby="download-label">
-                    <div class="matrix-icon">
-                        <i data-lucide="arrow-down-circle" aria-hidden="true"></i>
-                    </div>
-                    <div class="matrix-content">
-                        <div class="matrix-label" id="download-label">Download</div>
-                        <div class="matrix-value" aria-live="polite" aria-atomic="true">
-                            <span class="matrix-number" id="download-value">—</span>
-                            <span class="matrix-unit" id="download-unit">Mbps</span>
+                            <div class="tray-card" data-metric="upload" role="group" aria-labelledby="upload-label">
+                                <div class="matrix-icon">
+                                    <i data-lucide="arrow-up-circle" aria-hidden="true"></i>
+                                </div>
+                                <div class="matrix-content">
+                                    <div class="matrix-label" id="upload-label">Upload</div>
+                                    <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                        <span class="matrix-number" id="upload-value">—</span>
+                                        <span class="matrix-unit" id="upload-unit">Mbps</span>
+                                    </div>
+                                    <div class="matrix-context" id="upload-context"></div>
+                                    <canvas class="tray-mini-graph" id="uploadMiniGraph" width="280" height="80" aria-label="Upload speed curve"></canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="matrix-context" id="download-context"></div>
-                        <canvas class="tray-mini-graph" id="downloadMiniGraph" width="280" height="80" aria-label="Download speed curve"></canvas>
-                    </div>
-                </div>
 
-                <div class="tray-card" data-metric="upload" role="group" aria-labelledby="upload-label">
-                    <div class="matrix-icon">
-                        <i data-lucide="arrow-up-circle" aria-hidden="true"></i>
-                    </div>
-                    <div class="matrix-content">
-                        <div class="matrix-label" id="upload-label">Upload</div>
-                        <div class="matrix-value" aria-live="polite" aria-atomic="true">
-                            <span class="matrix-number" id="upload-value">—</span>
-                            <span class="matrix-unit" id="upload-unit">Mbps</span>
-                        </div>
-                        <div class="matrix-context" id="upload-context"></div>
-                        <canvas class="tray-mini-graph" id="uploadMiniGraph" width="280" height="80" aria-label="Upload speed curve"></canvas>
-                    </div>
-                </div>
+                        <div class="secondary-metrics">
+                            <div class="secondary-metric" data-metric="latency" role="group" aria-labelledby="latency-label">
+                                <div class="matrix-icon">
+                                    <i data-lucide="activity" aria-hidden="true"></i>
+                                </div>
+                                <div class="matrix-content">
+                                    <div class="matrix-label" id="latency-label">Ping</div>
+                                    <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                        <span class="matrix-number" id="latency-value">—</span>
+                                        <span class="matrix-unit" id="latency-unit">ms</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                <div class="tray-card" data-metric="jitter" role="group" aria-labelledby="jitter-label">
-                    <div class="matrix-icon">
-                        <i data-lucide="radio" aria-hidden="true"></i>
-                    </div>
-                    <div class="matrix-content">
-                        <div class="matrix-label" id="jitter-label">Jitter</div>
-                        <div class="matrix-value" aria-live="polite" aria-atomic="true">
-                            <span class="matrix-number" id="jitter-value">—</span>
-                            <span class="matrix-unit" id="jitter-unit">ms</span>
+                            <div class="secondary-metric" data-metric="jitter" role="group" aria-labelledby="jitter-label">
+                                <div class="matrix-icon">
+                                    <i data-lucide="radio" aria-hidden="true"></i>
+                                </div>
+                                <div class="matrix-content">
+                                    <div class="matrix-label" id="jitter-label">Jitter</div>
+                                    <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                        <span class="matrix-number" id="jitter-value">—</span>
+                                        <span class="matrix-unit" id="jitter-unit">ms</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="quality-badge-container hidden-display" data-quality-badge="jitter">
-                            <span class="quality-icon">🟢</span>
-                            <span class="quality-label">Great</span>
-                        </div>
-                    </div>
-                </div>
                     </div>
                 </div>
             </div>
@@ -340,7 +336,14 @@
         </main>
 
         <aside class="test-context-panel" id="testContextPanel" hidden>
-            <h3>Test Information</h3>
+            <h3>Understanding Your Results</h3>
+            
+            <div class="results-analysis" id="resultsAnalysis" hidden>
+                <p class="analysis-intro">Your measurements in context:</p>
+                <div class="analysis-items" id="analysisItems"></div>
+            </div>
+            
+            <h4 class="context-section-title">Test Information</h4>
             <dl class="context-list">
                 <div class="context-item">
                     <dt><i data-lucide="map-pin" aria-hidden="true"></i> Server Location</dt>
@@ -365,8 +368,8 @@
             </dl>
             
             <div class="context-learn-prompt">
-                <p><i data-lucide="help-circle"></i> Want to understand what these numbers mean?</p>
-                <a href="/learn.html" class="learn-link">Learn about Speed Testing →</a>
+                <p><i data-lucide="help-circle"></i> Want to learn more about speed testing?</p>
+                <a href="/learn.html" class="learn-link">Visit Learn Page →</a>
             </div>
         </aside>
 

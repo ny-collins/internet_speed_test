@@ -257,7 +257,6 @@ export function updateResultCard(type, result) {
             
             showMeasurementInfoButton('latency', result);
 
-            updateQualityBadge('latency', result.average);
             updateLatencyContext(result.average);
         }
 
@@ -296,8 +295,6 @@ export function updateResultCard(type, result) {
             if (matrixUnit) {
                 matrixUnit.id = 'jitter-unit'; // Update ID for accessibility
             }
-
-            updateQualityBadge('jitter', result.value);
         }
 
         if (resultCard) {
@@ -817,68 +814,63 @@ export function resetVarianceGraph() {
 }
 
 
-export function updateQualityBadge(metric, value) {
-    const badge = document.querySelector(`[data-quality-badge="${metric}"]`);
-    if (!badge) return;
+/**
+ * Generate physics-aware analysis of test results
+ * Considers international routing and physical limitations
+ */
+export function generatePhysicsAwareAnalysis(testData) {
+    const { latency, jitter, download, upload, distance } = testData;
+    const analysis = [];
 
-    let quality, icon, label;
-
-    if (metric === 'latency') {
-        if (value < 50) {
-            quality = 'excellent';
-            icon = '🟢';
-            label = 'Great';
-        } else if (value < 100) {
-            quality = 'good';
-            icon = '🟡';
-            label = 'Good';
-        } else if (value < 200) {
-            quality = 'fair';
-            icon = '🟠';
-            label = 'Fair';
+    // Latency analysis with physics context
+    if (latency) {
+        const minTheoretical = distance ? (distance / 200000) * 1000 : 0; // Speed of light in fiber
+        const isReasonable = latency < 200;
+        
+        if (distance && distance > 1000) {
+            analysis.push({
+                metric: 'Latency',
+                value: `${latency.toFixed(0)}ms`,
+                context: `Testing over ${distance}km introduces ${minTheoretical.toFixed(0)}ms minimum theoretical delay (speed of light). Your latency of ${latency.toFixed(0)}ms includes routing overhead, which is ${isReasonable ? 'reasonable' : 'higher than expected'} for international connections.`
+            });
         } else {
-            quality = 'poor';
-            icon = '🔴';
-            label = 'Poor';
-        }
-    } else if (metric === 'jitter') {
-        if (value < 10) {
-            quality = 'excellent';
-            icon = '🟢';
-            label = 'Great';
-        } else if (value < 30) {
-            quality = 'good';
-            icon = '🟡';
-            label = 'Good';
-        } else if (value < 50) {
-            quality = 'fair';
-            icon = '🟠';
-            label = 'Fair';
-        } else {
-            quality = 'poor';
-            icon = '🔴';
-            label = 'Poor';
+            analysis.push({
+                metric: 'Latency',
+                value: `${latency.toFixed(0)}ms`,
+                context: `International routing adds inherent delay beyond local connections. This measurement reflects the round-trip time including network processing.`
+            });
         }
     }
 
-    badge.setAttribute('data-quality', quality);
+    // Jitter analysis
+    if (jitter !== undefined) {
+        const isStable = jitter < 30;
+        analysis.push({
+            metric: 'Jitter',
+            value: `${jitter.toFixed(1)}ms`,
+            context: `Jitter measures latency variation. ${isStable ? 'Low jitter indicates stable routing' : 'Higher jitter suggests variable network conditions'}, which is common on international routes with multiple hops.`
+        });
+    }
 
-    const iconEl = badge.querySelector('.quality-icon');
-    const labelEl = badge.querySelector('.quality-label');
+    // Download analysis
+    if (download) {
+        analysis.push({
+            metric: 'Download',
+            value: `${download.toFixed(1)} Mbps`,
+            context: `Your download speed reflects bandwidth capacity and current network load. International tests may show lower speeds than local tests due to routing efficiency and server distance.`
+        });
+    }
 
-    if (iconEl) iconEl.textContent = icon;
-    if (labelEl) labelEl.textContent = label;
+    // Upload analysis
+    if (upload) {
+        analysis.push({
+            metric: 'Upload',
+            value: `${upload.toFixed(1)} Mbps`,
+            context: `Upload speeds are typically lower than download speeds by design (asymmetric connections). International testing may further reduce observed speeds compared to local tests.`
+        });
+    }
 
-    const delay = metric === 'latency' ? 0 : 100; // Jitter appears 100ms after latency
-    badge.style.opacity = '0';
-    badge.style.transform = 'translateY(10px)';
-    badge.style.display = 'flex';
-    
-    setTimeout(() => {
-        badge.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
-        badge.style.opacity = '1';
-        badge.style.transform = 'translateY(0)';
-    }, delay);
+    return analysis;
 }
 
 export function updateLatencyContext(latency) {
@@ -1129,6 +1121,29 @@ export function updateTestContext(testData) {
     if (!panel) return;
 
     panel.hidden = false;
+
+    // Generate and display physics-aware analysis
+    const analysisSection = document.getElementById('resultsAnalysis');
+    const analysisItems = document.getElementById('analysisItems');
+    
+    if (analysisSection && analysisItems && testData.latency) {
+        const analysis = generatePhysicsAwareAnalysis({
+            latency: testData.latency?.average,
+            jitter: testData.jitter?.value,
+            download: testData.download?.speed,
+            upload: testData.upload?.speed,
+            distance: testData.distance
+        });
+        
+        analysisItems.innerHTML = analysis.map(item => `
+            <div class="analysis-item">
+                <strong>${item.metric}:</strong> ${item.value}
+                <p>${item.context}</p>
+            </div>
+        `).join('');
+        
+        analysisSection.hidden = false;
+    }
 
     const serverLoc = document.getElementById('contextServerLocation');
     if (serverLoc && testData.serverLocation) {
