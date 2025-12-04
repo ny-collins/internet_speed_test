@@ -1789,6 +1789,133 @@ input[type="range"]::-moz-range-track {
     font-weight: 600;
 }
 
+/* --- Why Amsterdam Banner --- */
+.why-amsterdam-banner {
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    margin: var(--spacing-3xl) 0;
+    border: 1px solid var(--color-border);
+}
+
+.banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.banner-icon {
+    color: var(--color-primary);
+    font-size: 2rem;
+}
+
+.banner-icon i {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.banner-text h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.banner-text p {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+}
+
+.banner-text strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+.banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    transition: transform var(--transition-fast), background-color var(--transition-fast);
+    align-self: flex-start;
+    margin-top: var(--spacing-sm);
+}
+
+.banner-cta:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+}
+
+.banner-cta i {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .why-amsterdam-banner {
+        padding: var(--spacing-xl);
+        margin: var(--spacing-xl) 0;
+    }
+    
+    .banner-text h3 {
+        font-size: var(--font-size-xl);
+    }
+    
+    .banner-text p {
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* --- Matrix Context --- */
+.matrix-context {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+    margin-top: var(--spacing-xs);
+    font-weight: 500;
+}
+
+/* --- Config Summary --- */
+.config-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-md);
+}
+
+.config-summary-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.config-summary-text strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+.config-summary[hidden] {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .config-summary {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+}
+
 @media (min-width: 769px) and (max-width: 1024px) {
     .results-tray {
         gap: var(--spacing-md);
