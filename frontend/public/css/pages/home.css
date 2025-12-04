@@ -421,7 +421,7 @@
     justify-content: center;
     text-align: center;
     z-index: 2;
-    box-shadow: 0 0 0 1px var(--color-border);
+    box-shadow: none;
 }
 
 .gauge-inner[hidden] {
