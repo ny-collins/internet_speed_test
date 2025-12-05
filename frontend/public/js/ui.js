@@ -335,17 +335,17 @@ export function clearResultsDisplay() {
 
     const sparkline = document.querySelector('#jitterSparkline path');
     if (sparkline) sparkline.setAttribute('d', '');
-    
+
     document.querySelectorAll('[data-quality-badge]').forEach(badge => {
         badge.style.display = 'none';
     });
-    
+
     const latencyContext = document.querySelector('[data-latency-context]');
     if (latencyContext) latencyContext.style.display = 'none';
-    
+
     const varianceContainer = document.getElementById('varianceGraphContainer');
     if (varianceContainer) varianceContainer.hidden = true;
-    
+
     resetVarianceGraph();
 }
 
@@ -441,16 +441,16 @@ let lastAnnouncementTime = 0;
 
 export function announceToScreenReader(message) {
     if (!DOM.ariaLiveRegion) return;
-    
+
     const now = Date.now();
-    
+
     if (message === lastAnnouncement && (now - lastAnnouncementTime) < CONFIG.screenReaderThrottle) {
         return;
     }
-    
+
     lastAnnouncement = message;
     lastAnnouncementTime = now;
-    
+
     DOM.ariaLiveRegion.textContent = '';
     setTimeout(() => {
         if (DOM.ariaLiveRegion) DOM.ariaLiveRegion.textContent = message;
@@ -517,12 +517,12 @@ export function startSpeedCurve(phase) {
 
 export function updateSpeedCurve(speed) {
     if (!speedCurvePhase) return;
-    
+
     speedCurveSamples.push(speed);
     if (speedCurveSamples.length > MAX_CURVE_SAMPLES) {
         speedCurveSamples.shift();
     }
-    
+
     drawSpeedCurve();
 }
 
@@ -530,7 +530,7 @@ function drawSpeedCurve() {
     const miniCanvas = speedCurvePhase === 'download' ? DOM.downloadMiniGraph : DOM.uploadMiniGraph;
 
     if (!miniCanvas || speedCurveSamples.length < 2) return;
-    
+
     const miniCtx = miniCanvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
     const rect = miniCanvas.getBoundingClientRect();
@@ -572,14 +572,14 @@ function drawToCanvas(canvas, ctx, width, height) {
     ctx.lineJoin = 'round';
 
     const maxVisibleSamples = 50;
-    const displaySamples = samples.length > maxVisibleSamples 
-        ? samples.slice(-maxVisibleSamples) 
+    const displaySamples = samples.length > maxVisibleSamples
+        ? samples.slice(-maxVisibleSamples)
         : samples;
-    
+
     const stepX = width / Math.max(displaySamples.length - 1, 1);
-    
+
     ctx.beginPath();
-    
+
     const points = displaySamples.map((val, i) => {
         return {
             x: i * stepX,
@@ -592,19 +592,19 @@ function drawToCanvas(canvas, ctx, width, height) {
     for (let i = 0; i < points.length - 1; i++) {
         const p0 = points[i];
         const p1 = points[i + 1];
-        
+
         const xc = (p0.x + p1.x) / 2;
         const yc = (p0.y + p1.y) / 2;
-        
+
         ctx.quadraticCurveTo(p0.x, p0.y, xc, yc);
     }
-    
+
     ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-    
+
     ctx.stroke();
 
     ctx.fillStyle = gradient;
-    
+
     ctx.lineTo(width, height);
     ctx.lineTo(0, height);
     ctx.closePath();
@@ -618,7 +618,7 @@ export function stopSpeedCurve() {
 export function resetSpeedCurve() {
     speedCurvePhase = null;
     speedCurveSamples.length = 0;
-    
+
     [DOM.downloadMiniGraph, DOM.uploadMiniGraph].forEach(miniCanvas => {
         if (miniCanvas) {
             miniCanvas.classList.remove('visible');
@@ -635,7 +635,7 @@ export function highlightTrayCard(phase) {
     document.querySelectorAll('.tray-card, .secondary-metric').forEach(card => {
         card.classList.remove('active-metric');
     });
-    
+
     const activeCard = document.querySelector(`.tray-card[data-metric="${phase}"], .secondary-metric[data-metric="${phase}"]`);
     if (activeCard) {
         activeCard.classList.add('active-metric');
@@ -763,21 +763,21 @@ export function startVarianceTracking() {
     STATE.varianceGraph.samples = [];
     STATE.varianceGraph.active = true;
     initVarianceGraph();
-    
+
     const container = document.getElementById('varianceGraphContainer');
     if (container) {
         container.hidden = false;
         container.setAttribute('data-loading', 'true');
-        
+
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        
+
         if (prefersReducedMotion) {
             container.style.opacity = '1';
             container.style.transform = 'translateY(0)';
         } else {
             container.style.opacity = '0';
             container.style.transform = 'translateY(10px)';
-            
+
             requestAnimationFrame(() => {
                 container.style.transition = `opacity ${CONFIG.fadeAnimationDuration}ms ease-out, transform ${CONFIG.fadeAnimationDuration}ms ease-out`;
                 container.style.opacity = '1';
@@ -827,7 +827,7 @@ export function generatePhysicsAwareAnalysis(testData) {
     if (latency) {
         const minTheoretical = distance ? (distance / 200000) * 1000 : 0; // Speed of light in fiber
         const isReasonable = latency < 200;
-        
+
         if (distance && distance > 1000) {
             analysis.push({
                 metric: 'Latency',
@@ -838,7 +838,7 @@ export function generatePhysicsAwareAnalysis(testData) {
             analysis.push({
                 metric: 'Latency',
                 value: `${latency.toFixed(0)}ms`,
-                context: `International routing adds inherent delay beyond local connections. This measurement reflects the round-trip time including network processing.`
+                context: 'International routing adds inherent delay beyond local connections. This measurement reflects the round-trip time including network processing.'
             });
         }
     }
@@ -858,7 +858,7 @@ export function generatePhysicsAwareAnalysis(testData) {
         analysis.push({
             metric: 'Download',
             value: `${download.toFixed(1)} Mbps`,
-            context: `Your download speed reflects bandwidth capacity and current network load. International tests may show lower speeds than local tests due to routing efficiency and server distance.`
+            context: 'Your download speed reflects bandwidth capacity and current network load. International tests may show lower speeds than local tests due to routing efficiency and server distance.'
         });
     }
 
@@ -867,7 +867,7 @@ export function generatePhysicsAwareAnalysis(testData) {
         analysis.push({
             metric: 'Upload',
             value: `${upload.toFixed(1)} Mbps`,
-            context: `Upload speeds are typically lower than download speeds by design (asymmetric connections). International testing may further reduce observed speeds compared to local tests.`
+            context: 'Upload speeds are typically lower than download speeds by design (asymmetric connections). International testing may further reduce observed speeds compared to local tests.'
         });
     }
 
@@ -1126,7 +1126,7 @@ export function updateTestContext(testData) {
     // Generate and display physics-aware analysis
     const analysisSection = document.getElementById('resultsAnalysis');
     const analysisItems = document.getElementById('analysisItems');
-    
+
     if (analysisSection && analysisItems && testData.latency) {
         const analysis = generatePhysicsAwareAnalysis({
             latency: testData.latency?.average,
@@ -1135,14 +1135,14 @@ export function updateTestContext(testData) {
             upload: testData.upload?.speed,
             distance: testData.distance
         });
-        
+
         analysisItems.innerHTML = analysis.map(item => `
             <div class="analysis-item">
                 <strong>${item.metric}:</strong> ${item.value}
                 <p>${item.context}</p>
             </div>
         `).join('');
-        
+
         analysisSection.hidden = false;
     }
 
@@ -1267,32 +1267,31 @@ export async function getUserLocation() {
  */
 export function createLearnTooltip(element, text, learnUrl) {
     if (!element) return;
-    
+
     element.style.position = 'relative';
     element.style.cursor = 'help';
-    
+
     let tooltip = null;
-    
+
     element.addEventListener('mouseenter', () => {
         tooltip = document.createElement('div');
         tooltip.className = 'tooltip visible';
         tooltip.textContent = text;
-        
+
         if (learnUrl) {
             tooltip.style.cursor = 'pointer';
             tooltip.addEventListener('click', () => {
                 window.location.href = learnUrl;
             });
         }
-        
+
         element.appendChild(tooltip);
-        
-        const rect = element.getBoundingClientRect();
+
         tooltip.style.top = '-40px';
         tooltip.style.left = '50%';
         tooltip.style.transform = 'translateX(-50%)';
     });
-    
+
     element.addEventListener('mouseleave', () => {
         if (tooltip && tooltip.parentNode === element) {
             tooltip.remove();
@@ -1306,27 +1305,27 @@ export function createLearnTooltip(element, text, learnUrl) {
  */
 export function animateNumber(element, targetValue, duration = 1000, decimals = 1) {
     if (!element) return;
-    
+
     const startValue = 0;
     const startTime = performance.now();
-    
+
     function update(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        
+
         const eased = 1 - Math.pow(1 - progress, 3);
         const current = startValue + (targetValue - startValue) * eased;
-        
+
         element.textContent = current.toFixed(decimals);
         element.classList.add('counting');
-        
+
         if (progress < 1) {
             requestAnimationFrame(update);
         } else {
             element.classList.remove('counting');
         }
     }
-    
+
     requestAnimationFrame(update);
 }
 
@@ -1335,7 +1334,7 @@ export function animateNumber(element, targetValue, duration = 1000, decimals = 
  */
 export function updateHistoryStats(history) {
     if (!history || history.length === 0) return null;
-    
+
     const stats = {
         avgDownload: 0,
         avgUpload: 0,
@@ -1345,7 +1344,7 @@ export function updateHistoryStats(history) {
         minLatency: Infinity,
         testCount: history.length
     };
-    
+
     history.forEach(test => {
         stats.avgDownload += test.download || 0;
         stats.avgUpload += test.upload || 0;
@@ -1354,13 +1353,13 @@ export function updateHistoryStats(history) {
         stats.maxUpload = Math.max(stats.maxUpload, test.upload || 0);
         stats.minLatency = Math.min(stats.minLatency, test.latency || Infinity);
     });
-    
+
     stats.avgDownload /= history.length;
     stats.avgUpload /= history.length;
     stats.avgLatency /= history.length;
-    
+
     if (stats.minLatency === Infinity) stats.minLatency = 0;
-    
+
     return stats;
 }
 
@@ -1369,10 +1368,10 @@ export function updateHistoryStats(history) {
  */
 export function displayHistoryStats(stats) {
     if (!stats) return;
-    
+
     const statsContainer = document.getElementById('historyStats');
     if (!statsContainer) return;
-    
+
     statsContainer.innerHTML = `
         <div class="history-stat-card">
             <div class="stat-label">Average Download</div>
@@ -1391,6 +1390,6 @@ export function displayHistoryStats(stats) {
             <div class="stat-value">${stats.testCount}</div>
         </div>
     `;
-    
+
     statsContainer.hidden = false;
 }
