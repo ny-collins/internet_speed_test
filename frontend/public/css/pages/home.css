@@ -328,12 +328,13 @@
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
         min-height: 85vh;
-        max-height: 90vh;
+        /* Allow content to fit naturally but try to stay compact */
+        height: auto;
         gap: var(--spacing-md);
     }
     
     .gauge-section {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-md);
     }
     
     .gauge-container-split {
@@ -341,13 +342,42 @@
     }
     
     .cards-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(4, 1fr);
-        gap: var(--spacing-md);
+        grid-template-columns: repeat(2, 1fr); /* 2x2 Grid for compactness */
+        grid-template-rows: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .speed-cards-row {
+        display: contents; /* Flatten hierarchy for grid */
+    }
+    
+    .secondary-metrics {
+        display: contents; /* Flatten hierarchy for grid */
     }
     
     .tray-mini-graph {
         height: 60px;
+    }
+    
+    .secondary-metric {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--spacing-md);
+        background: var(--color-bg-elevated);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl); /* Match tray-card style */
+    }
+    
+    .secondary-metric .matrix-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        width: 100%;
+    }
+    
+    .secondary-metric .matrix-value {
+        margin-left: 0;
+        margin-top: var(--spacing-xs);
     }
 }
     
