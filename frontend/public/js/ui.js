@@ -31,55 +31,60 @@ function renderGaugeScale(scaleIdx) {
 
     if (!ticksContainer || !labelsContainer) return;
 
-        ticksContainer.innerHTML = '';
-        labelsContainer.innerHTML = '';
-        
-        // Standard Speedometer Arch: Starts Bottom-Left (225deg) -> Top -> Bottom-Right (135deg/495deg)
-        const startAngle = 225;
-        const totalAngle = 270;
-        
-        // Render Labels
-        scale.labels.forEach((val, i) => {
-            const percent = i / (scale.labels.length - 1);
-            const angle = startAngle + (percent * totalAngle);
-            
-            // Convert CSS Angle (0=Top) to Math Radian (0=Right)
-            // angle - 90 shifts 0 from Top to Right
-            const rad = (angle - 90) * (Math.PI / 180);
-            
-            // Label positioning
-            const radius = 160; // Approx radius + padding
-            const x = 170 + Math.cos(rad) * radius; // Center x + offset
-            const y = 170 + Math.sin(rad) * radius; // Center y + offset
-            
-            const label = document.createElement('div');
-            label.className = 'gauge-label';
-            label.textContent = val;
-            label.style.left = `${x}px`;
-            label.style.top = `${y}px`;
-            labelsContainer.appendChild(label);
-            
-            // Tick mark
-            const tick = document.createElement('div');
-            tick.className = 'gauge-tick';
-            tick.style.top = '50%';
-            tick.style.left = '50%';
-            tick.style.height = '1px'; 
-            tick.style.width = '140px';
-            tick.style.background = 'transparent';
-            tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
-            
-            const tickMark = document.createElement('div');
-            tickMark.style.position = 'absolute';
-            tickMark.style.right = '0';
-            tickMark.style.width = '10px';
-            tickMark.style.height = '2px';
-            tickMark.style.background = 'var(--color-border-strong)';
-            
-            tick.appendChild(tickMark);
-            ticksContainer.appendChild(tick);
-        });
-    }
+    ticksContainer.innerHTML = '';
+    labelsContainer.innerHTML = '';
+
+    // Get actual gauge dimensions for responsive positioning
+    const gaugeContainer = ticksContainer.parentElement;
+    const containerSize = gaugeContainer.offsetWidth || 360;
+    const centerX = containerSize / 2;
+    const centerY = containerSize / 2;
+    const labelRadius = (containerSize / 2) * 0.88;
+    const tickRadius = (containerSize / 2) * 0.85;
+
+    // Standard Speedometer Arch: Starts Bottom-Left (225deg) -> Top -> Bottom-Right (135deg/495deg)
+    const startAngle = 225;
+    const totalAngle = 270;
+
+    // Render Labels
+    scale.labels.forEach((val, i) => {
+        const percent = i / (scale.labels.length - 1);
+        const angle = startAngle + (percent * totalAngle);
+
+        // Convert CSS Angle (0=Top) to Math Radian (0=Right)
+        const rad = (angle - 90) * (Math.PI / 180);
+
+        // Dynamic label positioning based on actual gauge size
+        const x = centerX + Math.cos(rad) * labelRadius;
+        const y = centerY + Math.sin(rad) * labelRadius;
+
+        const label = document.createElement('div');
+        label.className = 'gauge-label';
+        label.textContent = val;
+        label.style.left = `${x}px`;
+        label.style.top = `${y}px`;
+        labelsContainer.appendChild(label);
+
+        // Tick mark - simplified positioning
+        const tick = document.createElement('div');
+        tick.className = 'gauge-tick';
+
+        // Position tick at the calculated angle
+        const tickX = centerX + Math.cos(rad) * tickRadius;
+        const tickY = centerY + Math.sin(rad) * tickRadius;
+
+        tick.style.position = 'absolute';
+        tick.style.left = `${tickX}px`;
+        tick.style.top = `${tickY}px`;
+        tick.style.width = '10px';
+        tick.style.height = '2px';
+        tick.style.background = 'var(--color-border-strong)';
+        tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        tick.style.transformOrigin = 'center';
+
+        ticksContainer.appendChild(tick);
+    });
+}
     
     function calculateNeedleAngle(speed) {
         const scale = GAUGE_SCALES[currentScaleIdx];
