@@ -27,6 +27,7 @@ html {
     font-size: 100%;
     scroll-behavior: smooth;
     width: 100%;
+    -webkit-text-size-adjust: none;
 }
 
 body {
@@ -57,7 +58,7 @@ body::before {
         rgba(0, 0, 0, 0.02) 4px
     );
     pointer-events: none;
-    z-index: var(--z-modal, 100);
+    z-index: var(--z-base);
     opacity: 0.4;
 }
 
@@ -72,7 +73,7 @@ body::before {
     text-decoration: none;
     border-radius: var(--radius-md);
     font-weight: 600;
-    z-index: 1000;
+    z-index: var(--z-tooltip);
     transition: top var(--transition-fast);
 }
 

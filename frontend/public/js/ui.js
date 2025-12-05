@@ -4,17 +4,109 @@ import { STATE } from './state.js';
 import { CONFIG } from './config.js';
 import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getSpeedContext } from './utils.js';
 
-const GAUGE_SCALES = [10, 25, 50, 100, 250, 500, 1000];
+const GAUGE_SCALES = [
+    { max: 100, labels: [0, 1, 5, 10, 25, 50, 75, 100] },
+    { max: 500, labels: [0, 50, 100, 200, 300, 400, 500] },
+    { max: 1000, labels: [0, 100, 250, 500, 750, 1000] }
+];
 
-function calculateMaxScale(currentSpeed) {
-    for (const scale of GAUGE_SCALES) {
-        if (currentSpeed <= scale) return scale;
+let currentScaleIdx = 0;
+
+function getScaleForSpeed(speed) {
+    for (let i = 0; i < GAUGE_SCALES.length; i++) {
+        if (speed <= GAUGE_SCALES[i].max) return i;
     }
-    return Math.ceil(currentSpeed / 100) * 100;
+    return GAUGE_SCALES.length - 1;
 }
 
 export function buildMainGauge() {
-    console.log('[Gauge] Using CSS-based circular progress gauge');
+    renderGaugeScale(0); // Start with default scale
+}
+
+function renderGaugeScale(scaleIdx) {
+    currentScaleIdx = scaleIdx;
+    const scale = GAUGE_SCALES[scaleIdx];
+    const ticksContainer = document.getElementById('gaugeTicks');
+    const labelsContainer = document.getElementById('gaugeLabels');
+
+    if (!ticksContainer || !labelsContainer) return;
+
+    ticksContainer.innerHTML = '';
+    labelsContainer.innerHTML = '';
+
+    const startAngle = -135;
+    const endAngle = 135;
+    const totalAngle = endAngle - startAngle;
+
+    // Render Labels
+    scale.labels.forEach((val, i) => {
+        const percent = i / (scale.labels.length - 1);
+        const angle = startAngle + (percent * totalAngle);
+        const rad = (angle - 90) * (Math.PI / 180);
+
+        // Label positioning
+        const radius = 160; // Approx radius + padding
+        const x = 170 + Math.cos(rad) * radius; // Center x + offset
+        const y = 170 + Math.sin(rad) * radius; // Center y + offset
+
+        const label = document.createElement('div');
+        label.className = 'gauge-label';
+        label.textContent = val;
+        label.style.left = `${x}px`;
+        label.style.top = `${y}px`;
+        labelsContainer.appendChild(label);
+
+        // Tick mark
+        const tick = document.createElement('div');
+        tick.className = 'gauge-tick';
+        // Rotate tick to point to center
+        // Position logic for ticks is complex in pure CSS rotation, simplifying:
+        // We just rotate the tick container? No, multiple ticks.
+        // Actually, easier to just rotate the tick div itself absolutely
+        tick.style.top = '50%';
+        tick.style.left = '50%';
+        tick.style.height = '1px'; // Invisible line to radius
+        tick.style.width = '140px';
+        tick.style.background = 'transparent';
+        tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+
+        const tickMark = document.createElement('div');
+        tickMark.style.position = 'absolute';
+        tickMark.style.right = '0';
+        tickMark.style.width = '10px';
+        tickMark.style.height = '2px';
+        tickMark.style.background = 'var(--color-border-strong)';
+
+        tick.appendChild(tickMark);
+        ticksContainer.appendChild(tick);
+    });
+}
+
+function calculateNeedleAngle(speed) {
+    const scale = GAUGE_SCALES[currentScaleIdx];
+
+    // Find which interval the speed falls into
+    let lower = 0;
+    let upper = scale.labels[1];
+    let lowerIdx = 0;
+
+    for (let i = 0; i < scale.labels.length - 1; i++) {
+        if (speed >= scale.labels[i] && speed <= scale.labels[i+1]) {
+            lower = scale.labels[i];
+            upper = scale.labels[i+1];
+            lowerIdx = i;
+            break;
+        }
+    }
+
+    if (speed > scale.max) return 135; // Cap at max
+
+    // Interpolate position between ticks
+    const ratio = (speed - lower) / (upper - lower);
+    const tickSpan = 270 / (scale.labels.length - 1); // Angle per tick segment
+    const baseAngle = -135 + (lowerIdx * tickSpan);
+
+    return baseAngle + (ratio * tickSpan);
 }
 
 export function showGauge() {
@@ -63,19 +155,32 @@ export function updateGauge(speed, phase) {
         }
 
         updateMatrixCardLive(phase, speed);
-        const maxSpeed = calculateMaxScale(speed);
+
+        // Dynamic Scale Logic
+        const newScaleIdx = getScaleForSpeed(speed);
+        if (newScaleIdx > currentScaleIdx) {
+            renderGaugeScale(newScaleIdx);
+        }
+
+        // Needle Logic
+        const angle = calculateNeedleAngle(speed);
+        const needle = document.getElementById('gaugeNeedle');
+        if (needle) {
+            needle.style.transform = `rotate(${angle}deg)`;
+        }
 
         if (DOM.gaugeProgress) {
-            const percentage = Math.min(speed / maxSpeed, 1);
-            const degrees = percentage * CONFIG.gaugeMaxDegrees;
+            // Use the calculated needle angle to derive degrees relative to 0
+            // This aligns the ring fill with the needle
+            const needleRelative = angle + 135; // 0 to 270
 
             DOM.gaugeProgress.style.background = `conic-gradient(
                 from -135deg,
                 transparent 0deg,
                 #3b82f6 0deg,
-                #8b5cf6 ${degrees / 2}deg,
-                #ec4899 ${degrees}deg,
-                transparent ${degrees}deg
+                #8b5cf6 ${needleRelative / 2}deg,
+                #ec4899 ${needleRelative}deg,
+                transparent ${needleRelative}deg
             )`;
             DOM.gaugeProgress.style.opacity = '1';
         }
@@ -83,7 +188,6 @@ export function updateGauge(speed, phase) {
         STATE.rafId = null;
     });
 }
-
 export function updateMatrixCardLive(phase, speed) {
     const trayCard = document.querySelector(`.tray-card[data-metric="${phase}"], .secondary-metric[data-metric="${phase}"]`);
     if (trayCard) {

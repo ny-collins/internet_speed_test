@@ -57,7 +57,7 @@
     height: 100dvh;
     background: var(--color-bg-elevated);
     box-shadow: var(--shadow-xl);
-    z-index: var(--z-modal, 100);
+    z-index: var(--z-modal);
     transform: translateX(100%);
     transition: transform var(--transition-base);
     overflow-y: auto;
@@ -72,7 +72,7 @@
     position: fixed;
     top: var(--spacing-lg);
     right: var(--spacing-lg);
-    z-index: var(--z-overlay, 50);
+    z-index: var(--z-overlay);
     width: 3rem;
     height: 3rem;
     border-radius: var(--radius-full);
@@ -334,6 +334,11 @@
     
     .gauge-container {
         padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .gauge-start-button {
+        max-width: 240px;
+        font-size: var(--font-size-xl);
     }
 }
 
