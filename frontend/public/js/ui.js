@@ -85,7 +85,7 @@ export function updateGauge(speed, phase) {
 }
 
 export function updateMatrixCardLive(phase, speed) {
-    const trayCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
+    const trayCard = document.querySelector(`.tray-card[data-metric="${phase}"], .secondary-metric[data-metric="${phase}"]`);
     if (trayCard) {
         const numberEl = trayCard.querySelector('.matrix-number');
         if (numberEl) {
@@ -111,7 +111,7 @@ export function resetGauge() {
 }
 
 export function updatePhaseUI(phase, status) {
-    const metricCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
+    const metricCard = document.querySelector(`.tray-card[data-metric="${phase}"], .secondary-metric[data-metric="${phase}"]`);
     if (metricCard) {
         if (status === 'active') {
             metricCard.setAttribute('data-status', 'measuring');
@@ -162,13 +162,14 @@ function animateBorderProgress(element, durationMs) {
 }
 
 export function resetAllPhases() {
-    document.querySelectorAll('.tray-card[data-metric]').forEach(el => {
+    document.querySelectorAll('.tray-card[data-metric], .secondary-metric[data-metric]').forEach(el => {
         el.setAttribute('data-status', 'not-started');
     });
 }
 
 export function updateResultCard(type, result) {
-    const trayCard = document.querySelector(`.tray-card[data-metric="${type}"]`);
+    // Select from both tray-card and secondary-metric elements
+    const trayCard = document.querySelector(`.tray-card[data-metric="${type}"], .secondary-metric[data-metric="${type}"]`);
     const resultCard = document.querySelector(`.result-card[data-metric="${type}"]`);
 
     switch (type) {
@@ -187,11 +188,11 @@ export function updateResultCard(type, result) {
             if (matrixUnit) {
                 matrixUnit.id = `${type}-unit`; // Update ID for accessibility
             }
-            
+
             if (result.confidence !== undefined) {
                 showConfidenceIndicator(type, result.confidence);
             }
-            
+
             showMeasurementInfoButton(type, result);
 
             const quality = getSpeedQuality(result.speed, type);
@@ -250,11 +251,11 @@ export function updateResultCard(type, result) {
             if (matrixUnit) {
                 matrixUnit.id = 'latency-unit'; // Update ID for accessibility
             }
-            
+
             if (result.confidence !== undefined) {
                 showConfidenceIndicator('latency', result.confidence);
             }
-            
+
             showMeasurementInfoButton('latency', result);
 
             updateLatencyContext(result.average);
@@ -631,18 +632,18 @@ export function resetSpeedCurve() {
 
 
 export function highlightTrayCard(phase) {
-    document.querySelectorAll('.tray-card').forEach(card => {
+    document.querySelectorAll('.tray-card, .secondary-metric').forEach(card => {
         card.classList.remove('active-metric');
     });
     
-    const activeCard = document.querySelector(`.tray-card[data-metric="${phase}"]`);
+    const activeCard = document.querySelector(`.tray-card[data-metric="${phase}"], .secondary-metric[data-metric="${phase}"]`);
     if (activeCard) {
         activeCard.classList.add('active-metric');
     }
 }
 
 export function clearTrayHighlights() {
-    document.querySelectorAll('.tray-card').forEach(card => {
+    document.querySelectorAll('.tray-card, .secondary-metric').forEach(card => {
         card.classList.remove('active-metric');
     });
 }
