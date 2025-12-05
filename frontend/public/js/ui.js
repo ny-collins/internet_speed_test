@@ -31,84 +31,89 @@ function renderGaugeScale(scaleIdx) {
 
     if (!ticksContainer || !labelsContainer) return;
 
-    ticksContainer.innerHTML = '';
-    labelsContainer.innerHTML = '';
-
-    const startAngle = -135;
-    const endAngle = 135;
-    const totalAngle = endAngle - startAngle;
-
-    // Render Labels
-    scale.labels.forEach((val, i) => {
-        const percent = i / (scale.labels.length - 1);
-        const angle = startAngle + (percent * totalAngle);
-        const rad = (angle - 90) * (Math.PI / 180);
-
-        // Label positioning
-        const radius = 160; // Approx radius + padding
-        const x = 170 + Math.cos(rad) * radius; // Center x + offset
-        const y = 170 + Math.sin(rad) * radius; // Center y + offset
-
-        const label = document.createElement('div');
-        label.className = 'gauge-label';
-        label.textContent = val;
-        label.style.left = `${x}px`;
-        label.style.top = `${y}px`;
-        labelsContainer.appendChild(label);
-
-        // Tick mark
-        const tick = document.createElement('div');
-        tick.className = 'gauge-tick';
-        // Rotate tick to point to center
-        // Position logic for ticks is complex in pure CSS rotation, simplifying:
-        // We just rotate the tick container? No, multiple ticks.
-        // Actually, easier to just rotate the tick div itself absolutely
-        tick.style.top = '50%';
-        tick.style.left = '50%';
-        tick.style.height = '1px'; // Invisible line to radius
-        tick.style.width = '140px';
-        tick.style.background = 'transparent';
-        tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
-
-        const tickMark = document.createElement('div');
-        tickMark.style.position = 'absolute';
-        tickMark.style.right = '0';
-        tickMark.style.width = '10px';
-        tickMark.style.height = '2px';
-        tickMark.style.background = 'var(--color-border-strong)';
-
-        tick.appendChild(tickMark);
-        ticksContainer.appendChild(tick);
-    });
-}
-
-function calculateNeedleAngle(speed) {
-    const scale = GAUGE_SCALES[currentScaleIdx];
-
-    // Find which interval the speed falls into
-    let lower = 0;
-    let upper = scale.labels[1];
-    let lowerIdx = 0;
-
-    for (let i = 0; i < scale.labels.length - 1; i++) {
-        if (speed >= scale.labels[i] && speed <= scale.labels[i+1]) {
-            lower = scale.labels[i];
-            upper = scale.labels[i+1];
-            lowerIdx = i;
-            break;
-        }
+        ticksContainer.innerHTML = '';
+        labelsContainer.innerHTML = '';
+        
+        // Standard Speedometer Arch: Starts Bottom-Left (225deg) -> Top -> Bottom-Right (135deg/495deg)
+        const startAngle = 225;
+        const totalAngle = 270;
+        
+        // Render Labels
+        scale.labels.forEach((val, i) => {
+            const percent = i / (scale.labels.length - 1);
+            const angle = startAngle + (percent * totalAngle);
+            
+            // Convert CSS Angle (0=Top) to Math Radian (0=Right)
+            // angle - 90 shifts 0 from Top to Right
+            const rad = (angle - 90) * (Math.PI / 180);
+            
+            // Label positioning
+            const radius = 160; // Approx radius + padding
+            const x = 170 + Math.cos(rad) * radius; // Center x + offset
+            const y = 170 + Math.sin(rad) * radius; // Center y + offset
+            
+            const label = document.createElement('div');
+            label.className = 'gauge-label';
+            label.textContent = val;
+            label.style.left = `${x}px`;
+            label.style.top = `${y}px`;
+            labelsContainer.appendChild(label);
+            
+            // Tick mark
+            const tick = document.createElement('div');
+            tick.className = 'gauge-tick';
+            tick.style.top = '50%';
+            tick.style.left = '50%';
+            tick.style.height = '1px'; 
+            tick.style.width = '140px';
+            tick.style.background = 'transparent';
+            tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+            
+            const tickMark = document.createElement('div');
+            tickMark.style.position = 'absolute';
+            tickMark.style.right = '0';
+            tickMark.style.width = '10px';
+            tickMark.style.height = '2px';
+            tickMark.style.background = 'var(--color-border-strong)';
+            
+            tick.appendChild(tickMark);
+            ticksContainer.appendChild(tick);
+        });
     }
-
-    if (speed > scale.max) return 135; // Cap at max
-
-    // Interpolate position between ticks
-    const ratio = (speed - lower) / (upper - lower);
-    const tickSpan = 270 / (scale.labels.length - 1); // Angle per tick segment
-    const baseAngle = -135 + (lowerIdx * tickSpan);
-
-    return baseAngle + (ratio * tickSpan);
-}
-
+    
+    function calculateNeedleAngle(speed) {
+        const scale = GAUGE_SCALES[currentScaleIdx];
+        
+        // Find which interval the speed falls into
+        let lower = 0;
+        let upper = scale.labels[1];
+        let lowerIdx = 0;
+        
+        for (let i = 0; i < scale.labels.length - 1; i++) {
+            if (speed >= scale.labels[i] && speed <= scale.labels[i+1]) {
+                lower = scale.labels[i];
+                upper = scale.labels[i+1];
+                lowerIdx = i;
+                break;
+            }
+        }
+        
+        const startAngle = 225;
+        const totalAngle = 270;
+        
+        if (speed > scale.max) return startAngle + totalAngle - 90; // Cap at max, adjust for needle
+        
+        // Interpolate position between ticks
+        const ratio = (speed - lower) / (upper - lower);
+        const tickSpan = totalAngle / (scale.labels.length - 1); // Angle per tick segment
+        const gaugeAngle = startAngle + (lowerIdx * tickSpan) + (ratio * tickSpan);
+        
+        // Needle Correction: 
+        // Gauge Angle 0 = Top. 
+        // Needle Element 0 = Right.
+        // To align, Needle = Gauge - 90.
+        return gaugeAngle - 90;
+    }
 export function showGauge() {
     if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = true;
     if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
@@ -170,17 +175,28 @@ export function updateGauge(speed, phase) {
         }
 
         if (DOM.gaugeProgress) {
-            // Use the calculated needle angle to derive degrees relative to 0
-            // This aligns the ring fill with the needle
-            const needleRelative = angle + 135; // 0 to 270
+            // Simple gradient fallback for the ring itself
+            // We map 0-max linearly for the gradient ring even if needle is non-linear
+            // to keep the visual "fill" looking consistent with the needle? 
+            // Actually, if the needle is non-linear, the ring should probably match.
+            // But conic-gradient is linear. 
+            // For now, let's keep the ring simple linear mapping to the *Current Scale Max*
+            const maxSpeed = GAUGE_SCALES[currentScaleIdx].max;
+            
+            // Calculate percentage based on needle angle to match non-linear scale
+            // Needle Angle - Start Angle (adjusted for -90 offset)
+            // Needle = Gauge - 90. Gauge = Needle + 90.
+            // Gauge Start = 225. 
+            // Progress = (GaugeCurrent - 225)
+            const gaugeAngle = angle + 90;
+            const progressDegrees = Math.max(0, gaugeAngle - 225);
 
             DOM.gaugeProgress.style.background = `conic-gradient(
-                from -135deg,
-                transparent 0deg,
+                from 225deg,
                 #3b82f6 0deg,
-                #8b5cf6 ${needleRelative / 2}deg,
-                #ec4899 ${needleRelative}deg,
-                transparent ${needleRelative}deg
+                #8b5cf6 ${progressDegrees / 2}deg,
+                #ec4899 ${progressDegrees}deg,
+                transparent ${progressDegrees}deg
             )`;
             DOM.gaugeProgress.style.opacity = '1';
         }
