@@ -34,91 +34,79 @@ function renderGaugeScale(scaleIdx) {
     ticksContainer.innerHTML = '';
     labelsContainer.innerHTML = '';
 
-    // Get actual gauge dimensions for responsive positioning
-    const gaugeContainer = ticksContainer.parentElement;
-    const containerSize = gaugeContainer.offsetWidth || 360;
+    const gaugeCircle = ticksContainer.parentElement;
+    const containerSize = gaugeCircle.offsetWidth || 360;
     const centerX = containerSize / 2;
     const centerY = containerSize / 2;
-    const labelRadius = (containerSize / 2) * 0.88;
-    const tickRadius = (containerSize / 2) * 0.85;
+    const gaugeRadius = containerSize / 2;
 
-    // Standard Speedometer Arch: Starts Bottom-Left (225deg) -> Top -> Bottom-Right (135deg/495deg)
     const startAngle = 225;
     const totalAngle = 270;
 
-    // Render Labels
     scale.labels.forEach((val, i) => {
         const percent = i / (scale.labels.length - 1);
         const angle = startAngle + (percent * totalAngle);
-
-        // Convert CSS Angle (0=Top) to Math Radian (0=Right)
         const rad = (angle - 90) * (Math.PI / 180);
 
-        // Dynamic label positioning based on actual gauge size
-        const x = centerX + Math.cos(rad) * labelRadius;
-        const y = centerY + Math.sin(rad) * labelRadius;
+        const labelDistance = gaugeRadius * 1.25;
+        const x = centerX + Math.cos(rad) * labelDistance;
+        const y = centerY + Math.sin(rad) * labelDistance;
 
         const label = document.createElement('div');
         label.className = 'gauge-label';
         label.textContent = val;
+        label.style.position = 'absolute';
         label.style.left = `${x}px`;
         label.style.top = `${y}px`;
+        label.style.transform = 'translate(-50%, -50%)';
         labelsContainer.appendChild(label);
 
-        // Tick mark - simplified positioning
+        const tickDistance = gaugeRadius * 0.85;
+        const tickX = centerX + Math.cos(rad) * tickDistance;
+        const tickY = centerY + Math.sin(rad) * tickDistance;
+
         const tick = document.createElement('div');
         tick.className = 'gauge-tick';
-
-        // Position tick at the calculated angle
-        const tickX = centerX + Math.cos(rad) * tickRadius;
-        const tickY = centerY + Math.sin(rad) * tickRadius;
-
         tick.style.position = 'absolute';
         tick.style.left = `${tickX}px`;
         tick.style.top = `${tickY}px`;
-        tick.style.width = '10px';
-        tick.style.height = '2px';
+        tick.style.width = '12px';
+        tick.style.height = '3px';
         tick.style.background = 'var(--color-border-strong)';
         tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
         tick.style.transformOrigin = 'center';
-
+        tick.style.borderRadius = '2px';
         ticksContainer.appendChild(tick);
     });
 }
-    
-    function calculateNeedleAngle(speed) {
-        const scale = GAUGE_SCALES[currentScaleIdx];
-        
-        // Find which interval the speed falls into
-        let lower = 0;
-        let upper = scale.labels[1];
-        let lowerIdx = 0;
-        
-        for (let i = 0; i < scale.labels.length - 1; i++) {
-            if (speed >= scale.labels[i] && speed <= scale.labels[i+1]) {
-                lower = scale.labels[i];
-                upper = scale.labels[i+1];
-                lowerIdx = i;
-                break;
-            }
+
+function calculateNeedleAngle(speed) {
+    const scale = GAUGE_SCALES[currentScaleIdx];
+
+    let lower = 0;
+    let upper = scale.labels[1];
+    let lowerIdx = 0;
+
+    for (let i = 0; i < scale.labels.length - 1; i++) {
+        if (speed >= scale.labels[i] && speed <= scale.labels[i+1]) {
+            lower = scale.labels[i];
+            upper = scale.labels[i+1];
+            lowerIdx = i;
+            break;
         }
-        
-        const startAngle = 225;
-        const totalAngle = 270;
-        
-        if (speed > scale.max) return startAngle + totalAngle - 90; // Cap at max, adjust for needle
-        
-        // Interpolate position between ticks
-        const ratio = (speed - lower) / (upper - lower);
-        const tickSpan = totalAngle / (scale.labels.length - 1); // Angle per tick segment
-        const gaugeAngle = startAngle + (lowerIdx * tickSpan) + (ratio * tickSpan);
-        
-        // Needle Correction: 
-        // Gauge Angle 0 = Top. 
-        // Needle Element 0 = Right.
-        // To align, Needle = Gauge - 90.
-        return gaugeAngle - 90;
     }
+
+    const startAngle = 225;
+    const totalAngle = 270;
+
+    if (speed > scale.max) return startAngle + totalAngle;
+
+    const ratio = (speed - lower) / (upper - lower);
+    const tickSpan = totalAngle / (scale.labels.length - 1);
+    const needleAngle = startAngle + (lowerIdx * tickSpan) + (ratio * tickSpan);
+
+    return needleAngle;
+}
 export function showGauge() {
     if (DOM.gaugeStartButton) DOM.gaugeStartButton.hidden = true;
     if (DOM.gaugeCircle) DOM.gaugeCircle.hidden = false;
@@ -172,7 +160,6 @@ export function updateGauge(speed, phase) {
             renderGaugeScale(newScaleIdx);
         }
 
-        // Needle Logic
         const angle = calculateNeedleAngle(speed);
         const needle = document.getElementById('gaugeNeedle');
         if (needle) {
@@ -180,21 +167,7 @@ export function updateGauge(speed, phase) {
         }
 
         if (DOM.gaugeProgress) {
-            // Simple gradient fallback for the ring itself
-            // We map 0-max linearly for the gradient ring even if needle is non-linear
-            // to keep the visual "fill" looking consistent with the needle? 
-            // Actually, if the needle is non-linear, the ring should probably match.
-            // But conic-gradient is linear. 
-            // For now, let's keep the ring simple linear mapping to the *Current Scale Max*
-            const maxSpeed = GAUGE_SCALES[currentScaleIdx].max;
-            
-            // Calculate percentage based on needle angle to match non-linear scale
-            // Needle Angle - Start Angle (adjusted for -90 offset)
-            // Needle = Gauge - 90. Gauge = Needle + 90.
-            // Gauge Start = 225. 
-            // Progress = (GaugeCurrent - 225)
-            const gaugeAngle = angle + 90;
-            const progressDegrees = Math.max(0, gaugeAngle - 225);
+            const progressDegrees = Math.max(0, angle - 225);
 
             DOM.gaugeProgress.style.background = `conic-gradient(
                 from 225deg,

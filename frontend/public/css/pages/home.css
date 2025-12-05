@@ -473,25 +473,18 @@
 
 .gauge-ticks {
     position: absolute;
-    inset: 10px;
+    inset: 0;
     border-radius: 50%;
     z-index: 2;
     pointer-events: none;
 }
 
 .gauge-tick {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 2px;
-    height: 10px;
-    background: var(--color-border);
-    transform-origin: 0 50%;
 }
 
 .gauge-labels {
     position: absolute;
-    inset: -20px;
+    inset: 0;
     z-index: 3;
     pointer-events: none;
 }
@@ -509,14 +502,14 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 140px;
+    width: 50%;
     height: 4px;
     background: transparent;
-    transform-origin: 0 50%;
-    transform: rotate(-135deg);
-    z-index: 4;
+    transform-origin: left center;
+    transform: rotate(135deg);
+    z-index: 5;
     pointer-events: none;
-    transition: transform 0.1s ease-out;
+    transition: transform 0.15s ease-out;
 }
 
 .gauge-needle::after {
