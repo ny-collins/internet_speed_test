@@ -571,16 +571,12 @@ function drawToCanvas(canvas, ctx, width, height) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    const maxVisibleSamples = 50;
-    const displaySamples = samples.length > maxVisibleSamples
-        ? samples.slice(-maxVisibleSamples)
-        : samples;
-
-    const stepX = width / Math.max(displaySamples.length - 1, 1);
+    // Show all samples, compressed to fit the width
+    const stepX = width / Math.max(samples.length - 1, 1);
 
     ctx.beginPath();
 
-    const points = displaySamples.map((val, i) => {
+    const points = samples.map((val, i) => {
         return {
             x: i * stepX,
             y: height - ((val - min) / range) * (height * 0.75) - (height * 0.15)
