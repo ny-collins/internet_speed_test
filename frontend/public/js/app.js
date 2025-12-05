@@ -23,8 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    console.log('[App] Initializing SpeedCheck (Modular)...');
-    
     const skeleton = document.getElementById('loadingSkeleton');
     const appContainer = document.querySelector('.app-container');
     if (skeleton) skeleton.style.display = 'none';
@@ -40,7 +38,6 @@ async function initializeApp() {
     const isSpeedTestPage = document.getElementById('splitLayout') !== null;
     
     if (isSpeedTestPage) {
-        console.log('[App] Speed test page detected');
         queryDOMElements();
     }
     
@@ -68,10 +65,7 @@ async function initializeApp() {
         
         setupGlobalErrorHandling();
         
-        console.log('[App] Speed test initialization complete');
         announceToScreenReader('SpeedCheck ready. Press the Start Test button to begin.');
-    } else {
-        console.log('[App] Non-speed-test page detected');
     }
 }
 
@@ -82,7 +76,6 @@ async function initializeApp() {
 function optimizeThreadCount() {
     const latencyResult = STATE.testResults.latency;
     if (!latencyResult || !latencyResult.average) {
-        console.log('[Optimization] No latency data available, using default thread count');
         return;
     }
     
@@ -94,18 +87,15 @@ function optimizeThreadCount() {
         CONFIG.duration.download.min = 15;
         CONFIG.duration.upload.min = 15;
         CONFIG.stability.varianceThreshold = 0.40;
-        console.log(`[Optimization] High latency detected (${avgLatency.toFixed(0)}ms) - using 1 thread, extended duration, relaxed stability`);
     } 
     else if (avgLatency > 100) {
         optimalThreads = 2;
         CONFIG.duration.download.min = 12;
         CONFIG.duration.upload.min = 12;
         CONFIG.stability.varianceThreshold = 0.35;
-        console.log(`[Optimization] Medium latency detected (${avgLatency.toFixed(0)}ms) - using 2 threads`);
     }
     else {
         optimalThreads = 4;
-        console.log(`[Optimization] Low latency detected (${avgLatency.toFixed(0)}ms) - using 4 threads`);
     }
     
     CONFIG.threads.download = optimalThreads;
@@ -188,7 +178,6 @@ async function runPhase(name, testFn, maxRetries = 2) {
     let lastError;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`[Test] Starting ${name} (attempt ${attempt + 1}/${maxRetries + 1})`);
             const result = await testFn();
             
             hideCountdown();
@@ -202,7 +191,6 @@ async function runPhase(name, testFn, maxRetries = 2) {
             
         } catch (error) {
             lastError = error;
-            console.warn(`[Test] ${name} attempt ${attempt + 1} failed:`, error.message);
             
             if (STATE.cancelling || 
                 error.message.includes('cancelled') || 
@@ -225,7 +213,6 @@ async function runPhase(name, testFn, maxRetries = 2) {
 
 function cancelTest() {
     if (!STATE.testing) return;
-    console.log('[Test] Cancelling...');
     STATE.cancelling = true;
 
     STATE.abortControllers.forEach(c => {
@@ -249,8 +236,6 @@ function cancelTest() {
 
     showStatus('Test cancelled', 'info');
 }async function retryTest() {
-    console.log('[Test] Retrying...');
-    
     if (DOM.retryTest) DOM.retryTest.hidden = true;
     
     showStatus('Retrying speed test...', 'info');
@@ -259,8 +244,6 @@ function cancelTest() {
 }
 
 async function completeTest() {
-    console.log('[Test] Complete');
-    
     performanceMonitor.endTest();
     
     setProgress(100);

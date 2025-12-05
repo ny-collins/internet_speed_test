@@ -1330,7 +1330,7 @@ DOM.startTest.addEventListener('click', () => startTestFn());
 
 **Deployment Targets:**
 - **Railway** (Europe) - Production server
-- **Cloudflare Pages** (Africa) - Edge-optimized CDN
+- **Cloudflare Pages** (Africa regional, Nairobi, Kenya) - Edge-optimized CDN
 
 **Version Management:**
 - Version stored in `package.json`

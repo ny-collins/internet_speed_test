@@ -120,12 +120,6 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 - ✅ **Error Handling & Edge Cases** - Robustness validation
 - ✅ **Frontend Specific Tests** - SEO, caching, page optimization
 
-## 📚 Documentation
-
-- **[Technical Notes](docs/TECHNICAL_NOTES.md)** - Design decisions & performance optimizations
-- **[Functionality](docs/FUNCTIONALITY.md)** - System architecture & API details
-- **[Changelog](docs/CHANGELOG.md)** - Version history & release notes
-
 ## 📋 Recent Updates
 
 ### v1.69.0 (Current)

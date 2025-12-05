@@ -37,7 +37,7 @@ The Content Security Policy (CSP) restricts which domains the browser can make A
    - Inject the environment variable at runtime
    - Deploy with correct CSP
 
-#### Cloudflare Pages (Manual Deploy)
+#### Cloudflare Pages (Manual Deploy, Nairobi, Kenya)
 1. Build locally with the correct API_URL:
    ```bash
    export API_URL=https://your-backend.example.com

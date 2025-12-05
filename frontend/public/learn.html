@@ -10,7 +10,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://speed-test.up.railway.app/learn">
     <meta property="og:title" content="Understanding Internet Speed Tests - Learn">
-    <meta property="og:description" content="Discover why testing from Amsterdam reveals your true international internet speed. Learn the difference between local and global speed tests.">
+    <meta property="og:description" content="Discover why testing from Amsterdam reveals your true international internet speed.">
     <meta property="og:image" content="https://speed-test.up.railway.app/assets/learn_page.png">
     <meta property="fb:app_id" content="24685616031079978">
     
@@ -24,86 +24,72 @@
     <link rel="manifest" href="/site.webmanifest">
     
     <link rel="stylesheet" href="/css/main.css?v=1.69.0">
+    <link rel="stylesheet" href="/css/learn-shared.css?v=1.69.0">
+    <link rel="stylesheet" href="/css/pages/learn.css?v=1.69.0">
     
     <title>Learn - Internet Speed Test</title>
-    
-    <style>
-        .page-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--color-bg-primary);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        
-        .page-loader.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-        
-        .loader-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--color-border);
-            border-top: 4px solid var(--color-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-        
-        .loader-text {
-            color: var(--color-text-secondary);
-            font-size: 1.1rem;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-    
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": "Understanding Internet Speed Tests: Real-World vs Local Testing",
-        "description": "Comprehensive guide to internet speed testing, international routing, and understanding your true connection speed.",
-        "author": {
-            "@type": "Organization",
-            "name": "Speed Test App"
-        },
-        "publisher": {
-            "@type": "Organization",
-            "name": "Speed Test App"
-        },
-        "datePublished": "2025-10-11",
-        "dateModified": "2025-10-12"
-    }
-    </script>
 </head>
 <body class="page-learn">
-    <div class="page-loader" id="pageLoader">
-        <div class="loader-spinner"></div>
+    <div class="page-loader">
+        <i data-lucide="book-open" class="loader-icon" style="width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 1rem;"></i>
         <div class="loader-text">Loading educational content...</div>
     </div>
+
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo" style="text-decoration: none;">
                 <i data-lucide="zap" class="logo-icon"></i>
                 <h1 class="logo-text">SpeedCheck</h1>
             </a>
+            <button class="theme-toggle-inline" id="themeToggleSwitch" aria-label="Toggle theme" aria-pressed="false">
+                <i data-lucide="moon" class="theme-icon"></i>
+            </button>
         </div>
     </header>
 
-    <main class="learn-container">
-        <article class="article-content article-intro">
+    <main class="learn-layout">
+        <aside class="learn-sidebar" id="learnSidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Learn Articles</h3>
+                    <nav class="sidebar-nav">
+                        <a href="/learn.html" class="sidebar-link active">
+                            <i data-lucide="book-open" class="sidebar-icon"></i>
+                            Overview
+                        </a>
+                        <a href="/learn/basics.html" class="sidebar-link">
+                            <i data-lucide="graduation-cap" class="sidebar-icon"></i>
+                            Speed Test Basics
+                        </a>
+                        <a href="/learn/methodology.html" class="sidebar-link">
+                            <i data-lucide="flask-conical" class="sidebar-icon"></i>
+                            Testing Methodology
+                        </a>
+                        <a href="/learn/technical.html" class="sidebar-link">
+                            <i data-lucide="cpu" class="sidebar-icon"></i>
+                            Technical Concepts
+                        </a>
+                        <a href="/learn/troubleshooting.html" class="sidebar-link">
+                            <i data-lucide="wrench" class="sidebar-icon"></i>
+                            Troubleshooting
+                        </a>
+                        <a href="/learn/future.html" class="sidebar-link">
+                            <i data-lucide="sparkles" class="sidebar-icon"></i>
+                            Future of Testing
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-back">
+                    <a href="/" class="sidebar-link">
+                        <i data-lucide="arrow-left" class="sidebar-icon"></i>
+                        Back to Speed Test
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <article class="article-content learn-article">
             <header class="article-header">
                 <h1>Understanding Internet Speed Testing</h1>
                 <p class="article-subtitle">A comprehensive guide to measuring, interpreting, and optimizing your internet connection performance.</p>
@@ -115,83 +101,63 @@
                 </section>
 
                 <section class="article-section">
-                    <h2>What You'll Learn</h2>
-                    <p>Our learning center covers everything from basic concepts to advanced networking principles. Each article is designed to build your understanding progressively:</p>
+                    <h2>Table of Contents</h2>
+                    <p>Explore our comprehensive guides to master internet performance concepts.</p>
 
-                    <nav class="article-links-list" aria-label="Learning articles">
-                        <a href="learn/basics.html" class="article-link-card">
-                            <div class="article-link-icon">📚</div>
-                            <div class="article-link-content">
-                                <h3>Speed Test Basics</h3>
-                                <p>Learn what speed tests measure, why they matter, and how to interpret your results effectively.</p>
-                                <span class="article-meta">5 min read</span>
+                    <div class="chapter-list">
+                        <div class="chapter-item">
+                            <h3><a href="/learn/basics.html">1. Speed Test Basics</a></h3>
+                            <p>Learn the fundamental metrics that define connection quality: Download, Upload, Latency, and Jitter. Understand why "faster" isn't always "better" for every use case.</p>
+                            <div class="chapter-meta">
+                                <span><i data-lucide="clock"></i> 5 min read</span>
+                                <span><i data-lucide="bar-chart"></i> Beginner</span>
                             </div>
-                        </a>
+                        </div>
 
-                        <a href="learn/methodology.html" class="article-link-card">
-                            <div class="article-link-icon">🔬</div>
-                            <div class="article-link-content">
-                                <h3>Testing Methodology</h3>
-                                <p>Discover why we test from Amsterdam, our fixed-duration approach, and what makes accurate speed measurement challenging.</p>
-                                <span class="article-meta">7 min read</span>
+                        <div class="chapter-item">
+                            <h3><a href="/learn/methodology.html">2. Testing Methodology</a></h3>
+                            <p>Discover why SpeedCheck tests from a fixed standardized server in Amsterdam rather than a local node. Learn about our multi-threaded architecture and scientific approach to measurement.</p>
+                            <div class="chapter-meta">
+                                <span><i data-lucide="clock"></i> 7 min read</span>
+                                <span><i data-lucide="flask-conical"></i> Intermediate</span>
                             </div>
-                        </a>
+                        </div>
 
-                        <a href="learn/technical.html" class="article-link-card">
-                            <div class="article-link-icon">⚙️</div>
-                            <div class="article-link-content">
-                                <h3>Technical Concepts</h3>
-                                <p>Deep dive into latency, bandwidth units (Mbps vs MB/s), packet loss, jitter, and network fundamentals.</p>
-                                <span class="article-meta">10 min read</span>
+                        <div class="chapter-item">
+                            <h3><a href="/learn/technical.html">3. Technical Concepts</a></h3>
+                            <p>A deep dive into the networking protocols (TCP/IP, HTTP/2) and physics that govern internet speed. Explains bufferbloat, congestion control, and the technical stack.</p>
+                            <div class="chapter-meta">
+                                <span><i data-lucide="clock"></i> 10 min read</span>
+                                <span><i data-lucide="cpu"></i> Advanced</span>
                             </div>
-                        </a>
+                        </div>
 
-                        <a href="learn/troubleshooting.html" class="article-link-card">
-                            <div class="article-link-icon">🔧</div>
-                            <div class="article-link-content">
-                                <h3>Troubleshooting Guide</h3>
-                                <p>Identify factors affecting your speeds and learn practical steps to optimize your connection.</p>
-                                <span class="article-meta">8 min read</span>
+                        <div class="chapter-item">
+                            <h3><a href="/learn/troubleshooting.html">4. Troubleshooting Guide</a></h3>
+                            <p>Practical steps to diagnose and fix common connection issues. From Wi-Fi interference to ISP routing problems, learn how to optimize your setup.</p>
+                            <div class="chapter-meta">
+                                <span><i data-lucide="clock"></i> 8 min read</span>
+                                <span><i data-lucide="wrench"></i> Practical</span>
                             </div>
-                        </a>
+                        </div>
 
-                        <a href="learn/future.html" class="article-link-card">
-                            <div class="article-link-icon">🚀</div>
-                            <div class="article-link-content">
-                                <h3>Future of Speed Testing</h3>
-                                <p>Explore emerging technologies, quality-of-experience metrics, and the evolution of internet measurement.</p>
-                                <span class="article-meta">6 min read</span>
+                        <div class="chapter-item">
+                            <h3><a href="/learn/future.html">5. Future of Testing</a></h3>
+                            <p>Look ahead at emerging technologies like 5G, Wi-Fi 7, and new transport protocols that will reshape how we measure and experience the internet.</p>
+                            <div class="chapter-meta">
+                                <span><i data-lucide="clock"></i> 6 min read</span>
+                                <span><i data-lucide="sparkles"></i> Visionary</span>
                             </div>
-                        </a>
-                    </nav>
+                        </div>
+                    </div>
                 </section>
 
                 <section class="article-section">
-                    <h2>Why This Matters</h2>
-                    <p>In an increasingly connected world, understanding your internet performance helps you:</p>
-                    <ul>
-                        <li><strong>Verify Service Quality</strong> – Ensure you're receiving the speeds you pay for</li>
-                        <li><strong>Diagnose Issues</strong> – Identify bottlenecks and connectivity problems</li>
-                        <li><strong>Make Informed Decisions</strong> – Choose the right service tier for your needs</li>
-                        <li><strong>Optimize Performance</strong> – Improve your setup for better results</li>
-                    </ul>
+                    <h2>Why Accuracy Matters</h2>
+                    <p>In an increasingly connected world, your internet connection is a vital utility. Accurate measurement empowers you to verify service quality, diagnose bottlenecks, and make informed decisions about your digital infrastructure.</p>
                 </section>
-
-                <div class="callout-box callout-info">
-                    <h3>📖 Recommended Reading Order</h3>
-                    <p><strong>New to speed testing?</strong> Start with <a href="learn/basics.html">Speed Test Basics</a> to build a foundation.</p>
-                    <p><strong>Want to understand our approach?</strong> Read <a href="learn/methodology.html">Testing Methodology</a> to learn why we test from Amsterdam.</p>
-                    <p><strong>Technical background?</strong> Jump straight to <a href="learn/technical.html">Technical Concepts</a> for in-depth explanations.</p>
-                </div>
             </div>
         </article>
-
-        <div class="learn-cta">
-            <a href="/" class="btn-primary btn-lg">
-                <i data-lucide="zap"></i>
-                Test Your Speed Now
-            </a>
-        </div>
     </main>
 
     <footer class="footer">
@@ -206,17 +172,16 @@
                     <ul>
                         <li><a href="/">Speed Test</a></li>
                         <li><a href="/learn">Learn</a></li>
-                        <li><a href="learn/basics.html">Speed Test Basics</a></li>
-                        <li><a href="learn/troubleshooting.html">Best Practices</a></li>
+                        <li><a href="/learn/basics.html">Speed Test Basics</a></li>
+                        <li><a href="/learn/troubleshooting.html">Best Practices</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Technical</h4>
                     <ul>
-                        <li><a href="learn/methodology.html">Testing Methodology</a></li>
-                        <li><a href="learn/technical.html">Technical Concepts</a></li>
-                        <li><a href="learn/technical.html">Latency & Bandwidth</a></li>
-                        <li><a href="learn/future.html">Future of Testing</a></li>
+                        <li><a href="/learn/methodology.html">Testing Methodology</a></li>
+                        <li><a href="/learn/technical.html">Technical Concepts</a></li>
+                        <li><a href="/learn/future.html">Future of Testing</a></li>
                     </ul>
                 </div>
             </div>
@@ -231,7 +196,7 @@
         </div>
     </footer>
 
-    <script src="/js/learn-init.js?v=1.69.0"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script type="module" src="/js/shared.js?v=1.69.0"></script>
 </body>
 </html>

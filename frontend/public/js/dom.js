@@ -89,6 +89,4 @@ export function queryDOMElements() {
     DOM.historyList = document.getElementById('historyList');
     DOM.clearHistory = document.getElementById('clearHistory');
     DOM.exportHistory = document.getElementById('exportHistory');
-
-    console.log('[DOM] All elements queried and cached');
 }

@@ -43,19 +43,22 @@
     
     <script>
     (function() {
-      const currentUrl = window.location.origin + window.location.pathname;
-      const imageUrl = window.location.origin + '/assets/social-preview.png';
+      // Force canonical URL to primary domain to prevent SEO duplication with Cloudflare mirror
+      const primaryDomain = 'https://speed-test.up.railway.app';
+      const currentPath = window.location.pathname === '/' ? '' : window.location.pathname;
+      const canonicalUrl = primaryDomain + currentPath;
+      const imageUrl = primaryDomain + '/assets/social-preview.png';
       
-      document.getElementById('og-url').setAttribute('content', currentUrl);
+      document.getElementById('og-url').setAttribute('content', canonicalUrl);
       document.getElementById('og-image').setAttribute('content', imageUrl);
       document.getElementById('twitter-image').setAttribute('content', imageUrl);
-      document.getElementById('canonical-url').setAttribute('href', currentUrl);
+      document.getElementById('canonical-url').setAttribute('href', canonicalUrl);
       
       const schema = {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "SpeedCheck",
-        "url": currentUrl,
+        "url": canonicalUrl,
         "description": "Test your internet speed with SpeedCheck. Measure download, upload, ping, and jitter with real-world international connectivity to Amsterdam, Netherlands.",
         "applicationCategory": "UtilityApplication",
         "operatingSystem": "Any",

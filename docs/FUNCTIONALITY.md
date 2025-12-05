@@ -42,8 +42,8 @@ This document explains how SpeedCheck works internally - the architecture, measu
    ┌────▼─────┐         ┌───┴────┐
    │ Frontend │         │Frontend│
    │ Railway  │         │Cloudfl.│
-   │Amsterdam │         │Dar es  │
-   │(Primary) │         │Salaam  │
+   │Amsterdam │         │Nairobi │
+   │(Primary) │         │        │
    └──────────┘         └────────┘
 ```
 

@@ -270,7 +270,7 @@ const worker = new Worker('download-worker.js', { type: 'module' });
 
 // Send test parameters
 worker.postMessage({
-    url: 'https://test.server/download',
+    url: 'https://speed-test-backend.up.railway.app/api/download',
     duration: 10000,
     threads: 4
 });

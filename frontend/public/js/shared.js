@@ -10,8 +10,6 @@ import { registerServiceWorker } from './js/worker.js';
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[Shared] Initializing lightweight page...');
-    
     registerServiceWorker();
     initializeTheme();
     
@@ -23,6 +21,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageLoader) {
         pageLoader.classList.add('hidden');
     }
-    
-    console.log('[Shared] Initialization complete');
 });

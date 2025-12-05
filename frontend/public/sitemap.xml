@@ -3,16 +3,52 @@
   <!-- Main Homepage -->
   <url>
     <loc>https://speed-test.up.railway.app/</loc>
-    <lastmod>2025-10-11</lastmod>
+    <lastmod>2025-12-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
-  <!-- Educational Content Page -->
+  <!-- Learn Hub -->
   <url>
     <loc>https://speed-test.up.railway.app/learn.html</loc>
-    <lastmod>2025-10-11</lastmod>
+    <lastmod>2025-12-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- Learn Articles -->
+  <url>
+    <loc>https://speed-test.up.railway.app/learn/basics.html</loc>
+    <lastmod>2025-12-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://speed-test.up.railway.app/learn/methodology.html</loc>
+    <lastmod>2025-12-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://speed-test.up.railway.app/learn/technical.html</loc>
+    <lastmod>2025-12-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://speed-test.up.railway.app/learn/troubleshooting.html</loc>
+    <lastmod>2025-12-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://speed-test.up.railway.app/learn/future.html</loc>
+    <lastmod>2025-12-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
