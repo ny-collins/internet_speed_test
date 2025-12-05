@@ -395,9 +395,9 @@
 
 /* --- Gauge Specifics (Overrides from layout.css if needed) --- */
 .gauge-start-button {
-    width: 85%; 
+    width: 95%; 
     aspect-ratio: 1 / 1;
-    max-width: 340px;
+    max-width: none;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: white;
