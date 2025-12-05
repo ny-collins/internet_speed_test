@@ -343,7 +343,7 @@ app.get('/api/download', circuitBreaker, (req, res) => {
 });
 
 app.post('/api/upload', circuitBreaker, (req, res) => {
-  const startTime = Date.now();
+  const startTime = performance.now();
   let receivedBytes = 0;
   let firstByteTime = null;
   const byteLimit = config.maxUploadSizeMB * 1024 * 1024;
@@ -361,7 +361,7 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
     if (aborted || clientDisconnected) return;
 
     if (firstByteTime === null && chunk.length > 0) {
-      firstByteTime = Date.now();
+      firstByteTime = performance.now();
     }
 
     receivedBytes += chunk.length;
@@ -375,7 +375,7 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
 
   req.on('end', () => {
     if (aborted || clientDisconnected) return;
-    const endTime = Date.now();
+    const endTime = performance.now();
     const duration = (endTime - startTime) / 1000;
     const effectiveDuration = firstByteTime ? (endTime - firstByteTime) / 1000 : duration;
     const speedMbps = (receivedBytes * 8) / (effectiveDuration * 1000000);

@@ -45,7 +45,7 @@ export const CONFIG = {
     updateInterval: getOptimalUpdateInterval(),
     rafThrottle: 16,
     chunkSize: 512,
-    uploadSize: 10,
+    uploadSize: 20,
     downloadSize: 50,
     connectionTimeout: 10000,
     maxRetries: 2,
