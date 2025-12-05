@@ -316,33 +316,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
 **Problem:** Original single-column layout required scrolling to see results during tests, and didn't utilize desktop screen real estate effectively.
 
-**Solution:** Implemented 45/55 split two-column grid with sticky gauge positioning:
+**Solution:** Implemented 45:55 fractional split two-column grid with gauge transparency:
 
 ```css
-.test-container {
+.split-layout {
   display: grid;
-  grid-template-columns: 45% 55%;
-  gap: var(--spacing-2xl);
-  align-items: start;
+  grid-template-columns: 45fr 55fr;
+  gap: var(--spacing-xl);
+  min-height: 70vh;
+  max-height: 75vh;
 }
 
-.gauge-column {
-  position: sticky;
-  top: var(--spacing-xl);
-  /* Gauge remains visible during scroll */
+.gauge-section {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.gauge-container-split {
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
 }
 ```
 
 **Benefits:**
-- Gauge always visible during tests (sticky positioning)
-- Results matrix hierarchy: Download/Upload prominent, Latency/Jitter compact
+- Fractional units (45fr 55fr) provide better responsive scaling than fixed pixels
+- Gauge transparency blends seamlessly with page background
+- Results matrix hierarchy: Download/Upload prominent as cards, Ping/Jitter compact as secondary metrics
 - Desktop-first approach leverages available screen width
-- No scrolling needed to monitor active tests
+- 360px gauge provides stronger visual presence
+
+**Layout Hierarchy:**
+- Speed cards (download/upload): Full `.tray-card` treatment with graphs
+- Secondary metrics (ping/jitter): Compact inline display in flex container
+- Visual weight matches importance: speeds > latency metrics
 
 **Breakpoints:**
 - 1024px: Two-column layout activates
-- 1440px: Container max-width 1600px prevents over-stretching
-- 1600px+: Additional spacing adjustments
+- 768px: Mobile stacked layout
+- Gauge sizing scales responsively within 360px max constraint
 
 ### Variance Graph Implementation
 
@@ -385,39 +397,121 @@ else quality = 'poor';                          // 🔴
 - Lower memory footprint for frequent redraws
 - Simpler redraw logic with `clearRect()`
 
-### Quality Badge System
+### Graph Rendering Optimization (v1.69.0)
 
-**Problem:** Users needed quick visual feedback on whether their latency/jitter was good without reading numbers.
+**Problem:** Original implementation used `.slice(-50)` to show only the last 50 samples, causing the left edge of the graph to "swallow" historical data as new samples arrived. Users couldn't see the complete test progression.
 
-**Solution:** Color-coded emoji badges with contextual labels:
+**Solution:** Horizontal compression to display all collected samples:
 
 ```javascript
-// Latency thresholds (gaming-oriented)
-if (latency < 50) badge = '🟢 Great';   // Competitive gaming ready
-else if (latency < 100) badge = '🟡 Good';   // Casual gaming, calls OK
-else if (latency < 200) badge = '🟠 Fair';   // Browsing acceptable
-else badge = '🔴 Poor';                      // Noticeable delays
+// OLD: Fixed 50-sample window (data loss)
+const maxVisibleSamples = 50;
+const visibleSamples = samples.slice(-maxVisibleSamples);
+const stepX = width / maxVisibleSamples;
 
-// Jitter thresholds (stability-focused)
-if (jitter < 10) badge = '🟢 Great';    // Very stable
-else if (jitter < 30) badge = '🟡 Good';    // Minor variation
-else if (jitter < 50) badge = '🟠 Fair';    // Some instability
-else badge = '🔴 Poor';                   // Highly unstable
+// NEW: Compress all samples to fit canvas width
+const stepX = width / Math.max(samples.length - 1, 1);
+// Use all samples, compress horizontally as they accumulate
 ```
 
 **Benefits:**
-- Instant visual feedback without number interpretation
-- Gaming-oriented latency thresholds (competitive vs casual)
-- Stability-focused jitter thresholds
-- Consistent color language across UI
+- **Complete History**: Shows entire test progression from start to finish
+- **No Data Loss**: All collected samples visible, none discarded
+- **Progressive Compression**: As samples grow, they compress horizontally to fit
+- **Left-to-Right Animation**: Natural visualization of test progression over time
+- **Consistent Visualization**: Early vs late test phases equally visible
 
-**Contextual Latency Messages:**
+**Implementation Details:**
 ```javascript
-if (latency < 20) text = 'Excellent for competitive gaming...';
-else if (latency < 50) text = 'Great for gaming, video calls...';
-else if (latency < 100) text = 'Good for most online activities...';
-else if (latency < 200) text = 'Fair for casual browsing...';
-else text = 'May experience delays in real-time applications';
+function drawToCanvas(canvas, ctx, width, height) {
+  if (!samples || samples.length === 0) return;
+  
+  // Calculate horizontal spacing for ALL samples
+  const stepX = width / Math.max(samples.length - 1, 1);
+  
+  // Draw all samples
+  samples.forEach((sample, i) => {
+    const x = i * stepX;  // Distributed across full width
+    const y = mapSpeedToY(sample);
+    // Draw curve point
+  });
+}
+```
+
+**Why This Matters:**
+- Users can see if speed was stable throughout entire test
+- Identifies ramp-up period (TCP slow start) vs sustained speed
+- Shows bufferbloat events across complete test duration
+- No confusion about "missing" data from graph
+
+**Trade-offs:**
+- More samples = denser horizontal packing (acceptable, still readable)
+- Canvas width limits effective resolution (800px typical, sufficient for clarity)
+
+### Physics-Aware Analysis System
+
+**Problem:** Quality badges (Good/Fair/Poor) were subjective and context-dependent. A 150ms latency is "poor" for gaming but reasonable for international connections spanning 10,000km.
+
+**Solution:** Educational analysis system explaining results through physics and networking principles:
+
+```javascript
+// Speed-of-light calculation for minimum theoretical latency
+const minTheoretical = (distance / 200000) * 1000; // ms
+// Speed of light in fiber: ~200,000 km/s
+
+// Context-aware explanations
+if (distance > 1000) {
+  analysis.push({
+    metric: 'Latency',
+    value: `${latency.toFixed(0)}ms`,
+    context: `Testing over ${distance}km introduces ${minTheoretical.toFixed(0)}ms minimum theoretical delay (speed of light). Your latency of ${latency.toFixed(0)}ms includes routing overhead, which is ${isReasonable ? 'reasonable' : 'higher than expected'} for international connections.`
+  });
+}
+
+// Jitter analysis with routing context
+const isStable = jitter < 30;
+analysis.push({
+  metric: 'Jitter',
+  value: `${jitter.toFixed(1)}ms`,
+  context: `Jitter measures latency variation. ${isStable ? 'Low jitter indicates stable routing' : 'Higher jitter suggests variable network conditions'}, which is common on international routes with multiple hops.`
+});
+
+// Download/upload with asymmetric connection context
+analysis.push({
+  metric: 'Download',
+  value: `${download.toFixed(1)} Mbps`,
+  context: 'Your download speed reflects bandwidth capacity and current network load. International tests may show lower speeds than local tests due to routing efficiency and server distance.'
+});
+```
+
+**Benefits:**
+- **Educational Rather Than Judgmental**: Explains why results are what they are instead of labeling them good/bad
+- **Physics-Based Context**: Uses speed-of-light calculations to set realistic expectations
+- **Distance-Aware**: Adjusts explanations for local vs international testing
+- **Routing Transparency**: Explains international routing overhead and multi-hop complexity
+- **Removes Subjective Bias**: No arbitrary thresholds declaring speeds \"poor\" or \"great\"
+
+**Why This Matters:**
+- User in Kenya testing Amsterdam server: 150ms latency is physics-limited, not \"poor\"
+- User with asymmetric DSL: Upload slower by design, not network problem
+- International routing: Multiple hops and peering points add inherent overhead
+- Empowers users with knowledge instead of anxiety about \"bad\" scores
+
+**Display Integration:**
+```javascript
+// Called after test completion
+const analysis = generatePhysicsAwareAnalysis({
+  latency: state.latency,
+  jitter: state.jitter,
+  download: state.download,
+  upload: state.upload,
+  distance: state.distance
+});
+
+// Renders as analysis items in test context panel
+analysis.forEach(item => {
+  // Shows metric, value, and educational context
+});
 ```
 
 ### Interactive Accordion Footer

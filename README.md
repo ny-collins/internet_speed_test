@@ -25,7 +25,7 @@ SpeedCheck measures your **real-world international connectivity** with a **dist
 - **⚡ Real-time Testing** - Live gauge with download, upload, latency & jitter using Web Workers
 - **📊 Variance Graph** - Real-time speed visualization with bufferbloat detection (stability analysis)
 - **🎯 Measurement Quality** - Confidence scoring (0-100%) with detailed quality indicators
-- **🏅 Quality Badges** - Instant visual feedback for latency and jitter performance
+- **🧪 Physics-Aware Analysis** - Educational context explaining latency, jitter, and speed results based on distance and routing
 - **📊 Transparent Metrics** - Sample counts, outlier detection, measurement methodology visible
 - **🌍 Geographic Context** - Distance calculation, network type detection, server location display
 - **📈 History & Statistics** - Local storage with averages, trends, and test count (privacy-focused)
@@ -128,14 +128,19 @@ SpeedCheck includes a comprehensive **11-phase audit system** for production mon
 
 ## 📋 Recent Updates
 
-### v1.66.0 (Current)
-- 🎨 **Desktop UI Overhaul** - Two-column layout (45/55 split) with sticky gauge and hierarchical results matrix
+### v1.69.0 (Current)
+- 🧪 **Physics-Aware Analysis** - Educational explanations replacing subjective quality badges (speed-of-light calculations, routing context)
+- 🎨 **UI Refinements** - 45:55 split ratio, secondary metrics layout (compact ping/jitter), transparent gauge styling
+- 📊 **Complete Graph History** - Removed 50-sample limit, all data shown with horizontal compression
+- 🐛 **Critical Fixes** - JavaScript selectors updated for secondary metrics, eslint compliance achieved
+- 💎 **Gauge Sizing** - Increased to 360px for better visual impact, resolved CSS conflicts
+
+### v1.66.0
+- 🎨 **Desktop UI Overhaul** - Two-column layout with sticky gauge and hierarchical results matrix
 - 📊 **Real-time Variance Graph** - Canvas-based speed visualization with bufferbloat detection (stability <10% excellent, >30% poor)
-- 🏅 **Quality Badge System** - Visual indicators for latency (<50ms great, >200ms poor) and jitter performance
 - 📖 **Interactive Accordion Footer** - 6 expandable sections for methodology, privacy, and educational content
-- 💬 **Contextual Latency Info** - Smart recommendations ("Great for gaming", "Good for video calls") based on measurements
-- 🎯 **340px Circular Start Button** - Enhanced gradient design matching gauge with pulse animation
-- ⚡ **Real-time Data Collection** - 50-sample rolling buffer at 100ms intervals for smooth graph updates
+- 🎯 **Enhanced Start Button** - 360px circular gradient design with pulse animation
+- ⚡ **Real-time Data Collection** - Rolling buffer at 100ms intervals for smooth graph updates
 
 ### v1.65.0
 - 🔬 **Scientific Measurement Accuracy** - TCP slow start compensation with byte tracking for professional-grade results

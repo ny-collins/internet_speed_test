@@ -156,19 +156,23 @@ Mobile (<768px): Stacked Layout
 
 **Components:**
 - **Gauge Section** (Left sidebar on desktop, top on mobile):
-  - START button (240px diameter, circular with glow)
+  - START button (100% width with aspect-ratio 1:1, up to 360px max)
   - Circular progress gauge (conic-gradient animation, 0-270°)
   - Live speed value during tests (2-3rem font)
   - Status text ("Testing Download Speed...")
-  - Hidden during idle, visible during active tests
+  - Transparent background, no border or shadow styling
 
-- **Results Cards Grid** (2×2 responsive grid):
-  - **Latency Card** (ms) - First test, highlighted during latency phase
-  - **Download Card** (Mbps) - Highlighted during download test, includes 80px mini-graph
-  - **Upload Card** (Mbps) - Highlighted during upload test, includes 80px mini-graph
-  - **Jitter Card** (ms) - Calculated after latency test
-  - Each card includes icon, label, value, unit, and optional mini-graph canvas
-  - Mini-graphs show speed progression over time using `quadraticCurveTo` for smooth curves
+- **Results Cards Layout**:
+  - **Speed Cards Row** (Download/Upload) - Prominent `.tray-card` elements:
+    - Download Card (Mbps) - Highlighted during download test, includes mini-graph
+    - Upload Card (Mbps) - Highlighted during upload test, includes mini-graph
+    - Mini-graphs show speed progression using `quadraticCurveTo` for smooth curves
+    - All samples compressed horizontally to show complete test history
+  - **Secondary Metrics Row** (Ping/Jitter) - Compact `.secondary-metric` inline display:
+    - Latency (ms) - Calculated during ping test phase
+    - Jitter (ms) - Calculated after latency test
+    - Reduced visual hierarchy, inline flex layout
+    - No mini-graphs, values only with icons
 
 - **Additional Components**:
   - Server info display (location, latency)
@@ -176,9 +180,10 @@ Mobile (<768px): Stacked Layout
   - Test history chart (last 10 tests)
 
 **Responsive Behavior:**
-- Desktop (>768px): Split layout - 320px gauge sidebar + flexible results grid
-- Mobile (≤768px): Stacked layout - gauge on top (85-90vh total height), cards below in 2×2 grid
-- Total height fits within 100vh on desktop (70-75vh), slightly taller on mobile (85-90vh)
+- Desktop (>768px): Split layout - 45:55 fractional ratio (gauge sidebar + results grid)
+- Mobile (≤768px): Stacked layout - gauge on top, cards below
+- Speed cards (download/upload) maintain prominence across breakpoints
+- Secondary metrics (ping/jitter) remain compact inline display
 
 **Performance Optimization:**
 - Latency-based thread adjustment:

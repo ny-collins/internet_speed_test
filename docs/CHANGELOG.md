@@ -5,6 +5,108 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.69.0] - 2025-12-05
+
+### Changed
+
+**🎨 UI Refinements & Educational Enhancement:**
+
+- **Split Layout Ratio Adjustment**: Changed gauge/cards split from 320px fixed to 45:55 fractional units
+  - More balanced proportions for gauge and results area
+  - Better utilization of available horizontal space
+  - Smoother responsive scaling with viewport changes
+
+- **Secondary Metrics Layout**: Redesigned ping and jitter display for spatial efficiency
+  - Download/upload remain as prominent `.tray-card` elements with graphs
+  - Ping/jitter moved to compact `.secondary-metric` inline display
+  - Consolidated into `.secondary-metrics` flex container below speed cards
+  - Reduced visual hierarchy since latency metrics need less emphasis than speeds
+
+- **Gauge Transparency Refinements**: Cleaned up gauge visual styling
+  - Removed `.gauge-section` background, border, and box-shadow
+  - Removed `.gauge-inner` subtle border shadow for cleaner appearance
+  - Gauge now blends seamlessly with homepage background
+  - Start button maintains visual prominence without container styling
+
+- **Gauge and Button Sizing**: Increased dimensions for better visual impact
+  - Gauge container increased from 280px to 360px max-width
+  - Button changed from fixed 240px to 100% width with aspect-ratio: 1/1
+  - Resolved CSS conflicts between components.css and main.css
+  - `.gauge-wrapper` max-width updated to match 360px container
+
+### Removed
+
+**Quality Badge System**: Eliminated subjective quality assessments
+- Removed "Good", "Fair", "Poor" badges from latency and jitter cards
+- Quality judgments are context-dependent and potentially misleading
+- Users in different regions have different baseline expectations
+- Replaced with educational, physics-aware analysis system
+
+### Added
+
+**Physics-Aware Analysis System**: Educational context replacing subjective badges
+- `generatePhysicsAwareAnalysis()` function provides scientific explanations
+- Speed-of-light calculations for minimum theoretical latency: `(distance / 200000) * 1000ms`
+- International routing context explaining inherent delays and overhead
+- Distance-aware analysis for connections >1000km
+- Jitter stability explanations relative to routing complexity
+- Download/upload context addressing asymmetric connections and distance impact
+- Removes judgment, adds understanding
+
+**Graph Rendering Optimization**: Complete test history visualization
+- Removed 50-sample slicing limit (`maxVisibleSamples`, `.slice(-50)`)
+- Changed to horizontal compression: `stepX = width / Math.max(samples.length - 1, 1)`
+- Graph now shows all collected samples compressed to fit canvas width
+- Left-to-right animation displays complete test progression
+- No data loss during graph rendering
+- Progressive horizontal compression as samples accumulate
+
+### Fixed
+
+**JavaScript Selector Issues**: Updated for new secondary metrics layout
+- `updateResultCard()`: Now selects both `.tray-card[data-metric]` and `.secondary-metric[data-metric]`
+- `updateMatrixCardLive()`: Added secondary-metric selector support
+- `updatePhaseUI()`: Updated highlighting for both card types
+- `highlightTrayCard()`: Extended to handle secondary metrics
+- `clearTrayHighlights()`: Clears highlights from all metric elements
+- `resetAllPhases()`: Resets both card types to default state
+- Fixed issue where ping/jitter values were stuck at "—" after test
+
+**Eslint Compliance**: Resolved all linting violations
+- Fixed 3 quote consistency errors (enforced single quotes)
+- Removed 24 trailing whitespace occurrences
+- Removed unused variable `rect` in download worker
+- Applied `npx eslint --fix` for automated corrections
+- Zero eslint errors remaining
+
+**Code Style Enforcement**: Removed explanatory comments
+- Eliminated JSDoc comment block from `drawToCanvas()` function
+- Project follows strict no-comment policy (only section dividers allowed)
+- Maintains code cleanliness and consistency
+
+### Technical
+
+**CSS Architecture:**
+- Updated `pages/home.css` line 7: `grid-template-columns: 45fr 55fr`
+- Added `.secondary-metrics` flex container (lines 61-68)
+- Added `.secondary-metric` compact card styling (lines 70-118)
+- Updated `.gauge-container-split` to `max-width: 360px` (line 29)
+- Modified `.gauge-section` to transparent background (lines 17-26)
+- Removed `.gauge-inner` box-shadow in `components.css`
+- Updated button sizing in both `components.css` and `main.css` to prevent conflicts
+
+**JavaScript Updates:**
+- `ui.js`: Added `generatePhysicsAwareAnalysis()` function (lines 816-875)
+- `ui.js`: Updated 6 functions with dual selector support for secondary metrics
+- `ui.js`: Optimized `drawToCanvas()` to compress all samples (removed slicing)
+- Replaced `updateQualityBadge()` calls with `generatePhysicsAwareAnalysis()` in test completion flow
+
+**HTML Structure:**
+- Restructured `.cards-grid` with `.speed-cards-row` and `.secondary-metrics` sections
+- Download and upload remain in grid as prominent cards with graphs
+- Ping and jitter moved to inline secondary display
+- Removed quality-badge-container elements from latency/jitter cards
+
 ## [1.68.0] - 2025-12-02
 
 ### Security
