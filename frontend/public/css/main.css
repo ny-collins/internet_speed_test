@@ -950,8 +950,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* --- Gauge Specifics (Overrides from layout.css if needed) --- */
 .gauge-start-button {
-    width: 240px; 
-    height: 240px;
+    width: 100%; 
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: white;
