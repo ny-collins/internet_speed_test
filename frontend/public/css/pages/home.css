@@ -5,7 +5,7 @@
 
 .split-layout {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 45fr 55fr;
     gap: var(--spacing-xl);
     width: 100%;
     min-height: 70vh;
