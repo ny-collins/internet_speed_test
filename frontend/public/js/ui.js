@@ -571,7 +571,8 @@ function drawToCanvas(canvas, ctx, width, height) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Show all samples, compressed to fit the width
+    // Show all samples compressed horizontally to fit canvas width
+    // This ensures complete test history is visible without left-edge clipping
     const stepX = width / Math.max(samples.length - 1, 1);
 
     ctx.beginPath();
