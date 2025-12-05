@@ -52,46 +52,50 @@ fs.writeFileSync(swPath, swContent, 'utf8');
 console.log('✅ Updated sw.js');
 
 // ========================================
-// UPDATE INDEX.HTML
+// UPDATE ALL HTML FILES IN PUBLIC ROOT
 // ========================================
 
-const indexPath = path.join(publicDir, 'index.html');
-let indexContent = fs.readFileSync(indexPath, 'utf8');
+const htmlFiles = fs.readdirSync(publicDir).filter(file => file.endsWith('.html'));
 
-// Update CSS version
-indexContent = indexContent.replace(
-    /\/main\.css\?v=[\d.]+"/g,
-    `/main.css?v=${version}"`
-);
-
-// Update JS version
-indexContent = indexContent.replace(
-    /\/main\.js\?v=[\d.]+"/g,
-    `/main.js?v=${version}"`
-);
-
-fs.writeFileSync(indexPath, indexContent, 'utf8');
-console.log('✅ Updated index.html');
-
-// ========================================
-// UPDATE LEARN.HTML (if exists)
-// ========================================
-
-const learnPath = path.join(publicDir, 'learn.html');
-if (fs.existsSync(learnPath)) {
-    let learnContent = fs.readFileSync(learnPath, 'utf8');
-
-    learnContent = learnContent.replace(
-        /\/main\.css\?v=[\d.]+"/g,
-        `/main.css?v=${version}"`
+htmlFiles.forEach(file => {
+    const filePath = path.join(publicDir, file);
+    let content = fs.readFileSync(filePath, 'utf8');
+    
+    // Replace all versioned asset references
+    content = content.replace(
+        /\/(css|js)\/[^"]+\?v=[\d.]+"/g,
+        (match) => {
+            return match.replace(/\?v=[\d.]+/, `?v=${version}`);
+        }
     );
-    learnContent = learnContent.replace(
-        /\/main\.js\?v=[\d.]+"/g,
-        `/main.js?v=${version}"`
-    );
+    
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log(`✅ Updated ${file}`);
+});
 
-    fs.writeFileSync(learnPath, learnContent, 'utf8');
-    console.log('✅ Updated learn.html');
+// ========================================
+// UPDATE LEARN SUBPAGES (learn/*.html)
+// ========================================
+
+const learnDir = path.join(publicDir, 'learn');
+if (fs.existsSync(learnDir)) {
+    const learnFiles = fs.readdirSync(learnDir).filter(file => file.endsWith('.html'));
+    
+    learnFiles.forEach(file => {
+        const filePath = path.join(learnDir, file);
+        let content = fs.readFileSync(filePath, 'utf8');
+        
+        // Replace all versioned asset references
+        content = content.replace(
+            /\/(css|js)\/[^"]+\?v=[\d.]+"/g,
+            (match) => {
+                return match.replace(/\?v=[\d.]+/, `?v=${version}`);
+            }
+        );
+        
+        fs.writeFileSync(filePath, content, 'utf8');
+        console.log(`✅ Updated learn/${file}`);
+    });
 }
 
 // ========================================
@@ -101,8 +105,8 @@ if (fs.existsSync(learnPath)) {
 console.log('\n🎉 Version ' + version + ' injected successfully!');
 console.log('\nFiles updated:');
 console.log('  - sw.js (CACHE_NAME + assets)');
-console.log('  - index.html (CSS + JS versions)');
-if (fs.existsSync(learnPath)) {
-    console.log('  - learn.html (CSS + JS versions)');
+console.log('  - *.html (all root HTML files)');
+if (fs.existsSync(learnDir)) {
+    console.log('  - learn/*.html (all subpages)');
 }
 console.log('\n✨ Ready for deployment!\n');

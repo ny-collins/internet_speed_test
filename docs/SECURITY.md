@@ -312,4 +312,4 @@ If you discover a security vulnerability, please email:
 ---
 
 **Last Updated:** December 2, 2025
-**Version:** 1.68.0
+**Version:** 1.69.0

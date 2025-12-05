@@ -857,8 +857,8 @@ document.addEventListener('DOMContentLoaded', () => {
 ┌─► Installation
 │     ├─ Cache critical assets
 │     │   • index.html
-│     │   • /js/app.js?v=1.65.0
-│     │   • /css/main.css?v=1.65.0
+│     │   • /js/app.js?v=1.69.0
+│     │   • /css/main.css?v=1.69.0
 │     │   • icons, fonts
 │     └─ Skip waiting (activate immediately)
 │
@@ -918,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
   "location": "EU WEST (Amsterdam, Netherlands)",
   "maxDownloadSize": 50,
   "maxUploadSize": 50,
-  "version": "1.62.0",
+  "version": "1.69.0",
   "rateLimit": {
     "windowMs": 60000,
     "max": 100
