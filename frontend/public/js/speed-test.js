@@ -3,8 +3,8 @@
 // ========================================
 
 import { queryDOMElements, DOM } from './dom.js';
-import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './engine.js';
-import { registerServiceWorker } from './worker.js';
+import { initializeTheme, initializeEventListeners, registerTestFunctions, loadConfiguration } from './event-handlers.js';
+import { registerServiceWorker } from './service-worker-manager.js';
 import { buildMainGauge, showStatus, announceToScreenReader, updatePhaseUI, startCountdown, hideCountdown, setProgress, resetAllPhases, updateResultCard, resetGauge, showGauge, clearResultsDisplay, resetSpeedCurve, clearTrayHighlights, updateTestContext, updateHistoryStats, displayHistoryStats } from './ui.js';
 import { getFriendlyError, getConnectionType, performanceMonitor } from './utils.js';
 import { drawHistoryChart } from './chart.js';
