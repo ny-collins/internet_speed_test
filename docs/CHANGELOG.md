@@ -5,6 +5,26 @@ All notable changes to SpeedCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.69.1] - 2025-12-12
+
+### Security
+
+**Information Disclosure Prevention:**
+- Simplified backend root endpoint (`/`) - removed version, GitHub link, deployment details
+- Detailed information still available at `/api/info` (rate-limited)
+- Reduces reconnaissance surface for targeted attacks
+
+**CSP Hardening:**
+- Removed `https://*.railway.app` wildcard from Content-Security-Policy
+- Now only allows specific backend URL: `https://speed-test-backend.up.railway.app`
+- Prevents potential connections to unauthorized Railway subdomains
+- Trade-off: Frontend must be redeployed if backend URL changes
+
+### Documentation
+- Added security rationale to SECURITY.md
+- Created FUTURE_CLOUDFLARE_WORKERS.md for v2.0+ discussion
+- Updated SECURITY.md to v1.69.1
+
 ## [1.69.0] - 2025-12-05
 
 ### Changed

@@ -427,7 +427,7 @@ app.get('/api/info', (req, res) => {
     location: config.serverLocation,
     maxDownloadSize: config.maxDownloadSizeMB,
     maxUploadSize: config.maxUploadSizeMB,
-    version: '1.69.0',
+    version: '1.69.1',
     rateLimit: config.rateLimit.enabled ? { windowMs: config.rateLimit.windowMs, max: config.rateLimit.max } : null
   });
 });
@@ -448,26 +448,11 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'SpeedCheck API',
-    description: 'Internet speed testing backend API',
-    version: '1.69.0',
-    location: config.serverLocation,
     status: 'operational',
     endpoints: {
       info: '/api/info',
       health: '/health',
-      metrics: config.metrics.enabled ? '/metrics' : null,
-      api: {
-        ping: '/api/ping',
-        pingBatch: '/api/ping-batch',
-        download: '/api/download?size=<MB>&chunk=<KB>',
-        upload: '/api/upload'
-      }
-    },
-    docs: 'https://github.com/ny-collins/internet_speed_test',
-    deployment: {
-      platform: 'Railway',
-      region: 'Europe West (Amsterdam, Netherlands)',
-      environment: config.nodeEnv
+      metrics: config.metrics.enabled ? '/metrics' : null
     }
   });
 });

@@ -36,6 +36,48 @@ app.disable('x-powered-by');
 
 **Impact:** Reduces information available for targeted attacks.
 
+### Minimal Root Endpoint (v1.69.1)
+
+**Status:** ✅ Implemented
+
+**Previous (v1.69.0 and earlier):**
+```json
+{
+  "name": "SpeedCheck API",
+  "description": "Internet speed testing backend API",
+  "version": "1.69.0",
+  "location": "EU WEST (Amsterdam, Netherlands)",
+  "docs": "https://github.com/ny-collins/internet_speed_test",
+  "deployment": { ... }
+}
+```
+
+**Security Concern:** Information disclosure aids reconnaissance
+- Version number: Enables targeted exploit lookup
+- GitHub link: Exposes source code and commit history
+- Deployment details: Reveals infrastructure information
+
+**Current (v1.69.1):**
+```json
+{
+  "name": "SpeedCheck API",
+  "status": "operational",
+  "endpoints": {
+    "info": "/api/info",
+    "health": "/health",
+    "metrics": "/metrics"
+  }
+}
+```
+
+**Impact:**
+- ✅ Version removed (query `/api/info` for detailed information)
+- ✅ GitHub link removed (reduces attack surface)
+- ✅ Deployment details removed (no infrastructure exposure)
+- ✅ Root endpoint now provides minimal navigation info only
+
+**Detailed Information:** Available at `/api/info` endpoint (already rate-limited, monitored).
+
 ### Why No X-XSS-Protection?
 
 **Status:** ✅ Disabled (backend only)
@@ -52,7 +94,7 @@ helmet({
 
 ## Content Security Policy (CSP)
 
-### Current Policy (v1.68.0)
+### Current Policy (v1.69.1)
 
 ```
 default-src 'self';
@@ -60,7 +102,7 @@ script-src 'self' https://unpkg.com;
 style-src 'self';
 img-src 'self' data: https:;
 font-src 'self' data:;
-connect-src 'self' https://speed-test-backend.up.railway.app https://*.railway.app https://unpkg.com;
+connect-src 'self' https://speed-test-backend.up.railway.app https://unpkg.com;
 worker-src 'self' blob:;
 frame-ancestors 'none';
 base-uri 'self';
@@ -111,25 +153,31 @@ AFTER:  Attacker injects <script>alert('XSS')</script> → ✓ Browser blocks it
 2. Use Subresource Integrity (SRI) hashes
 3. Update CSP to remove unpkg.com
 
-### Why Allow `https://*.railway.app` in connect-src?
+### Why NOT Allow `https://*.railway.app`? (v1.69.1)
 
-**Purpose:** Future-proofing for backend changes
+**Previous (v1.68.0):**
+```
+connect-src 'self' ${API_URL} https://*.railway.app https://unpkg.com
+```
 
-**Scenarios Covered:**
-1. Backend URL changes (e.g., from `speed-test-backend.up.railway.app` to `api.railway.app`)
-2. Multiple backend instances (staging, production)
-3. Scaling to multiple Railway services
+**Security Concern:** Wildcard allows connections to ANY Railway subdomain.
 
-**Risk Assessment:** Low
-- Only allows **connections** (fetch/XHR), not script execution
-- Railway.app is our infrastructure provider (trusted)
-- Wildcard limited to `*.railway.app` subdomain (not `*.com`)
+**Scenario:**
+- Attacker creates free Railway project: `malicious-api.up.railway.app`
+- If XSS vulnerability exists, attacker could redirect API calls to their server
+- Wildcard weakens defense-in-depth
 
-### Why Allow `https://unpkg.com` in connect-src?
+**Current (v1.69.1):**
+```
+connect-src 'self' https://speed-test-backend.up.railway.app https://unpkg.com
+```
 
-**Purpose:** CDN resource fetching for Lucide icons
+**Impact:**
+- ✅ Only specific backend URL allowed
+- ✅ Stronger CSP security posture
+- ⚠️ Frontend must be redeployed if backend URL changes
 
-**Note:** This is separate from `script-src`. Even though we allow scripts from unpkg.com, we explicitly whitelist connections to ensure icon SVGs and metadata can be fetched.
+**Trade-off Accepted:** Manual redeployment requirement is acceptable for improved security.
 
 ---
 
@@ -311,5 +359,5 @@ If you discover a security vulnerability, please email:
 
 ---
 
-**Last Updated:** December 2, 2025
-**Version:** 1.69.0
+**Last Updated:** December 12, 2025
+**Version:** 1.69.1

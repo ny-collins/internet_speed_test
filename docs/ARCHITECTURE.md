@@ -281,7 +281,7 @@ Server information and configuration.
   "location": "EU WEST (Amsterdam, Netherlands)",
   "maxDownloadSize": 50,
   "maxUploadSize": 20,
-  "version": "1.69.0"
+  "version": "1.69.1"
 }
 ```
 

@@ -30,7 +30,7 @@ app.use((req, res, next) => {
         'style-src \'self\'; ' +
         'img-src \'self\' data: https:; ' +
         'font-src \'self\' data:; ' +
-        `connect-src 'self' ${API_URL} https://*.railway.app https://unpkg.com; ` +
+        `connect-src 'self' ${API_URL} https://unpkg.com; ` +
         'worker-src \'self\' blob:; ' +
         'frame-ancestors \'none\'; ' +
         'base-uri \'self\'; ' +
