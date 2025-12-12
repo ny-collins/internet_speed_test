@@ -11,7 +11,6 @@ export const DOM = {
     maxDurationValue: null,
     resetSettings: null,
 
-    startTest: null,
     cancelTest: null,
     retryTest: null,
     gaugeStartButton: null,
@@ -22,7 +21,7 @@ export const DOM = {
     gaugeValue: null,
     gaugeUnit: null,
     gaugePhase: null,
-    
+
     splitLayout: null,
     downloadMiniGraph: null,
     uploadMiniGraph: null,
@@ -58,7 +57,6 @@ export function queryDOMElements() {
     DOM.maxDurationValue = document.getElementById('maxDurationValue');
     DOM.resetSettings = document.getElementById('resetSettings');
 
-    DOM.startTest = document.getElementById('startTest');
     DOM.cancelTest = document.getElementById('cancelTest');
     DOM.retryTest = document.getElementById('retryTest');
     DOM.gaugeStartButton = document.getElementById('gaugeStartButton');
@@ -69,7 +67,7 @@ export function queryDOMElements() {
     DOM.gaugeValue = document.getElementById('gaugeValue');
     DOM.gaugeUnit = document.getElementById('gaugeUnit');
     DOM.gaugePhase = document.getElementById('gaugePhase');
-    
+
     DOM.splitLayout = document.getElementById('splitLayout');
     DOM.downloadMiniGraph = document.getElementById('downloadMiniGraph');
     DOM.uploadMiniGraph = document.getElementById('uploadMiniGraph');

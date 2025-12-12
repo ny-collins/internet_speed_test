@@ -32,7 +32,6 @@
     <link rel="canonical" href="" id="canonical-url">
     
     <link rel="stylesheet" href="/css/main.css?v=1.69.1">
-    <link rel="stylesheet" href="/css/pages/home.css?v=1.69.1">
     
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon.svg">
@@ -43,7 +42,8 @@
     
     <script>
     (function() {
-      // Force canonical URL to primary domain to prevent SEO duplication with Cloudflare mirror
+      // Primary domain for SEO canonical URL (Railway = authoritative, Cloudflare = regional mirror)
+      // This ensures all SEO equity flows to the main domain while allowing fast regional delivery
       const primaryDomain = 'https://speed-test.up.railway.app';
       const currentPath = window.location.pathname === '/' ? '' : window.location.pathname;
       const canonicalUrl = primaryDomain + currentPath;

@@ -124,12 +124,15 @@ export function hideGauge() {
 export function updateCountdown(secondsRemaining, phase) {
     if (!DOM.timerValue || !DOM.testTimer) return;
 
-    const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
     DOM.timerValue.textContent = `${secondsRemaining}s`;
-
-    if (DOM.testTimer.querySelector('.timer-text')) {
-        DOM.testTimer.querySelector('.timer-text').innerHTML =
-            `Testing ${phaseName}: <strong id="timerValue">${secondsRemaining}s</strong>`;
+    
+    const timerText = DOM.testTimer.querySelector('.timer-text');
+    if (timerText) {
+        const phaseName = phase.charAt(0).toUpperCase() + phase.slice(1);
+        const textNode = timerText.firstChild;
+        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+            textNode.textContent = `Testing ${phaseName}: `;
+        }
     }
 }
 
@@ -178,7 +181,9 @@ export function updateGauge(speed, phase) {
             DOM.gaugeProgress.style.opacity = '1';
         }
 
-        STATE.rafId = null;
+        requestAnimationFrame(() => {
+            STATE.rafId = null;
+        });
     });
 }
 export function updateMatrixCardLive(phase, speed) {

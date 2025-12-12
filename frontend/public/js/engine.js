@@ -60,7 +60,6 @@ export function initializeEventListeners() {
 
     DOM.resetSettings?.addEventListener('click', resetSettings);
 
-    DOM.startTest?.addEventListener('click', () => startTestFn());
     DOM.cancelTest?.addEventListener('click', () => cancelTestFn());
     DOM.retryTest?.addEventListener('click', () => retryTestFn());
     DOM.gaugeStartButton?.addEventListener('click', () => startTestFn());
