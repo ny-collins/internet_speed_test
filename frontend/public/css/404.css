@@ -1,0 +1,40 @@
+/* ========================================
+   404 PAGE STYLES
+   ======================================== */
+
+.page-404 {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    background: var(--color-bg-secondary);
+}
+
+.page-404 .error-code {
+    font-size: clamp(8rem, 20vw, 12rem);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.page-404 h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.page-404 p {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
