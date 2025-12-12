@@ -2156,8 +2156,7 @@ input[type="range"]::-moz-range-track {
     grid-template-columns: 45fr 55fr;
     gap: var(--spacing-xl);
     width: 100%;
-    min-height: 70vh;
-    max-height: 75vh;
+    min-height: 60vh;
     margin-bottom: var(--spacing-lg);
 }
 
@@ -2186,6 +2185,7 @@ input[type="range"]::-moz-range-track {
     flex-direction: column;
     gap: var(--spacing-lg);
     height: 100%;
+    overflow-x: hidden;
 }
 
 .speed-cards-row {
@@ -2327,7 +2327,7 @@ input[type="range"]::-moz-range-track {
 .live-speed-value {
     display: block;
     font-size: clamp(3rem, 8vw, 6rem); 
-    font-weight: 200;
+    font-weight: 300;
     letter-spacing: -0.04em;
     color: var(--color-text-primary);
     line-height: 1;
@@ -2337,7 +2337,7 @@ input[type="range"]::-moz-range-track {
 
 .live-speed-unit {
     display: inline-block;
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(1.25rem, 3vw, 2rem);
     font-weight: 400;
     color: var(--color-text-secondary);
     margin-left: var(--spacing-sm);
@@ -2473,7 +2473,7 @@ input[type="range"]::-moz-range-track {
     
     .gauge-wrapper,
     .gauge-container-split {
-        max-width: 200px;
+        max-width: min(280px, 80vw);
     }
     
     .cards-grid {
@@ -2487,7 +2487,13 @@ input[type="range"]::-moz-range-track {
     }
     
     .secondary-metrics {
-        display: contents;
+        grid-column: 1 / -1;
+        display: flex;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border);
     }
     
     .tray-mini-graph {
@@ -2528,6 +2534,23 @@ input[type="range"]::-moz-range-track {
 
 
 @media (min-width: 769px) and (max-width: 1024px) {
+    .split-layout {
+        grid-template-columns: 40fr 60fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .gauge-container-split {
+        max-width: 280px;
+    }
+    
+    .cards-grid {
+        gap: var(--spacing-md);
+    }
+    
+    .speed-cards-row {
+        gap: var(--spacing-md);
+    }
+    
     .results-tray {
         gap: var(--spacing-md);
     }
@@ -2668,7 +2691,7 @@ input[type="range"]::-moz-range-track {
     transform: rotate(135deg);
     z-index: 5;
     pointer-events: none;
-    transition: transform 0.15s ease-out;
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gauge-needle::after {
