@@ -82,20 +82,22 @@ function optimizeThreadCount() {
     const avgLatency = latencyResult.average;
     let optimalThreads;
 
-    if (avgLatency > 200) {
-        optimalThreads = 1;
-        CONFIG.duration.download.min = 15;
-        CONFIG.duration.upload.min = 15;
-        CONFIG.stability.varianceThreshold = 0.40;
-    }
-    else if (avgLatency > 100) {
-        optimalThreads = 2;
-        CONFIG.duration.download.min = 12;
+    // High latency (international) needs MORE threads to fill the Bandwidth-Delay Product (BDP)
+    // TCP throughput is limited by Window Size / RTT - more latency requires more parallel connections
+    if (avgLatency > 150) {
+        optimalThreads = 8; // Fill the pipe for intercontinental links
+        CONFIG.duration.download.min = 12; // Give TCP time to ramp up
         CONFIG.duration.upload.min = 12;
+        CONFIG.stability.varianceThreshold = 0.40; // Allow more variance for long-distance
+    }
+    else if (avgLatency > 80) {
+        optimalThreads = 6; // Medium distance optimization
+        CONFIG.duration.download.min = 10;
+        CONFIG.duration.upload.min = 10;
         CONFIG.stability.varianceThreshold = 0.35;
     }
     else {
-        optimalThreads = 4;
+        optimalThreads = 4; // Low latency - standard thread count is sufficient
     }
 
     CONFIG.threads.download = optimalThreads;

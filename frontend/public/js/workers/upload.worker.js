@@ -47,7 +47,9 @@ function calculateStability(samples) {
 }
 
 function createUploadBlob() {
-    const totalSize = config.uploadSize * 1024 * 1024;
+    // Optimize memory: Create smaller 5MB chunks that can be reused
+    // Instead of threadCount * uploadSize MB allocated at once
+    const totalSize = Math.min(config.uploadSize * 1024 * 1024, 5 * 1024 * 1024); // Cap at 5MB per blob
     const chunkSize = 65536; // 64KB chunks
     const chunksNeeded = Math.ceil(totalSize / chunkSize);
     const chunks = [];
