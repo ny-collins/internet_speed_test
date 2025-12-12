@@ -12,7 +12,8 @@ import {
 } from '../ui.js';
 
 export async function measureLatency() {
-    const sampleCount = 10;
+    const maxSamples = 15; // Maximum attempts for unstable networks
+    const minCleanSamples = 8; // Minimum clean (non-outlier) samples needed
     const samples = [];
     const abortController = new AbortController();
     const controllerIndex = STATE.abortControllers.push(abortController) - 1;
@@ -33,7 +34,11 @@ export async function measureLatency() {
     if (sparkline) sparkline.setAttribute('d', '');
 
     try {
-        for (let i = 0; i < sampleCount; i++) {
+        let cleanSamples = [];
+        let attempts = 0;
+        
+        // Continue until we have enough clean samples or hit max attempts
+        while (attempts < maxSamples && cleanSamples.length < minCleanSamples) {
             if (STATE.cancelling || abortController.signal.aborted) break;
 
             const start = performance.now();
@@ -44,13 +49,26 @@ export async function measureLatency() {
             const duration = performance.now() - start;
 
             samples.push(duration);
+            attempts++;
+
+            // After minimum samples, check if we have enough clean data
+            if (attempts >= 10) {
+                const filteredSamples = removeOutliers(samples);
+                cleanSamples = filteredSamples;
+                
+                if (cleanSamples.length >= minCleanSamples) {
+                    console.log(`[Latency] Got ${cleanSamples.length} clean samples after ${attempts} attempts, stopping early`);
+                    break;
+                }
+            }
 
             drawSparkline(samples);
             const currentAvg = samples.reduce((a, b) => a + b, 0) / samples.length;
             
-            setProgress((i + 1) / sampleCount * 25); // 25% of total progress
+            // Progress based on max possible samples (15)
+            setProgress((attempts / maxSamples) * 25); // 25% of total progress
 
-            if (i < sampleCount - 1) {
+            if (attempts < maxSamples) {
                 await sleep(100);
             }
         }
@@ -59,6 +77,8 @@ export async function measureLatency() {
 
         const filteredSamples = removeOutliers(samples);
         const effectiveSamples = filteredSamples.length >= 5 ? filteredSamples : samples;
+        
+        console.log(`[Latency] Collected ${samples.length} total samples, ${filteredSamples.length} clean samples after outlier removal`);
         
         const average = effectiveSamples.reduce((a, b) => a + b, 0) / effectiveSamples.length;
         const min = Math.min(...effectiveSamples);

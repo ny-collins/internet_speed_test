@@ -75,12 +75,17 @@ async function initializeApp() {
 
 function optimizeThreadCount() {
     const latencyResult = STATE.testResults.latency;
+    const jitterResult = STATE.testResults.jitter;
+    
     if (!latencyResult || !latencyResult.average) {
         return;
     }
 
     const avgLatency = latencyResult.average;
+    const jitter = jitterResult ? jitterResult.value : 0;
+    
     let optimalThreads;
+    let baseVariance = 0.25; // Default stability threshold
 
     // High latency (international) needs MORE threads to fill the Bandwidth-Delay Product (BDP)
     // TCP throughput is limited by Window Size / RTT - more latency requires more parallel connections
@@ -88,16 +93,33 @@ function optimizeThreadCount() {
         optimalThreads = 8; // Fill the pipe for intercontinental links
         CONFIG.duration.download.min = 12; // Give TCP time to ramp up
         CONFIG.duration.upload.min = 12;
-        CONFIG.stability.varianceThreshold = 0.40; // Allow more variance for long-distance
+        baseVariance = 0.40; // Allow more variance for long-distance
     }
     else if (avgLatency > 80) {
         optimalThreads = 6; // Medium distance optimization
         CONFIG.duration.download.min = 10;
         CONFIG.duration.upload.min = 10;
-        CONFIG.stability.varianceThreshold = 0.35;
+        baseVariance = 0.35;
     }
     else {
         optimalThreads = 4; // Low latency - standard thread count is sufficient
+        baseVariance = 0.25;
+    }
+
+    // Adaptive stability thresholds based on jitter
+    // High jitter indicates unstable network (satellite, congested mobile, etc.)
+    // Increase variance threshold to avoid premature timeouts
+    if (jitter > 50) {
+        // Very high jitter (satellite, rural wireless) - significantly relax stability requirements
+        CONFIG.stability.varianceThreshold = Math.min(baseVariance + 0.20, 0.60);
+        console.log(`[Optimization] High jitter (${jitter.toFixed(1)}ms) detected, relaxing stability threshold to ${CONFIG.stability.varianceThreshold.toFixed(2)}`);
+    } else if (jitter > 20) {
+        // Moderate jitter (mobile, congested networks) - slightly relax requirements
+        CONFIG.stability.varianceThreshold = baseVariance + 0.10;
+        console.log(`[Optimization] Moderate jitter (${jitter.toFixed(1)}ms) detected, adjusting stability threshold to ${CONFIG.stability.varianceThreshold.toFixed(2)}`);
+    } else {
+        // Low jitter - use base threshold
+        CONFIG.stability.varianceThreshold = baseVariance;
     }
 
     CONFIG.threads.download = optimalThreads;

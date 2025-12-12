@@ -82,32 +82,43 @@ export async function measureUpload() {
             }
 
             case 'upload_complete': {
-                const { speed, bytesTransferred, duration, effectiveDuration, stability, confidence, warnings } = data;
+                const { speed, bytesTransferred, duration, effectiveDuration, stability, confidence, warnings, completedEarly } = data;
 
-                const continueMainProgressAnimation = () => {
-                    const now = performance.now();
-                    const testElapsed = now - testStartTime;
-                    const targetProgress = 95; // Upload goes to 95%
-                    const startProgress = 60; // Upload starts at 60%
-                    const progressRange = targetProgress - startProgress;
-                    const currentProgress = startProgress + (testElapsed / maxDuration) * progressRange;
-                    const finalProgress = Math.min(currentProgress, targetProgress);
-
-                    setProgress(finalProgress);
-
-                    if (finalProgress < targetProgress) {
-                        requestAnimationFrame(continueMainProgressAnimation);
-                    }
+                // Animate progress to target smoothly (especially important for early completion)
+                const animateProgressToTarget = (targetProgress) => {
+                    const startTime = performance.now();
+                    const startProgress = 60 + ((performance.now() - testStartTime) / maxDuration) * 35;
+                    const duration = completedEarly ? 500 : 200; // Slower animation if completed early
+                    
+                    const animate = () => {
+                        const elapsed = performance.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const easeOut = 1 - Math.pow(1 - progress, 3); // Ease-out cubic
+                        const current = startProgress + (targetProgress - startProgress) * easeOut;
+                        
+                        setProgress(current);
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        }
+                    };
+                    
+                    requestAnimationFrame(animate);
                 };
-                requestAnimationFrame(continueMainProgressAnimation);
+                
+                animateProgressToTarget(95);
 
-                loadedLatencyPromise.then(loadedLatency => {
-                    console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (${loadedLatency ? `Loaded latency: ${loadedLatency.average.toFixed(1)}ms` : 'No loaded latency data'})`);
-
-                    STATE.loadedLatency = loadedLatency;
-                }).catch(error => {
+                // Wait for loaded latency before resolving
+                const loadedLatency = await loadedLatencyPromise.catch(error => {
                     console.warn('[Upload] Loaded latency measurement failed:', error);
+                    return null;
                 });
+
+                if (loadedLatency) {
+                    console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (Loaded latency: ${loadedLatency.average.toFixed(1)}ms, Bufferbloat: ${(loadedLatency.average - STATE.testResults.latency.average).toFixed(1)}ms)`);
+                } else {
+                    console.log(`[Upload] Final: ${speed.toFixed(2)} Mbps (No loaded latency data)`);
+                }
 
                 stopSpeedCurve();
 
@@ -133,7 +144,7 @@ export async function measureUpload() {
                     duration,
                     effectiveDuration,
                     stability,
-                    loadedLatency: null, // Will be updated asynchronously
+                    loadedLatency: loadedLatency,
                     confidence: confidence || 0,
                     warnings: warnings || []
                 });

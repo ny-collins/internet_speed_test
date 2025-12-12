@@ -1,5 +1,5 @@
 
-export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortSignal) {
+export async function monitorLoop(config, testType, threadCount, byteCounters, messageTypes, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortSignal, failedThreads, totalThreadCount) {
     const maxDuration = config.duration[testType].max * 1000;
     const minDuration = config.duration[testType].min * 1000;
     const warmupDuration = config.warmupDuration * 1000;
@@ -61,7 +61,7 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
     }
 
     const totalDuration = (performance.now() - startTime) / 1000;
-    const finalResults = calculateFinalResults(config, testType, totalBytesRef.value, warmupBytesRef.value, totalDuration, speedSamples, calculateStability);
+    const finalResults = calculateFinalResults(config, testType, totalBytesRef.value, warmupBytesRef.value, totalDuration, speedSamples, calculateStability, failedThreads, totalThreadCount);
 
     const messageType = testType === 'download' ? messageTypes.DOWNLOAD_COMPLETE : messageTypes.UPLOAD_COMPLETE;
     self.postMessage({
@@ -72,10 +72,11 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
         effectiveDuration: finalResults.effectiveDuration,
         stability: finalResults.stability,
         confidence: finalResults.confidence,
-        warnings: finalResults.warnings
+        warnings: finalResults.warnings,
+        completedEarly: totalDuration < maxDuration / 1000 // Flag for progress bar animation
     });
 }// Shared final calculation function
-export function calculateFinalResults(config, testType, totalBytes, warmupBytes, totalDuration, speedSamples, calculateStability) {
+export function calculateFinalResults(config, testType, totalBytes, warmupBytes, totalDuration, speedSamples, calculateStability, failedThreads, totalThreadCount) {
     const warmUpPeriod = config.warmupDuration; // Exclude warm-up period
 
     const postWarmupBytes = Math.max(totalBytes - warmupBytes, 0);
@@ -88,13 +89,18 @@ export function calculateFinalResults(config, testType, totalBytes, warmupBytes,
         postWarmupBytes,
         effectiveDuration,
         totalDuration,
-        warmUpPeriod
+        warmUpPeriod,
+        failedThreads ? failedThreads.size : 0,
+        totalThreadCount
     );
 
     const warnings = [];
     if (confidence < 70) warnings.push('Low confidence in measurement');
     if (effectiveDuration < 3) warnings.push('Short test duration may affect accuracy');
     if (speedSamples.length < 5) warnings.push('Insufficient samples for reliable measurement');
+    if (failedThreads && failedThreads.size > 0) {
+        warnings.push(`${failedThreads.size}/${totalThreadCount} threads failed during test`);
+    }
 
     console.log(`[${testType.charAt(0).toUpperCase() + testType.slice(1)} Worker] Final: ${speedMbps.toFixed(2)} Mbps (${postWarmupBytes.toLocaleString()} bytes post-warmup in ${effectiveDuration.toFixed(1)}s effective duration, ${warmupBytes.toLocaleString()} bytes during warmup, confidence: ${confidence}%)`);
 
@@ -113,7 +119,7 @@ export function calculateFinalResults(config, testType, totalBytes, warmupBytes,
     };
 }
 
-function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, warmupPeriod) {
+function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, warmupPeriod, failedThreadCount = 0, totalThreadCount = 0) {
     let score = 100;
 
     if (speedSamples.length < 5) {
@@ -153,6 +159,18 @@ function calculateConfidenceScore(speedSamples, bytes, duration, totalDuration, 
     const warmupRatio = (warmupPeriod / totalDuration);
     if (warmupRatio > 0.5) {
         score -= 10; // Too much time spent in warmup
+    }
+
+    // Adjust confidence based on thread failures
+    if (totalThreadCount > 0 && failedThreadCount > 0) {
+        const failureRate = failedThreadCount / totalThreadCount;
+        if (failureRate >= 0.5) {
+            score -= 40; // Critical: majority of threads failed
+        } else if (failureRate >= 0.25) {
+            score -= 20; // Moderate: quarter of threads failed
+        } else {
+            score -= Math.round(failureRate * 50); // Minor: proportional penalty
+        }
     }
 
     return Math.max(0, Math.min(100, Math.round(score)));

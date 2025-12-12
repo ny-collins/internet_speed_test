@@ -19,6 +19,8 @@ let lastSampleTime = 0;
 let lastBytes = 0;
 let lastIntervalSpeed = 0;
 let warmupPeriodEnd = 0; // When warm-up period ends
+let failedThreads = new Set(); // Track which threads have failed
+let totalThreadCount = 0; // Track total threads for failure rate calculation
 
 let config = {};
 
@@ -123,10 +125,24 @@ async function uploadThread(threadId, byteCounter) {
     } catch (error) {
         if (error.name !== 'AbortError' && error.message !== 'Aborted') {
             console.error(`[Upload Worker] Thread ${threadId} error:`, error);
+            failedThreads.add(threadId);
+            
+            // Check if majority of threads have failed
+            const failureRate = failedThreads.size / totalThreadCount;
+            if (failureRate > 0.5) {
+                console.error(`[Upload Worker] Too many threads failed (${failedThreads.size}/${totalThreadCount}), aborting test`);
+                isRunning = false;
+                if (abortController) {
+                    abortController.abort();
+                }
+            }
+            
             self.postMessage({
                 type: MESSAGE_TYPES.UPLOAD_ERROR,
                 threadId,
-                error: error.message
+                error: error.message,
+                failedThreads: failedThreads.size,
+                totalThreads: totalThreadCount
             });
         }
     }
@@ -141,7 +157,7 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
     const lastBytesRef = { value: lastBytes };
     const lastIntervalSpeedRef = { value: lastIntervalSpeed };
 
-    await monitorLoop(config, 'upload', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortController.signal);
+    await monitorLoop(config, 'upload', threadCount, byteCounters, MESSAGE_TYPES, isRunningRef, startTime, totalBytesRef, warmupBytesRef, warmupPeriodEndRef, speedSamples, lastSampleTimeRef, lastBytesRef, lastIntervalSpeedRef, isSpeedStable, calculateStability, abortController.signal, failedThreads, totalThreadCount);
 
     isRunning = isRunningRef.value;
     totalBytes = totalBytesRef.value;
@@ -165,6 +181,8 @@ self.onmessage = function(e) {
         speedSamples = [];
         lastSampleTime = 0;
         lastBytes = 0;
+        failedThreads.clear(); // Reset failed threads tracker
+        totalThreadCount = threadCount; // Store total thread count
 
         uploadBlob = createUploadBlob();
 
@@ -185,6 +203,11 @@ self.onmessage = function(e) {
         isRunning = false;
         if (abortController) {
             abortController.abort();
+        }
+        // Explicit memory cleanup - dereference the blob to allow garbage collection
+        if (uploadBlob) {
+            uploadBlob = null;
+            console.log('[Upload Worker] Blob dereferenced for memory cleanup');
         }
         break;
     }
