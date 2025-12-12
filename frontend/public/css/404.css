@@ -38,3 +38,40 @@
     margin-bottom: 2rem;
     max-width: 500px;
 }
+
+.page-404 .error-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+}
+
+.page-404 .error-container {
+    text-align: center;
+    padding: 2rem;
+    max-width: 600px;
+}
+
+.page-404 .error-container p {
+    margin-bottom: 2rem;
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+}
+
+.page-404 .error-container h1 {
+    margin-bottom: 1.5rem;
+}
+
+.page-404 .nav-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.page-404 .theme-toggle-inline {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}

@@ -15,24 +15,22 @@
 </head>
 <body class="page-404">
     
-    <div style="position: absolute; top: 20px; right: 20px;">
-        <button class="theme-toggle-inline" id="themeToggle" aria-label="Toggle theme">
-            <i data-lucide="moon" class="theme-icon"></i>
-        </button>
-    </div>
+    <button class="theme-toggle-inline" id="themeToggle" aria-label="Toggle theme">
+        <i data-lucide="moon" class="theme-icon"></i>
+    </button>
 
-    <div class="error-container" style="text-align: center; padding: 2rem; max-width: 600px;">
+    <div class="error-container">
         <i data-lucide="ghost" class="error-icon"></i>
         
         <div class="error-code">404</div>
         
-        <h1 style="margin-bottom: 1.5rem;">Page Not Found</h1>
+        <h1>Page Not Found</h1>
         
-        <p style="margin-bottom: 2rem; color: var(--color-text-secondary); font-size: 1.1rem;">
+        <p>
             Looks like your request got lost in the tubes. Even with the fastest internet, we can't find this page.
         </p>
         
-        <div class="nav-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <div class="nav-buttons">
             <a href="/" class="btn-primary">
                 <i data-lucide="home"></i>
                 Go Home
@@ -44,6 +42,21 @@
         </div>
     </div>
 
-    <script type="module" src="/js/main.js?v=1.69.1"></script>
+    <script>
+        // Minimal theme toggle for 404 page
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        themeToggle?.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+        
+        // Initialize Lucide icons
+        if (window.lucide) lucide.createIcons();
+    </script>
 </body>
 </html>
