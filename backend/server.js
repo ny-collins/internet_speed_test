@@ -368,8 +368,9 @@ app.post('/api/upload', circuitBreaker, (req, res) => {
     if (receivedBytes > byteLimit) {
       aborted = true;
       logger.warn({ receivedBytes, byteLimit }, 'Upload size exceeded limit');
-      req.destroy();
-      return res.status(413).json({ error: 'Upload too large', limitBytes: byteLimit });
+      res.status(413).json({ error: 'Upload too large', limitBytes: byteLimit });
+      req.destroy(); // Destroy after sending response
+      return;
     }
   });
 

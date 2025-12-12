@@ -36,7 +36,8 @@ export async function monitorLoop(config, testType, threadCount, byteCounters, m
                 speedSamples.push(intervalSpeed);
                 lastIntervalSpeedRef.value = intervalSpeed; // Update current speed display
 
-                if (testType === 'upload' && speedSamples.length > 100) {
+                // Cap sample array to prevent memory growth in long-running tests
+                if (speedSamples.length > 100) {
                     speedSamples.shift();
                 }
 

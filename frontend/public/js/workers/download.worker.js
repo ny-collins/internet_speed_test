@@ -138,10 +138,35 @@ async function monitorLoopWrapper(threadCount, byteCounters) {
 }
 
 self.onmessage = async function(e) {
+    // Input validation: guard against malformed messages
+    if (!e.data || typeof e.data !== 'object') {
+        console.error('[Download Worker] Received invalid message:', e.data);
+        return;
+    }
+
     const { type, config: workerConfig, threadCount } = e.data;
 
     switch (type) {
     case MESSAGE_TYPES.START_DOWNLOAD: {
+        // Validate critical config properties
+        if (!workerConfig || typeof workerConfig !== 'object') {
+            console.error('[Download Worker] Missing or invalid config object');
+            self.postMessage({ type: MESSAGE_TYPES.DOWNLOAD_ERROR, error: 'Invalid configuration' });
+            return;
+        }
+        
+        if (typeof workerConfig.apiBase !== 'string' || workerConfig.apiBase.length === 0) {
+            console.error('[Download Worker] Invalid apiBase:', workerConfig.apiBase);
+            self.postMessage({ type: MESSAGE_TYPES.DOWNLOAD_ERROR, error: 'Invalid API base URL' });
+            return;
+        }
+        
+        if (typeof threadCount !== 'number' || threadCount <= 0 || threadCount > 16) {
+            console.error('[Download Worker] Invalid threadCount:', threadCount);
+            self.postMessage({ type: MESSAGE_TYPES.DOWNLOAD_ERROR, error: 'Invalid thread count' });
+            return;
+        }
+        
         config = workerConfig;
         isRunning = true;
         abortController = new AbortController();
