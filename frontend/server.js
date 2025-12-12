@@ -26,7 +26,7 @@ app.use(compression({
 app.use((req, res, next) => {
     res.setHeader('Content-Security-Policy',
         'default-src \'self\';' +
-        'script-src \'self\' https://unpkg.com \'sha256-EkVUbQOqQ6eqpRFBV8eRg5m794b8DQlpRuuyLlOp3bw=\'; ' +
+        'script-src \'self\' https://unpkg.com \'sha256-U5hkAcSFHGE87nSIQMzlUvzoS0mrXlI26UvC2bAOFzM=\'; ' +
         'style-src \'self\'; ' +
         'img-src \'self\' data: https:; ' +
         'font-src \'self\' data:; ' +
