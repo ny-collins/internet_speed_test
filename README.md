@@ -196,6 +196,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 ## 📚 Documentation
-- **[Technical Notes](docs/TECHNICAL_NOTES.md)** - Design decisions & performance optimizations
-- **[Functionality](docs/FUNCTIONALITY.md)** - System architecture & API details
-- **[Changelog](docs/CHANGELOG.md)** - Version history & release notes
+- **[Architecture](docs/ARCHITECTURE.md)** - System architecture, test flow, and API reference
+- **[Design](docs/DESIGN.md)** - Design decisions and technical rationale
+- **[Deployment](docs/DEPLOYMENT.md)** - Deployment guide and environment configuration
+- **[Security](docs/SECURITY.md)** - Security architecture and audit results
+- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
