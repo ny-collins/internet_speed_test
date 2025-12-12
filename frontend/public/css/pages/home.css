@@ -26,17 +26,6 @@
     box-shadow: none;
 }
 
-.gauge-container-split {
-    position: relative;
-    width: 100%;
-    max-width: 360px;
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-
 .cards-section {
     display: flex;
     flex-direction: column;
@@ -123,8 +112,6 @@
     color: var(--color-text-secondary);
     font-weight: 500;
 }
-
-/* OLD STAGE-TRAY SYSTEM - DEPRECATED */
 
 .active-stage {
     position: relative;
@@ -328,7 +315,6 @@
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
         min-height: 85vh;
-        /* Allow content to fit naturally but try to stay compact */
         height: auto;
         gap: var(--spacing-md);
     }
@@ -337,22 +323,23 @@
         padding: var(--spacing-md);
     }
     
+    .gauge-wrapper,
     .gauge-container-split {
         max-width: 200px;
     }
     
     .cards-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2x2 Grid for compactness */
+        grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(2, 1fr);
         gap: var(--spacing-sm);
     }
     
     .speed-cards-row {
-        display: contents; /* Flatten hierarchy for grid */
+        display: contents;
     }
     
     .secondary-metrics {
-        display: contents; /* Flatten hierarchy for grid */
+        display: contents;
     }
     
     .tray-mini-graph {
@@ -365,7 +352,7 @@
         padding: var(--spacing-md);
         background: var(--color-bg-elevated);
         border: 1px solid var(--color-border);
-        border-radius: var(--radius-xl); /* Match tray-card style */
+        border-radius: var(--radius-xl);
     }
     
     .secondary-metric .matrix-content {
@@ -434,26 +421,6 @@
     justify-content: center;
     align-items: center;
     padding: var(--spacing-2xl) var(--spacing-xl);
-}
-
-
-.gauge-container-split {
-    position: relative;
-    width: 100%;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-.gauge-wrapper,
-.gauge-container-split {
-    position: relative;
-    width: 100%;
-    max-width: 360px; 
-    aspect-ratio: 1 / 1;
-    background: transparent;
-    border: none;
-    box-shadow: none;
 }
 
 .gauge-circle {

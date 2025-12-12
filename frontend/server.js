@@ -10,15 +10,11 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const API_URL = process.env.API_URL || 'https://speed-test-backend.up.railway.app';
 
-// Remove X-Powered-By header (information leak)
 app.disable('x-powered-by');
 
-// Enable gzip/brotli compression for all responses
-// Reduces HTML from ~35KB to ~10KB (70% compression ratio)
-// Enables single-roundtrip delivery within TCP Initial Congestion Window (14KB)
 app.use(compression({
-    level: 6, // Balance between compression speed and ratio
-    threshold: 1024, // Only compress responses > 1KB
+    level: 6,
+    threshold: 1024,
     filter: (req, res) => {
         if (req.headers['x-no-compression']) {
             return false;
@@ -27,9 +23,7 @@ app.use(compression({
     }
 }));
 
-// Security headers middleware
 app.use((req, res, next) => {
-    // Content Security Policy - NO unsafe-inline for maximum security
     res.setHeader('Content-Security-Policy',
         'default-src \'self\';' +
         'script-src \'self\' https://unpkg.com \'sha256-EkVUbQOqQ6eqpRFBV8eRg5m794b8DQlpRuuyLlOp3bw=\'; ' +
@@ -43,19 +37,14 @@ app.use((req, res, next) => {
         'form-action \'self\';'
     );
 
-    // HSTS - Force HTTPS for 1 year
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
-    // Prevent clickjacking
     res.setHeader('X-Frame-Options', 'DENY');
 
-    // Prevent MIME sniffing
     res.setHeader('X-Content-Type-Options', 'nosniff');
 
-    // Referrer policy
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-    // Permissions policy (restrict features)
     res.setHeader('Permissions-Policy',
         'geolocation=(), ' +
         'microphone=(), ' +
@@ -69,16 +58,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve static files from 'public' directory only (prevents exposing server.js)
 app.use(express.static(path.join(__dirname, 'public'), {
     extensions: ['html'],
     index: 'index.html',
     setHeaders: (res, filePath) => {
-        // Aggressive caching for versioned assets (CSS, JS with ?v=x.x.x)
         if (filePath.match(/\.(css|js|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico|webmanifest)$/)) {
             res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         } else if (filePath.endsWith('.html')) {
-            // No caching for HTML to ensure fresh content
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         }
     }

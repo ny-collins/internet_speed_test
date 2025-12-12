@@ -120,7 +120,7 @@
     border: none;
     cursor: pointer;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-base);
-    text-decoration: none !important;
+    text-decoration: none;
     position: relative;
     overflow: hidden;
 }
@@ -1086,7 +1086,7 @@ input[type="range"]::-moz-range-track {
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none !important;
+    transform: none;
 }
 
 .btn:not(:disabled):hover {

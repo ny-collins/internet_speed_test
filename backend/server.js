@@ -436,14 +436,6 @@ app.get('/api/info', (req, res) => {
 // Utility Endpoints
 // ========================================
 
-app.get('/api/info', (req, res) => {
-  res.json({
-    downloadSize: config.maxDownloadSizeMB,
-    uploadSize: config.maxUploadSizeMB,
-    serverLocation: config.serverLocation
-  });
-});
-
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',

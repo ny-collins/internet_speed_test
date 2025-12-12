@@ -9,7 +9,7 @@ const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
 
   maxDownloadSizeMB: parseInt(process.env.MAX_DOWNLOAD_SIZE_MB || '50', 10),
-  maxUploadSizeMB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10),
+  maxUploadSizeMB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '20', 10),
 
   rateLimit: {
     enabled: (process.env.ENABLE_RATE_LIMIT || 'true').toLowerCase() === 'true',

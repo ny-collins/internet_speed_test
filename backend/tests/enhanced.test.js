@@ -26,8 +26,7 @@ describe('API Enhanced Test Suite', () => {
   // ========================================
 
   test('Rejects oversized uploads with 413', async () => {
-    // Create buffer larger than MAX_UPLOAD_SIZE_MB (default 50MB)
-    const oversizeData = Buffer.alloc(51 * 1024 * 1024); // 51MB
+    const oversizeData = Buffer.alloc(51 * 1024 * 1024);
 
     try {
       const res = await request(app)
@@ -35,12 +34,9 @@ describe('API Enhanced Test Suite', () => {
         .send(oversizeData)
         .set('Content-Type', 'application/octet-stream');
 
-      // If we get a response, it should be 413
       expect(res.status).toBe(413);
       expect(res.body).toHaveProperty('error');
     } catch (error) {
-      // Connection reset is also acceptable behavior for oversized uploads
-      // Server destroys the connection when limit is exceeded
       expect(error.code).toMatch(/ECONNRESET|EPIPE/);
     }
   }, 30000);
@@ -86,13 +82,11 @@ describe('API Enhanced Test Suite', () => {
   test('Handles client disconnect gracefully', async () => {
     const req = request(app).get('/api/download?size=10');
 
-    // Abort request mid-stream
     setTimeout(() => req.abort(), 100);
 
     try {
       await req;
     } catch (error) {
-      // Request aborted - this is expected behavior
       expect(error.code).toMatch(/ECONNRESET|ABORTED/);
     }
   });

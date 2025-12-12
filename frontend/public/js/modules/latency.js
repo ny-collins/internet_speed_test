@@ -104,10 +104,7 @@ export async function measureLatency() {
 }
 
 function calculateJitter(samples) {
-    if (samples.length < 2) return 0;
-
-    // RFC 3393: Mean Packet Delay Variation (average of absolute differences)
-    let sumDifferences = 0;
+    if (samples.length < 2) return 0;\n\n    let sumDifferences = 0;
     for (let i = 1; i < samples.length; i++) {
         sumDifferences += Math.abs(samples[i] - samples[i - 1]);
     }

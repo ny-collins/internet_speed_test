@@ -16,10 +16,8 @@ describe('API basic endpoints', () => {
   });
 
   test('Download size clamp works', async () => {
-    // Request something larger than max to ensure clamp (assuming max 50)
     const res = await request(app).get('/api/download?size=999');
     expect(res.status).toBe(200);
-    // Content-Length should be <= 50MB
     const len = parseInt(res.header['content-length'], 10);
     expect(len).toBeLessThanOrEqual(50 * 1024 * 1024);
   });

@@ -992,20 +992,32 @@ CONFIG = {
   
   threads: {
     download: 4,
-    upload: 4
+    upload: 4,
+    min: 1,
+    max: 8
   },
   
   duration: {
-    download: { max: 10, min: 5, default: 10 },
-    upload: { max: 10, min: 5, default: 10 }
+    download: { max: 20, min: 8, default: 10 },
+    upload: { max: 20, min: 8, default: 10 }
   },
   
-  updateInterval: 100,  // ms between gauge updates
+  uploadSize: 20,      // MB - max data to upload per test
+  downloadSize: 50,    // MB - max data to download per test
+  
+  updateInterval: 100, // ms between gauge updates (auto-adjusts based on hardware)
   
   stability: {
-    sampleCount: 10,
-    threshold: 0.05  // 5% coefficient of variation
-  }
+    sampleCount: 5,
+    checkWindow: 10,
+    varianceThreshold: 0.30  // 30% variance threshold
+  },
+  
+  warmupDuration: 2.0, // seconds
+  chunkSize: 512,      // KB per chunk
+  connectionTimeout: 10000, // ms
+  maxRetries: 2,
+  retryDelay: 1000     // ms
 }
 ```
 
@@ -1017,7 +1029,27 @@ CONFIG = {
   nodeEnv: process.env.NODE_ENV || 'development',
   
   maxDownloadSizeMB: 50,
-  maxUploadSizeMB: 50,
+  maxUploadSizeMB: 20,  // Aligned with frontend config
+  
+  rateLimit: {
+    enabled: true,
+    windowMs: 60000,  // 1 minute
+    max: 120          // requests per window
+  },
+  
+  maxInflightRequests: 100,  // Circuit breaker threshold
+  
+  corsOrigin: '*',  // or comma-separated domains
+  
+  logLevel: 'info',
+  
+  metrics: {
+    enabled: true  // Prometheus metrics at /metrics
+  },
+  
+  serverLocation: 'EU WEST (Amsterdam, Netherlands)'
+}
+```
   
   rateLimit: {
     enabled: true,

@@ -154,7 +154,6 @@ export function updateGauge(speed, phase) {
 
         updateMatrixCardLive(phase, speed);
 
-        // Dynamic Scale Logic
         const newScaleIdx = getScaleForSpeed(speed);
         if (newScaleIdx > currentScaleIdx) {
             renderGaugeScale(newScaleIdx);
@@ -266,7 +265,6 @@ export function resetAllPhases() {
 }
 
 export function updateResultCard(type, result) {
-    // Select from both tray-card and secondary-metric elements
     const trayCard = document.querySelector(`.tray-card[data-metric="${type}"], .secondary-metric[data-metric="${type}"]`);
     const resultCard = document.querySelector(`.result-card[data-metric="${type}"]`);
 
@@ -669,8 +667,6 @@ function drawToCanvas(canvas, ctx, width, height) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Show all samples compressed horizontally to fit canvas width
-    // This ensures complete test history is visible without left-edge clipping
     const stepX = width / Math.max(samples.length - 1, 1);
 
     ctx.beginPath();
@@ -918,7 +914,6 @@ export function generatePhysicsAwareAnalysis(testData) {
     const { latency, jitter, download, upload, distance } = testData;
     const analysis = [];
 
-    // Latency analysis with physics context
     if (latency) {
         const minTheoretical = distance ? (distance / 200000) * 1000 : 0; // Speed of light in fiber
         const isReasonable = latency < 200;
@@ -938,7 +933,6 @@ export function generatePhysicsAwareAnalysis(testData) {
         }
     }
 
-    // Jitter analysis
     if (jitter !== undefined) {
         const isStable = jitter < 30;
         analysis.push({
@@ -948,7 +942,6 @@ export function generatePhysicsAwareAnalysis(testData) {
         });
     }
 
-    // Download analysis
     if (download) {
         analysis.push({
             metric: 'Download',
@@ -957,7 +950,6 @@ export function generatePhysicsAwareAnalysis(testData) {
         });
     }
 
-    // Upload analysis
     if (upload) {
         analysis.push({
             metric: 'Upload',
@@ -1218,7 +1210,6 @@ export function updateTestContext(testData) {
 
     panel.hidden = false;
 
-    // Generate and display physics-aware analysis
     const analysisSection = document.getElementById('resultsAnalysis');
     const analysisItems = document.getElementById('analysisItems');
 
