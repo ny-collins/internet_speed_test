@@ -22,6 +22,7 @@
     justify-content: center;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-sm);
+    text-decoration: none;
 }
 
 .logo-icon {

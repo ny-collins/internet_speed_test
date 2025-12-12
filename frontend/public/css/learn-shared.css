@@ -14,6 +14,13 @@
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+.page-loader .loader-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+}
+
 .page-loader.hidden {
     opacity: 0;
     visibility: hidden;

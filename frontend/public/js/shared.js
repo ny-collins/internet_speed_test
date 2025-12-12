@@ -2,8 +2,8 @@
 // SHARED - Lightweight Entry for Content Pages
 // ========================================
 
-import { initializeTheme } from './js/engine.js';
-import { registerServiceWorker } from './js/worker.js';
+import { initializeTheme } from './engine.js';
+import { registerServiceWorker } from './worker.js';
 
 // ========================================
 // INITIALIZATION
