@@ -4,7 +4,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: interest-cohort=(), geolocation=(), microphone=(), camera=(), payment=(), usb=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com 'sha256-svcEdWetH/z7RMYzmk3gQcGOgRHKrwMZvIO6FLJpIIU=' 'sha256-Ngw5Ck3DqZdp6C8FAwkH5ltLdQafJj5x8MJ/ih+UtJs='; style-src 'self'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://speed-test-backend.up.railway.app https://unpkg.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com 'sha256-svcEdWetH/z7RMYzmk3gQcGOgRHKrwMZvIO6FLJpIIU=' 'sha256-Ngw5Ck3DqZdp6C8FAwkH5ltLdQafJj5x8MJ/ih+UtJs=' 'sha256-HS381vMuIXW0YhrHSamSPoWoss5z0sDtb+bw2qwO96A='; style-src 'self'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://speed-test-backend.up.railway.app https://unpkg.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';
   Access-Control-Allow-Origin: https://speed-test.up.railway.app
 
 /*.js
