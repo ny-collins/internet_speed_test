@@ -37,7 +37,7 @@ describe('CONFIG', () => {
 
     test('has correct data transfer configuration', () => {
         expect(CONFIG.chunkSize).toBe(512);
-        expect(CONFIG.uploadSize).toBe(10);
+        expect(CONFIG.uploadSize).toBe(20);
         expect(CONFIG.downloadSize).toBe(50);
     });
 
