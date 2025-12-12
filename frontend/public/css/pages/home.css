@@ -443,7 +443,7 @@
 }
 
 .gauge-circle[hidden] {
-    pointer-events: none;
+    display: none;
 }
 
 .gauge-progress {
@@ -542,7 +542,7 @@
 }
 
 .gauge-inner[hidden] {
-    pointer-events: none;
+    display: none;
 }
 
 .gauge-value-live {
@@ -766,6 +766,10 @@ canvas#historyChart {
     align-items: center;
     justify-content: center;
     padding: var(--spacing-lg);
+}
+
+.modal[hidden] {
+    display: none;
 }
 
 .modal-overlay {
