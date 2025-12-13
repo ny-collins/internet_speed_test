@@ -296,25 +296,6 @@ export function updateResultCard(type, result) {
 
             showMeasurementInfoButton(type, result);
 
-            const quality = getSpeedQuality(result.speed, type);
-            let badge = trayCard.querySelector('.quality-badge');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.className = 'quality-badge';
-                trayCard.appendChild(badge);
-            }
-            badge.textContent = quality;
-            badge.className = `quality-badge ${quality.toLowerCase()}`;
-
-            let context = trayCard.querySelector('.matrix-context');
-            if (!context) {
-                context = document.createElement('div');
-                context.className = 'matrix-context';
-                context.id = `${type}-context`; // Update ID for accessibility
-                trayCard.querySelector('.matrix-content').appendChild(context);
-            }
-            context.innerHTML = getSpeedContext(result.speed, type);
-
             // Update loaded latency display if available
             if (result.loadedLatency && STATE.testResults.latency?.average) {
                 updateLoadedLatency(type, result.loadedLatency, STATE.testResults.latency.average);
@@ -466,12 +447,6 @@ export function clearResultsDisplay() {
     if (bufferbloatCard) {
         const matrixNumber = bufferbloatCard.querySelector('.matrix-number');
         if (matrixNumber) matrixNumber.textContent = '—';
-        
-        const badge = bufferbloatCard.querySelector('.quality-badge');
-        if (badge) badge.remove();
-        
-        const context = bufferbloatCard.querySelector('.matrix-context');
-        if (context) context.innerHTML = '';
     }
 }
 
@@ -1059,27 +1034,6 @@ export function updateBufferbloatDisplay(idleLatency) {
     if (matrixUnit) {
         matrixUnit.id = 'bufferbloat-unit';
     }
-
-    // Add quality badge
-    const quality = getBufferbloatQuality(bufferbloat);
-    let badge = bufferbloatCard.querySelector('.quality-badge');
-    if (!badge) {
-        badge = document.createElement('div');
-        badge.className = 'quality-badge';
-        bufferbloatCard.appendChild(badge);
-    }
-    badge.textContent = quality;
-    badge.className = `quality-badge bufferbloat-${quality.toLowerCase()}`;
-
-    // Add context text
-    let context = bufferbloatCard.querySelector('.matrix-context');
-    if (!context) {
-        context = document.createElement('div');
-        context.className = 'matrix-context';
-        context.id = 'bufferbloat-context';
-        bufferbloatCard.querySelector('.matrix-content').appendChild(context);
-    }
-    context.innerHTML = getBufferbloatContext(bufferbloat);
 }
 
 /**
