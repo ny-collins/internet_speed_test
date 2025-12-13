@@ -254,6 +254,12 @@
                                         <span class="matrix-unit" id="download-unit">Mbps</span>
                                     </div>
                                     <div class="matrix-context" id="download-context"></div>
+                                    <div class="loaded-latency-display" id="download-loaded-latency" hidden aria-label="Loaded latency during download">
+                                        <i data-lucide="activity" aria-hidden="true"></i>
+                                        <span class="loaded-latency-label">Under load:</span>
+                                        <span class="loaded-latency-value" id="download-loaded-latency-value">—</span>
+                                        <span class="loaded-latency-unit">ms</span>
+                                    </div>
                                     <canvas class="tray-mini-graph" id="downloadMiniGraph" width="280" height="80" aria-label="Download speed curve"></canvas>
                                 </div>
                             </div>
@@ -269,6 +275,12 @@
                                         <span class="matrix-unit" id="upload-unit">Mbps</span>
                                     </div>
                                     <div class="matrix-context" id="upload-context"></div>
+                                    <div class="loaded-latency-display" id="upload-loaded-latency" hidden aria-label="Loaded latency during upload">
+                                        <i data-lucide="activity" aria-hidden="true"></i>
+                                        <span class="loaded-latency-label">Under load:</span>
+                                        <span class="loaded-latency-value" id="upload-loaded-latency-value">—</span>
+                                        <span class="loaded-latency-unit">ms</span>
+                                    </div>
                                     <canvas class="tray-mini-graph" id="uploadMiniGraph" width="280" height="80" aria-label="Upload speed curve"></canvas>
                                 </div>
                             </div>
@@ -297,6 +309,19 @@
                                     <div class="matrix-value" aria-live="polite" aria-atomic="true">
                                         <span class="matrix-number" id="jitter-value">—</span>
                                         <span class="matrix-unit" id="jitter-unit">ms</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="secondary-metric" data-metric="bufferbloat" role="group" aria-labelledby="bufferbloat-label">
+                                <div class="matrix-icon">
+                                    <i data-lucide="waves" aria-hidden="true"></i>
+                                </div>
+                                <div class="matrix-content">
+                                    <div class="matrix-label" id="bufferbloat-label">Bufferbloat</div>
+                                    <div class="matrix-value" aria-live="polite" aria-atomic="true">
+                                        <span class="matrix-number" id="bufferbloat-value">—</span>
+                                        <span class="matrix-unit" id="bufferbloat-unit">ms</span>
                                     </div>
                                 </div>
                             </div>

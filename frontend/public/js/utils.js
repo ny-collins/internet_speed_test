@@ -69,6 +69,20 @@ export function getJitterQuality(jitter) {
     return 'Unstable';
 }
 
+export function getBufferbloatQuality(bufferbloat) {
+    if (bufferbloat <= 10) return 'Minimal';
+    if (bufferbloat <= 50) return 'Acceptable';
+    if (bufferbloat <= 100) return 'High';
+    return 'Severe';
+}
+
+export function getBufferbloatContext(bufferbloat) {
+    if (bufferbloat <= 10) return '✓ Great for gaming<br>✓ Real-time apps';
+    if (bufferbloat <= 50) return '✓ Good for most uses<br>⚠ Minor lag possible';
+    if (bufferbloat <= 100) return '⚠ Noticeable lag<br>⚠ Gaming affected';
+    return '⚠ Severe lag<br>⚠ Poor real-time performance';
+}
+
 export function getFriendlyError(errorMessage) {
     const errors = {
         'Failed to fetch': 'Connection lost. Check your internet connection and try again.',

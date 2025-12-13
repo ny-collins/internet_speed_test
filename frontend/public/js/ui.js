@@ -2,7 +2,7 @@
 import { DOM } from './dom.js';
 import { STATE } from './state.js';
 import { CONFIG } from './config.js';
-import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getSpeedContext } from './utils.js';
+import { formatBytes, getSpeedQuality, getLatencyQuality, getJitterQuality, getBufferbloatQuality, getBufferbloatContext, getSpeedContext } from './utils.js';
 
 const GAUGE_SCALES = [
     { max: 100, labels: [0, 1, 5, 10, 25, 50, 75, 100] },
@@ -314,6 +314,11 @@ export function updateResultCard(type, result) {
                 trayCard.querySelector('.matrix-content').appendChild(context);
             }
             context.innerHTML = getSpeedContext(result.speed, type);
+
+            // Update loaded latency display if available
+            if (result.loadedLatency && STATE.testResults.latency?.average) {
+                updateLoadedLatency(type, result.loadedLatency, STATE.testResults.latency.average);
+            }
         }
 
         if (resultCard) {
@@ -448,6 +453,26 @@ export function clearResultsDisplay() {
     if (varianceContainer) varianceContainer.hidden = true;
 
     resetVarianceGraph();
+
+    // Hide loaded latency displays
+    document.querySelectorAll('.loaded-latency-display').forEach(display => {
+        display.hidden = true;
+        const valueEl = display.querySelector('.loaded-latency-value');
+        if (valueEl) valueEl.textContent = '—';
+    });
+
+    // Reset bufferbloat display
+    const bufferbloatCard = document.querySelector('.secondary-metric[data-metric="bufferbloat"]');
+    if (bufferbloatCard) {
+        const matrixNumber = bufferbloatCard.querySelector('.matrix-number');
+        if (matrixNumber) matrixNumber.textContent = '—';
+        
+        const badge = bufferbloatCard.querySelector('.quality-badge');
+        if (badge) badge.remove();
+        
+        const context = bufferbloatCard.querySelector('.matrix-context');
+        if (context) context.innerHTML = '';
+    }
 }
 
 export function setProgress(percent) {
@@ -985,6 +1010,76 @@ export function updateLatencyContext(latency) {
 
     contextEl.textContent = text;
     contextEl.style.display = 'block';
+}
+
+/**
+ * Update loaded latency display for download or upload
+ */
+export function updateLoadedLatency(type, loadedLatency, idleLatency) {
+    if (!loadedLatency || !loadedLatency.average) return;
+
+    const loadedLatencyDisplay = document.getElementById(`${type}-loaded-latency`);
+    const loadedLatencyValue = document.getElementById(`${type}-loaded-latency-value`);
+
+    if (loadedLatencyDisplay && loadedLatencyValue) {
+        loadedLatencyValue.textContent = loadedLatency.average.toFixed(0);
+        loadedLatencyDisplay.hidden = false;
+
+        // Calculate bufferbloat after both download and upload complete
+        if (STATE.testResults.download?.loadedLatency && STATE.testResults.upload?.loadedLatency) {
+            updateBufferbloatDisplay(idleLatency);
+        }
+    }
+}
+
+/**
+ * Update bufferbloat display after both download and upload tests complete
+ */
+export function updateBufferbloatDisplay(idleLatency) {
+    const downloadLoaded = STATE.testResults.download?.loadedLatency?.average;
+    const uploadLoaded = STATE.testResults.upload?.loadedLatency?.average;
+
+    if (!downloadLoaded || !uploadLoaded || !idleLatency) return;
+
+    // Use the worst case (highest loaded latency)
+    const maxLoadedLatency = Math.max(downloadLoaded, uploadLoaded);
+    const bufferbloat = maxLoadedLatency - idleLatency;
+
+    const bufferbloatCard = document.querySelector('.secondary-metric[data-metric="bufferbloat"]');
+    if (!bufferbloatCard) return;
+
+    const matrixNumber = bufferbloatCard.querySelector('.matrix-number');
+    const matrixUnit = bufferbloatCard.querySelector('.matrix-unit');
+
+    if (matrixNumber) {
+        matrixNumber.textContent = bufferbloat.toFixed(0);
+        matrixNumber.id = 'bufferbloat-value';
+    }
+
+    if (matrixUnit) {
+        matrixUnit.id = 'bufferbloat-unit';
+    }
+
+    // Add quality badge
+    const quality = getBufferbloatQuality(bufferbloat);
+    let badge = bufferbloatCard.querySelector('.quality-badge');
+    if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'quality-badge';
+        bufferbloatCard.appendChild(badge);
+    }
+    badge.textContent = quality;
+    badge.className = `quality-badge bufferbloat-${quality.toLowerCase()}`;
+
+    // Add context text
+    let context = bufferbloatCard.querySelector('.matrix-context');
+    if (!context) {
+        context = document.createElement('div');
+        context.className = 'matrix-context';
+        context.id = 'bufferbloat-context';
+        bufferbloatCard.querySelector('.matrix-content').appendChild(context);
+    }
+    context.innerHTML = getBufferbloatContext(bufferbloat);
 }
 
 /**
